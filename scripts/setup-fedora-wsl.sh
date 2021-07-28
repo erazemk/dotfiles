@@ -2,11 +2,25 @@
 # Script for setting up WSL2 based on Fedora
 
 # Variables
-USER=default
-EMAIL=default
-GPG_PRIVKEY=default
+USER=""
+EMAIL=""
+GPG_PRIVKEY=""
+ROOT_PASS=""
+USER_PASS=""
 
 setup() {
+    # Ask all user questions
+    echo -n "Enter root user's password: "
+    read ROOT_PASS
+    echo -n "Enter custom user's username: "
+    read USER
+    echo -n "Enter custom user's password: "
+    read USER_PASS
+    echo -n "Enter GPG private key file name: "
+    read GPG_PRIVKEY
+    echo -n "Enter GPG private key email: "
+    read EMAIL
+
     # Optimize DNF
     echo "Optimizing DNF"
     echo "max_parallel_downloads=10" >> /etc/dnf/dnf.conf
@@ -34,8 +48,14 @@ setup() {
 
     # Set root password
     dnf install -y --quiet passwd cracklib-dicts ncurses >/dev/null
-    echo "Set root password:"
-    passwd root
+    echo -e "$ROOT_PASS\n$ROOT_PASS" | passwd root >/dev/null
+}
+
+configure_sudo() {
+    # Allow the user to manually edit the sudoers file
+    echo "Edit the sudoers file (press enter to continue)"
+    read
+    visudo
 }
 
 install_packages() {
@@ -46,23 +66,11 @@ install_packages() {
     dnf install -y --quiet $(grep "^[^#]" $packages) >/dev/null
 }
 
-configure_sudo() {
-    # Allow the user to manually edit the sudoers file
-    echo "Edit the sudoers file (press enter to continue)"
-    read
-    visudo
-}
-
 setup_user() {
     # Install fish shell
     dnf install -y --quiet fish >/dev/null
-
-    echo -n "Specify custom user's username: "
-    read USER
-
     useradd -s /usr/bin/fish -G wheel $USER
-    echo "Set password for $USER:"
-    passwd $USER
+    echo -e "$USER_PASS\n$USER_PASS" | passwd $USER >/dev/null
 }
 
 configure_dotfiles() {
@@ -117,14 +125,13 @@ configure_gpg() {
     echo "Setting up GPG key"
     dnf install -y --quiet pinentry >/dev/null
 
-    echo -n "Specify GPG privkey file: "
-    read GPG_PRIVKEY
-    echo -n "Specify GPG privkey email: "
-    read EMAIL
+    GPG_PRIVKEY=$(basename $GPG_PRIVKEY)
+    gpg_privkey_file=$(find / -type f -name $GPG_PRIVKEY -print -quit)
+    
+    chown $USER:$USER $gpg_privkey_file
+    mv $gpg_privkey_file /home/$USER/
 
-    chown $USER:$USER $GPG_PRIVKEY
-
-    su $USER -c "mkdir /home/$USER/.config/gnupg; gpg --import $GPG_PRIVKEY"
+    su $USER -c "mkdir /home/$USER/.config/gnupg; gpg --import /home/$USER/$GPG_PRIVKEY"
 
     # Set GPG privkey trust
     echo "Set the GPG key's trust (press enter to continue)"
@@ -154,19 +161,10 @@ cleanup() {
     rm /home/$USER/.bash*
 }
 
-# Extra, not used
-setup_docker() {
-    # Install docker repo
-    echo "Installing docker"
-    dnf config-manager -y --add-repo https://download.docker.com/linux/fedora/docker-ce.repo >/dev/null
-    dnf install -y docker-ce docker-ce-cli containerd.io >/dev/null
-    systemctl start docker
-}
-
 # Run functions
 setup
-install_packages
 configure_sudo
+install_packages
 setup_user
 configure_dotfiles
 run_stow
