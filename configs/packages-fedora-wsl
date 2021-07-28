@@ -2,6 +2,7 @@ curl
 gdb
 golang
 iproute
+iputils
 java-11-openjdk-devel
 java-latest-openjdk-devel
 jq
