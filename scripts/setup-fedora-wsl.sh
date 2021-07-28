@@ -96,6 +96,7 @@ run_stow() {
     stow -t /home/$USER -S git
 
     mkdir -p /home/$USER/.config/gnupg
+    chmod 700 /home/$USER/.config/gnupg
     stow -t /home/$USER -S gnupg
 
     mkdir -p /home/$USER/.config/mpv
