@@ -29,6 +29,7 @@ setup() {
 
     # Enable trustywolf/wslu COPR repo and install wslu
     echo "Enabling trustywolf/wslu COPR repo"
+    dnf install -y --quiet dnf-plugins-core dnf-utils
     dnf copr enable -y --quiet trustywolf/wslu
     dnf install -y --quiet wslu
 
