@@ -1,0 +1,73 @@
+#
+# ~/.config/git/config
+#
+
+[alias]
+    a = add
+    d = diff
+    f = fetch --all
+    l = log
+    lo = log --oneline
+    o = checkout
+    ob = checkout -b
+    c = commit
+    cm = commit -m
+    b = branch
+    m = merge
+    cl = clone --recurse-submodules
+    ps = push
+    pl = pull
+    rb = rebase -i
+    re = reset
+    reh = reset --hard
+    res = reset --soft
+    r = remote
+    ra = remote add
+    rv = remote -c
+    s = status
+    t = tag
+
+[color]
+    ui = true
+    pager = yes
+
+[commit]
+    gpgsign = true
+
+[core]
+    autocrlf = input
+    editor = nvim
+    excludesfile = ~/.config/git/gitignore
+    pager = less
+
+[filter "lfs"]
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+
+[help]
+    autocorrect = 1
+
+[init]
+    defaultBranch = main
+
+[push]
+    followTags = true
+    default = simple
+
+[pull]
+    rebase = true
+
+[sendemail]
+    smtpencryption = tls
+    smtpserver = smtp.migadu.com
+    smtpuser = contact@erazem.eu
+    smtpserverport = 465
+    annotate = yes
+
+[user]
+    email = contact@erazem.eu
+    name = Erazem Kokot
+    username = erazemk
+    signingkey = 39126BDF1ECF8BEAE269C97FF02E698E82028452

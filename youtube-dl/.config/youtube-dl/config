@@ -1,0 +1,20 @@
+#
+# ~/.config/youtube-dl/config
+#
+
+# Ignore unavailable files
+--ignore-errors
+
+# Bypass geographic restrictions
+--geo-bypass-country US
+
+# Container-specific options
+#--embed-subs
+#--add-metadata
+#--write-sub
+
+# Use an open source format if possible
+#--prefer-free-formats
+
+# Remove video ID from title
+-o /mnt/d/Videos/YouTube/'%(title)s.%(ext)s'

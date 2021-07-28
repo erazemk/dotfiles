@@ -1,0 +1,4 @@
+#!/bin/sh
+# Fix "gpg-agent refused operation" errors
+
+gpg-connect-agent updatestartuptty /bye

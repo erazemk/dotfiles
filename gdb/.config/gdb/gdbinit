@@ -1,0 +1,9 @@
+#
+# ~/.config/gdb/gdbinit
+#
+
+# Enable intel-style assembly code output
+set disassembly-flavor intel
+
+# Follow children of forks
+set follow-fork-mode child
