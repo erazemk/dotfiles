@@ -1,7 +1,6 @@
 curl
 dnf-plugins-core
 dnf-utils
-findutils
 gdb
 golang
 iproute

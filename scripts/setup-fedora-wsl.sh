@@ -39,7 +39,10 @@ setup() {
 }
 
 install_packages() {
-    echo "Installing selected packages: $(grep "^[^#]" $PACKAGES)"
+    echo "Installing packages"
+    dnf install -y --quiet findutils
+    PACKAGES=$(find /root -type f -name "packages-fedora-wsl")
+    echo "Packages to install: $(grep "^[^#]" $PACKAGES)"
     dnf install -y --quiet $(grep "^[^#]" $PACKAGES)
 }
 
