@@ -11,6 +11,7 @@ set fish_greeting
 
 # Random
 abbr lsblk 'lsblk -f'
+abbr mp 'multipass.exe'
 
 # Directories
 abbr mkdir 'mkdir -p'
