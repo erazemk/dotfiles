@@ -3,7 +3,6 @@
 
 # Variables
 USER=default
-PACKAGES=../configs/packages-fedora-wsl
 EMAIL=default
 GPG_PRIVKEY=default
 
@@ -42,9 +41,9 @@ setup() {
 install_packages() {
     echo "Installing packages"
     dnf install -y --quiet findutils
-    PACKAGES=$(find /root -type f -name "packages-fedora-wsl")
-    echo "Packages to install: $(grep "^[^#]" $PACKAGES)"
-    dnf install -y --quiet $(grep "^[^#]" $PACKAGES)
+    packages=$(find /root -type f -name "packages-fedora-wsl")
+    echo "Packages to install: $(echo $(grep "^[^#]" $packages))"
+    dnf install -y --quiet $(grep "^[^#]" $packages)
 }
 
 configure_sudo() {
@@ -60,13 +59,9 @@ setup_user() {
 
     echo -n "Specify custom user's username: "
     read USER
-    echo -n "Specify GPG privkey file: "
-    read GPG_PRIVKEY
-    echo -n "Specify GPG privkey email: "
-    read EMAIL
 
     useradd -s /usr/bin/fish -G wheel $USER
-    echo -n "Set password for $USER: "
+    echo "Set password for $USER:"
     passwd $USER
 }
 
@@ -76,7 +71,7 @@ configure_dotfiles() {
     su $USER -c "
         mkdir -p /home/$USER/.config;
         git clone --quiet https://gitlab.com/erazemk/dotfiles.git /home/$USER/.config/dotfiles;
-        git --quiet -C /home/$USER/.config/dotfiles remote set-url origin git@gitlab.com:erazemk/dotfiles.git
+        git -C /home/$USER/.config/dotfiles remote set-url origin git@gitlab.com:erazemk/dotfiles.git
     "
 }
 
@@ -120,6 +115,12 @@ run_stow() {
 configure_gpg() {
     echo "Setting up GPG key"
     dnf install -y --quiet pinentry
+
+    echo -n "Specify GPG privkey file: "
+    read GPG_PRIVKEY
+    echo -n "Specify GPG privkey email: "
+    read EMAIL
+
     su $USER -c "mkdir /home/$USER/.config/gnupg; gpg --import $GPG_PRIVKEY"
 
     # Set GPG privkey trust
