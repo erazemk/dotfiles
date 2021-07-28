@@ -14,36 +14,36 @@ setup() {
 
     # Update packages
     echo "Upgrading packages"
-    dnf upgrade -y --quiet --refresh
+    dnf upgrade -y --quiet --refresh >/dev/null
 
     # Enable delta RPMs
     echo "Enabling delta RPMs"
-    dnf install -y --quiet deltarpm
+    dnf install -y --quiet deltarpm >/dev/null
     echo "deltarpm=True" >> /etc/dnf/dnf.conf
-    dnf upgrade -y --quiet --refresh
+    dnf upgrade -y --quiet --refresh >/dev/null
 
     # Reinstall shadow-utils
     echo "Reinstalling shadow utils"
-    dnf reinstall -y --quiet shadow-utils
+    dnf reinstall -y --quiet shadow-utils >/dev/null
 
     # Enable trustywolf/wslu COPR repo and install wslu
     echo "Enabling trustywolf/wslu COPR repo"
-    dnf install -y --quiet dnf-plugins-core dnf-utils
-    dnf copr enable -y --quiet trustywolf/wslu
-    dnf install -y --quiet wslu
+    dnf install -y --quiet dnf-plugins-core dnf-utils >/dev/null
+    dnf copr enable -y trustywolf/wslu &>/dev/null
+    dnf install -y --quiet wslu >/dev/null
 
     # Set root password
-    dnf install -y --quiet passwd cracklib-dicts ncurses
+    dnf install -y --quiet passwd cracklib-dicts ncurses >/dev/null
     echo "Set root password:"
     passwd root
 }
 
 install_packages() {
     echo "Installing packages"
-    dnf install -y --quiet findutils
+    dnf install -y --quiet findutils >/dev/null
     packages=$(find /root -type f -name "packages-fedora-wsl")
     echo "Packages to install: $(echo $(grep "^[^#]" $packages))"
-    dnf install -y --quiet $(grep "^[^#]" $packages)
+    dnf install -y --quiet $(grep "^[^#]" $packages) >/dev/null
 }
 
 configure_sudo() {
@@ -55,7 +55,7 @@ configure_sudo() {
 
 setup_user() {
     # Install fish shell
-    dnf install -y --quiet fish
+    dnf install -y --quiet fish >/dev/null
 
     echo -n "Specify custom user's username: "
     read USER
@@ -67,7 +67,7 @@ setup_user() {
 
 configure_dotfiles() {
     echo "Cloning dotfiles repo"
-    dnf install -y --quiet git git-lfs
+    dnf install -y --quiet git git-lfs >/dev/null
     su $USER -c "
         mkdir -p /home/$USER/.config;
         git clone --quiet https://gitlab.com/erazemk/dotfiles.git /home/$USER/.config/dotfiles;
@@ -78,7 +78,7 @@ configure_dotfiles() {
 run_stow() {
     # Set up dotfiles
     echo "Setting up dotfiles"
-    dnf install -y --quiet stow
+    dnf install -y --quiet stow >/dev/null
 
     cd /home/$USER/.config/dotfiles
     su $USER -c "
@@ -115,12 +115,14 @@ run_stow() {
 
 configure_gpg() {
     echo "Setting up GPG key"
-    dnf install -y --quiet pinentry
+    dnf install -y --quiet pinentry >/dev/null
 
     echo -n "Specify GPG privkey file: "
     read GPG_PRIVKEY
     echo -n "Specify GPG privkey email: "
     read EMAIL
+
+    chown $USER:$USER $GPG_PRIVKEY
 
     su $USER -c "mkdir /home/$USER/.config/gnupg; gpg --import $GPG_PRIVKEY"
 
@@ -146,8 +148,8 @@ setup_gotop() {
 
 cleanup() {
     echo "Cleaning up"
-    dnf autoremove -y --quiet
-    dnf clean all -y --quiet
+    dnf autoremove -y --quiet >/dev/null
+    dnf clean all -y --quiet >/dev/null
 
     rm /home/$USER/.bash*
 }
@@ -156,8 +158,8 @@ cleanup() {
 setup_docker() {
     # Install docker repo
     echo "Installing docker"
-    dnf config-manager -y --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-    dnf install -y docker-ce docker-ce-cli containerd.io
+    dnf config-manager -y --add-repo https://download.docker.com/linux/fedora/docker-ce.repo >/dev/null
+    dnf install -y docker-ce docker-ce-cli containerd.io >/dev/null
     systemctl start docker
 }
 
