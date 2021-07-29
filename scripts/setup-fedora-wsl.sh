@@ -25,6 +25,9 @@ setup() {
     echo "Optimizing DNF"
     echo "max_parallel_downloads=10" >> /etc/dnf/dnf.conf
     echo "fastestmirror=True" >> /etc/dnf/dnf.conf
+    
+    # Enable installing man pages
+    sed -i '/tsflags=nodocs/d' /etc/dnf/dnf.conf
 
     # Update packages
     echo "Upgrading packages"
