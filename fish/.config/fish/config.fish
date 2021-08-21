@@ -10,8 +10,11 @@ set fish_greeting
 #################
 
 # Random
+abbr conf 'kak ~/.config/fish/config.fish'
 abbr lsblk 'lsblk -f'
-abbr mp 'multipass'
+abbr te 'toolbox enter'
+abbr udnf 'sudo dnf upgrade --refresh'
+abbr uflat 'flatpak update'
 
 # Directories
 abbr mkdir 'mkdir -p'
