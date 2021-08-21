@@ -15,8 +15,8 @@ set incsearch                   " Incremental search results
 set number relativenumber       " Relative line numbers
 set scrolloff=999               " Scroll when at half the screen
 set wildmode=longest,list,full  " Get bash-like tab completions
-set tabstop=2                   " Show tabs 2 spaces wide
-set shiftwidth=2                " Indent tabs 2 spaces wide
+set tabstop=4                   " Show tabs 4 spaces wide
+set shiftwidth=4                " Indent tabs 4 spaces wide
 filetype plugin indent on       " Allows auto-indenting depending on file type
 syntax enable                   " Syntax highlighting
 
