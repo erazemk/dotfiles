@@ -1,0 +1,10 @@
+#!/bin/sh
+# A script for displaying the aggregate length of all video files in a directory
+seconds=$(
+	find "${1:-$PWD}" -exec ffprobe -v quiet -of csv=p=0 -show_entries format=duration {} \; \
+	| paste -sd+ - \
+	| bc \
+	| cut -d'.' -f1 \
+)
+
+printf '%02d:%02d:%02d\n' $((seconds/3600)) $((seconds%3600/60)) $((seconds%60))
