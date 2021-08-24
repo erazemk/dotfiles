@@ -13,8 +13,6 @@ set fish_greeting
 abbr conf 'kak ~/.config/fish/config.fish'
 abbr lsblk 'lsblk -f'
 abbr te 'toolbox enter'
-abbr udnf 'sudo dnf upgrade --refresh'
-abbr uflat 'flatpak update'
 
 # Directories
 abbr mkdir 'mkdir -p'
@@ -82,3 +80,13 @@ set PATH $PATH $HOME/.local/bin
 
 # Add Golang binaries to PATH
 set PATH $PATH $GOPATH/bin
+
+# Add Flutter binaries to PATH
+set PATH $PATH $XDG_DATA_HOME/flutter-sdk/bin
+
+# Add Android binaries to PATH
+set PATH $PATH $XDG_DATA_HOME/android-sdk/cmdline-tools/latest/bin
+set PATH $PATH $XDG_DATA_HOME/android-sdk/platform-tools
+
+# Set Adwaita dark as the default GTK theme
+set GTK_THEME 'Adwaita:dark'
