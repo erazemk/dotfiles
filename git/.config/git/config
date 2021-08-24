@@ -59,15 +59,8 @@
 [pull]
     rebase = true
 
-[sendemail]
-    smtpencryption = tls
-    smtpserver = smtp.migadu.com
-    smtpuser = contact@erazem.eu
-    smtpserverport = 465
-    annotate = yes
-
 [user]
-    email = contact@erazem.eu
+    email = mail@erazem.eu
     name = Erazem Kokot
     username = erazemk
-    signingkey = 39126BDF1ECF8BEAE269C97FF02E698E82028452
+    signingkey = 45CADCF24B218D7F155400B0ADE33D31CEE4BEFC
