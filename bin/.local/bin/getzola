@@ -1,0 +1,38 @@
+#!/bin/sh
+# A shell script for downloading the latest version of Zola
+
+ZOLA_URL=https://api.github.com/repos/getzola/zola/releases/latest
+TMP_DIR="$(mktemp -d)"
+
+# Check if zola is installed
+if [ -e "$HOME"/.local/bin/zola ]; then
+	CURR_VER=$(zola -V | cut -d' ' -f2)
+else
+	CURR_VER=0
+fi
+
+LAT_VER=$(curl -s $ZOLA_URL | grep tag_name | cut -dv -f2 | tr -d \"\,)
+
+# If outdated, download the latest version
+if [ $CURR_VER != $(printf "$CURR_VER\n$LAT_VER" | sort -rV | head -n1) ]; then
+	echo "Downloading latest version of zola ($LAT_VER)"
+
+	ARCHIVE_NAME=$(curl -s "$ZOLA_URL" \
+		| grep "name.*linux-gnu.tar.gz" \
+		| cut -d'"' -f4)
+
+	ARCHIVE_URL=$(curl -s "$ZOLA_URL" \
+		| grep "browser_download_url.*-linux-gnu.tar.gz" \
+		| cut -d'"' -f4)
+
+	# Download the archive
+	wget -q "$ARCHIVE_URL" -P "$TMP_DIR/"
+
+	# Extract the archive
+	tar -xf "$TMP_DIR/$ARCHIVE_NAME" -C "$HOME"/.local/bin/
+
+	# Clean up
+	rm -r "$TMP_DIR"
+fi
+
+echo "zola is up-to-date"

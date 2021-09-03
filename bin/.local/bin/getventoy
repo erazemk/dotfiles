@@ -1,0 +1,47 @@
+#!/bin/sh
+# A shell script for downloading the latest version of Ventoy
+
+VENTOY_URL=https://api.github.com/repos/ventoy/Ventoy/releases/latest
+VENTOY_DIR="$XDG_DATA_HOME"/ventoy
+TMP_DIR="$(mktemp -d)"
+LAT_VER=$(curl -s $VENTOY_URL | grep tag_name | cut -dv -f2 | tr -d \"\,)
+
+# Download the latest version
+echo "Downloading latest version of Ventoy ($LAT_VER)"
+
+ARCHIVE_NAME=$(curl -s "$VENTOY_URL" \
+	| grep "name.*linux.tar.gz" \
+	| cut -d'"' -f4)
+
+ARCHIVE_URL=$(curl -s "$VENTOY_URL" \
+	| grep "browser_download_url.*-linux.tar.gz" \
+	| cut -d'"' -f4)
+
+# Download the archive
+wget -q "$ARCHIVE_URL" -P "$TMP_DIR"/
+
+# Remove existing files
+if [ -d "$VENTOY_DIR" ]; then
+	rm -r "$VENTOY_DIR"
+fi
+
+mkdir "$VENTOY_DIR"
+
+# Extract the archive
+tar -xf "$TMP_DIR/$ARCHIVE_NAME" -C "$TMP_DIR"/
+
+# Move files to the proper directory
+mv "$TMP_DIR"/ventoy-*/* "$VENTOY_DIR"/
+
+# Clean up
+rm -r "$TMP_DIR"
+
+# Create a script for executing Ventoy
+if [ -f "$HOME"/.local/bin/ventoy ]; then
+	rm "$HOME"/.local/bin/ventoy
+fi
+
+printf "cd $VENTOY_DIR\n./Ventoy2Disk.sh" > "$HOME"/.local/bin/ventoy
+chmod u+x "$HOME"/.local/bin/ventoy
+
+echo "Ventoy is up-to-date"
