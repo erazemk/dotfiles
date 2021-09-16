@@ -10,9 +10,14 @@ set fish_greeting
 #################
 
 # Random
-abbr conf 'kak ~/.config/fish/config.fish'
 abbr lsblk 'lsblk -f'
-abbr te 'toolbox enter'
+
+if test (hostname) = "t540p"
+	abbr conf 'kak ~/.config/fish/config.fish'
+	abbr te 'toolbox enter'
+	abbr tec 'toolbox enter code'
+	abbr teg 'toolbox enter games'
+end
 
 # Directories
 abbr mkdir 'mkdir -p'
@@ -58,35 +63,37 @@ end
 # Variables #
 #############
 
-# Global variables
-set -x EDITOR nvim
-set -x PAGER less
-set -x MANPAGER less
-
-set -x XDG_CACHE_HOME /tmp/cache-$USER
-set -x XDG_CONFIG_HOME $HOME/.config
-set -x XDG_DATA_HOME $HOME/.local/share
-
-set -x GNUPGHOME $XDG_CONFIG_HOME/gnupg
-set -x GOPATH $XDG_DATA_HOME/golang
-
-# GPG config
-set -x SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
-set -x GPG_TTY (tty)
-eval (gpgconf --launch gpg-agent)
-
 # Add user binaries to PATH
 set PATH $PATH $HOME/.local/bin
 
-# Add Golang binaries to PATH
-set PATH $PATH $GOPATH/bin
+if test (hostname) = "t540p"
+	# Global variables
+	set -x EDITOR nvim
+	set -x PAGER less
+	set -x MANPAGER less
 
-# Add Flutter binaries to PATH
-set PATH $PATH $XDG_DATA_HOME/flutter-sdk/bin
+	set -x XDG_CACHE_HOME /tmp/cache-$USER
+	set -x XDG_CONFIG_HOME $HOME/.config
+	set -x XDG_DATA_HOME $HOME/.local/share
 
-# Add Android binaries to PATH
-set PATH $PATH $XDG_DATA_HOME/android-sdk/cmdline-tools/latest/bin
-set PATH $PATH $XDG_DATA_HOME/android-sdk/platform-tools
+	set -x GNUPGHOME $XDG_CONFIG_HOME/gnupg
+	set -x GOPATH $XDG_DATA_HOME/golang
 
-# Set Adwaita dark as the default GTK theme
-set GTK_THEME 'Adwaita:dark'
+	# GPG config
+	set -x SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
+	set -x GPG_TTY (tty)
+	eval (gpgconf --launch gpg-agent)
+
+	# Add Golang binaries to PATH
+	set PATH $PATH $GOPATH/bin
+
+	# Add Flutter binaries to PATH
+	set PATH $PATH $XDG_DATA_HOME/flutter-sdk/bin
+
+	# Add Android binaries to PATH
+	set PATH $PATH $XDG_DATA_HOME/android-sdk/cmdline-tools/latest/bin
+	set PATH $PATH $XDG_DATA_HOME/android-sdk/platform-tools
+
+	# Set Adwaita dark as the default GTK theme
+	set GTK_THEME 'Adwaita:dark'
+end
