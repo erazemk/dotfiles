@@ -1,0 +1,47 @@
+#!/bin/sh
+# Mirror a git repo
+
+set -e
+
+if [ ! -e $(which git) ]; then
+    echo "Git is missing!"
+    exit 1
+fi
+
+if [ $# -lt 2 ]; then
+    echo "Usage: $(basename $0) -d [local_repo_dir] (-u [upstream_url] -m [mirror_url])"
+    exit 1
+else
+    while [ $# -gt 0 ]; do
+        key=$1
+        case ${key} in
+            -u | --upstream)
+                UPSTREAM_URL="$2"
+                shift; shift ;;
+            -m | --mirror)
+                MIRROR_URL="$2"
+                shift; shift ;;
+            -d | --directory)
+                REPO_DIR="$2"
+                shift; shift ;;
+            *)
+                echo "Usage: $(basename $0) -d [local_repo_dir] (-u [upstream_url] -m [mirror_url])"
+                exit 1
+                ;;
+        esac
+    done
+fi
+
+if [ ! -d "$REPO_DIR" ]; then
+    if [ ! "$UPSTREAM_URL" ] || [ ! "$MIRROR_URL" ]; then
+        echo "Repo hasn't been cloned yet, need upstream and mirror urls"
+        echo "Usage: $(basename $0) -d [local_repo_dir] (-u [upstream_url] -m [mirror_url])"
+        exit 1
+    else
+        git clone --mirror "$UPSTREAM_URL" "$REPO_DIR"
+        git -C "$REPO_DIR" remote set-url --push origin "$MIRROR_URL"
+    fi
+fi
+
+git -C "$REPO_DIR" fetch -p origin
+git -C "$REPO_DIR" push --mirror
