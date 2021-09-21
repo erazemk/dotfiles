@@ -11,12 +11,11 @@ set fish_greeting
 
 # Random
 abbr lsblk 'lsblk -f'
+abbr upgrade 'flatpak update && sudo dnf upgrade --refresh'
 
 if test (hostname) = "t540p"
 	abbr conf 'kak ~/.config/fish/config.fish'
 	abbr te 'toolbox enter'
-	abbr tec 'toolbox enter code'
-	abbr teg 'toolbox enter games'
 end
 
 # Directories
