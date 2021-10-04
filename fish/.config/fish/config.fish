@@ -87,10 +87,10 @@ if test (hostname) = "t540p"
 	set PATH $PATH $GOPATH/bin
 
 	# Add Flutter binaries to PATH
-	set PATH $PATH $XDG_DATA_HOME/flutter-sdk/bin
+	set PATH $PATH $XDG_DATA_HOME/flutter/bin
 
 	# Add Android binaries to PATH
-	set PATH $PATH $XDG_DATA_HOME/android-sdk/cmdline-tools/latest/bin
+	set PATH $PATH $XDG_DATA_HOME/android-sdk/tools/bin
 	set PATH $PATH $XDG_DATA_HOME/android-sdk/platform-tools
 
 	# Set Adwaita dark as the default GTK theme
