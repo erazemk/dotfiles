@@ -1,0 +1,38 @@
+#!/bin/sh
+# A shell script for downloading the latest version of Gotop
+
+GOTOP_URL=https://api.github.com/repos/xxxserxxx/gotop/releases/latest
+TMP_DIR="$(mktemp -d)"
+
+# Check if gotop is installed
+if [ -e "$HOME"/.local/bin/gotop ]; then
+	CURR_VER=$(gotop -V 2>/dev/null | cut -d' ' -f2 | tr -d 'v')
+else
+	CURR_VER=0
+fi
+
+LAT_VER=$(curl -s $GOTOP_URL | grep tag_name | cut -dv -f2 | tr -d \"\,)
+
+# If outdated, download the latest version
+if [ $CURR_VER != $(printf "$CURR_VER\n$LAT_VER" | sort -rV | head -n1) ]; then
+	echo "Downloading latest version of gotop ($LAT_VER)"
+
+	ARCHIVE_NAME=$(curl -s "$GOTOP_URL" \
+		| grep "name.*linux_amd64.tgz" \
+		| cut -d'"' -f4)
+
+	ARCHIVE_URL=$(curl -s "$GOTOP_URL" \
+		| grep "browser_download_url.*linux_amd64.tgz" \
+		| cut -d'"' -f4)
+
+	# Download the archive
+	wget -q "$ARCHIVE_URL" -P "$TMP_DIR/"
+
+	# Extract the archive
+	tar -xf "$TMP_DIR/$ARCHIVE_NAME" -C "$HOME"/.local/bin/
+
+	# Clean up
+	rm -r "$TMP_DIR"
+fi
+
+echo "gotop is up-to-date"

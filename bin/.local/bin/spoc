@@ -1,0 +1,3 @@
+#!/bin/sh
+# Wrapper za delno compileanje C kode
+gcc -S "$@" -m32 -masm=intel -fno-asynchronous-unwind-tables -fno-dwarf2-cfi-asm

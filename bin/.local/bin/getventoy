@@ -22,7 +22,7 @@ wget -q "$ARCHIVE_URL" -P "$TMP_DIR"/
 
 # Remove existing files
 if [ -d "$VENTOY_DIR" ]; then
-	rm -r "$VENTOY_DIR"
+	rm -rf "$VENTOY_DIR"
 fi
 
 mkdir "$VENTOY_DIR"
@@ -41,7 +41,7 @@ if [ -f "$HOME"/.local/bin/ventoy ]; then
 	rm "$HOME"/.local/bin/ventoy
 fi
 
-printf "cd $VENTOY_DIR\n./Ventoy2Disk.sh" > "$HOME"/.local/bin/ventoy
+printf "cd $VENTOY_DIR\nsudo ./Ventoy2Disk.sh \"\$@\"\n" > "$HOME"/.local/bin/ventoy
 chmod u+x "$HOME"/.local/bin/ventoy
 
 echo "Ventoy is up-to-date"

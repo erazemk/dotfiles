@@ -1,0 +1,13 @@
+#!/bin/sh
+# A script for setting up the most basic toolbox configs
+
+# Configure DNF
+echo "max_parallel_downloads=10" | sudo tee -a /etc/dnf/dnf.conf >/dev/null
+echo "fastestmirror=True" | sudo tee -a /etc/dnf/dnf.conf >/dev/null
+echo "deltarpm=True" | sudo tee -a /etc/dnf/dnf.conf >/dev/null
+
+# Upgrade packages
+sudo dnf upgrade -y --refresh
+
+# Install new packages
+sudo dnf install -y fish deltarpm git git-lfs langpacks-en langpacks-sl neovim kakoune
