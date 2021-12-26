@@ -1,2 +1,3 @@
-# VSCode project dir
+# VSCode
 .vscode
+*.code-workspace
