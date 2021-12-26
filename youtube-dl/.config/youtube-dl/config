@@ -17,4 +17,4 @@
 #--prefer-free-formats
 
 # Remove video ID from title
--o /mnt/d/Videos/YouTube/'%(title)s.%(ext)s'
+-o ~/Videos/YouTube/'%(title)s.%(ext)s'
