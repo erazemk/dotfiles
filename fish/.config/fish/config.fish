@@ -13,6 +13,12 @@ set fish_greeting
 abbr lsblk 'lsblk -f'
 abbr update 'flatpak update && sudo dnf upgrade --refresh'
 abbr conf 'nvim ~/.config/fish/config.fish'
+abbr fpk 'flatpak kill'
+abbr code 'codium'
+abbr c 'codium'
+abbr top 'gotop --nvidia'
+abbr pc 'podman-compose'
+abbr flaptak 'flatpak'
 
 # Toolbox
 abbr tb 'toolbox'
@@ -38,12 +44,16 @@ function grep -w grep
     command grep --color=auto $argv
 end
 
-function ls -w ls
-    command ls -lhp --color=auto --group-directories-first $argv
+function ls -w exa
+    command exa -l --group-directories-first $argv
 end
 
-function la -w ls
-    command ls -lAhp --color=auto --group-directories-first $argv
+function la -w exa
+    command exa -la --group-directories-first $argv
+end
+
+function lt -w exa
+	command exa -laT --group-directories-first $argv
 end
 
 function rcp -w rsync
@@ -70,12 +80,12 @@ set -x EDITOR nvim
 set -x PAGER less
 set -x MANPAGER less
 
-set -x XDG_CACHE_HOME /tmp/cache-$USER
+set -x XDG_CACHE_HOME $HOME/.cache
 set -x XDG_CONFIG_HOME $HOME/.config
 set -x XDG_DATA_HOME $HOME/.local/share
 
 set -x GNUPGHOME $XDG_CONFIG_HOME/gnupg
-set -x GOPATH $XDG_DATA_HOME/golang
+set -x GOPATH $XDG_DATA_HOME/go
 
 # GPG config
 set -x SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
