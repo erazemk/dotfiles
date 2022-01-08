@@ -11,7 +11,7 @@ set fish_greeting
 
 # Random
 abbr lsblk 'lsblk -f'
-abbr update 'flatpak update && sudo dnf upgrade --refresh'
+abbr upgrade 'sudo dnf upgrade --refresh'
 abbr conf 'nvim ~/.config/fish/config.fish'
 abbr fpk 'flatpak kill'
 abbr code 'codium'
@@ -53,7 +53,7 @@ function la -w exa
 end
 
 function lt -w exa
-	command exa -laT --group-directories-first $argv
+	command exa -lT --group-directories-first $argv
 end
 
 function rcp -w rsync
