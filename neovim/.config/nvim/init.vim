@@ -27,20 +27,20 @@ autocmd BufWritePre * %s/\s\+$//e
 hi MatchParen cterm=underline ctermbg=none ctermfg=blue
 
 " Install vim-plug if not found
-if empty(glob("$HOME/.local/share/nvim/site/autoload/plug.vim"))
-    silent !curl -fLo $HOME/.local/share/nvim/site/autoload/plug.vim --create-dirs
-            \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-endif
+"if empty(glob("$HOME/.local/share/nvim/site/autoload/plug.vim"))
+"    silent !curl -fLo $HOME/.local/share/nvim/site/autoload/plug.vim --create-dirs
+"            \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+"endif
 
 " Run PlugInstall if there are missing plugins
-autocmd VimEnter * if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
-    \| PlugInstall --sync | source $MYVIMRC
-\| endif
+"autocmd VimEnter * if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
+"    \| PlugInstall --sync | source $MYVIMRC
+"\| endif
 
 " Installed plugins
-call plug#begin("$HOME/.local/share/nvim/site/autoload/plugged")
-    Plug 'tpope/vim-commentary'
-    Plug 'tpope/vim-fugitive'
-    Plug 'airblade/vim-gitgutter'
-    "Plug 'tpope/vim-sleuth'
-call plug#end()
+"call plug#begin("$HOME/.local/share/nvim/site/autoload/plugged")
+"    Plug 'tpope/vim-commentary'
+"    Plug 'tpope/vim-fugitive'
+"    Plug 'airblade/vim-gitgutter'
+"    "Plug 'tpope/vim-sleuth'
+"call plug#end()
