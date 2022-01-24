@@ -3,7 +3,7 @@
 #
 
 # Disable greeting
-set fish_greeting
+set -U fish_greeting ""
 
 #################
 # Abbreviations #
@@ -11,18 +11,6 @@ set fish_greeting
 
 # Random
 abbr lsblk 'lsblk -f'
-abbr upgrade 'sudo dnf upgrade --refresh'
-abbr conf 'nvim ~/.config/fish/config.fish'
-abbr fpk 'flatpak kill'
-abbr code 'codium'
-abbr c 'codium'
-abbr top 'gotop --nvidia'
-abbr pc 'podman-compose'
-abbr flaptak 'flatpak'
-
-# Toolbox
-abbr tb 'toolbox'
-abbr tbe 'toolbox enter'
 
 # Directories
 abbr mkdir 'mkdir -p'
@@ -36,24 +24,28 @@ abbr cp 'cp -Riv'
 abbr mv 'mv -iv'
 abbr rm 'rm -Iv'
 
+# Thinkpad T540p-specific config
+if test (hostname) = "t540p"
+	abbr upgrade 'sudo dnf upgrade --refresh'
+	abbr conf 'nvim ~/.config/fish/config.fish'
+	abbr fpk 'flatpak kill'
+	abbr code 'codium'
+	abbr c 'codium'
+	abbr top 'gotop --nvidia'
+	abbr pc 'podman-compose'
+	abbr flaptak 'flatpak'
+
+	# Toolbox
+	abbr tb 'toolbox'
+	abbr tbe 'toolbox enter'
+end
+
 #############
 # Functions #
 #############
 
 function grep -w grep
     command grep --color=auto $argv
-end
-
-function ls -w exa
-    command exa -l --group-directories-first $argv
-end
-
-function la -w exa
-    command exa -la --group-directories-first $argv
-end
-
-function lt -w exa
-	command exa -lT --group-directories-first $argv
 end
 
 function rcp -w rsync
@@ -76,7 +68,7 @@ end
 set PATH $PATH $HOME/.local/bin
 
 # Global variables
-set -x EDITOR nvim
+set -x EDITOR kak
 set -x PAGER less
 set -x MANPAGER less
 
@@ -95,16 +87,19 @@ eval (gpgconf --launch gpg-agent)
 # Add Golang binaries to PATH
 set PATH $PATH $GOPATH/bin
 
-# Add Flutter binaries to PATH
-set PATH $PATH $XDG_DATA_HOME/flutter/bin
+# Thinkpad T540p-specific config
+if test (hostname) = "t540p"
+	# Add Flutter binaries to PATH
+	set PATH $PATH $XDG_DATA_HOME/flutter/bin
 
-# Set CHROME_EXECUTABLE to please flutter doctor
-set -x CHROME_EXECUTABLE /usr/bin/brave-browser
+	# Set CHROME_EXECUTABLE to please flutter doctor
+	set -x CHROME_EXECUTABLE /usr/bin/brave-browser
 
-# Add Android binaries to PATH
-set -x ANDROID_HOME $XDG_DATA_HOME/android-sdk
-set PATH $PATH $ANDROID_HOME/cmdline-tools/latest/bin
-set PATH $PATH $ANDROID_HOME/platform-tools
+	# Add Android binaries to PATH
+	set -x ANDROID_HOME $XDG_DATA_HOME/android-sdk
+	set PATH $PATH $ANDROID_HOME/cmdline-tools/latest/bin
+	set PATH $PATH $ANDROID_HOME/platform-tools
 
-# Set Adwaita dark as the default GTK theme
-set GTK_THEME 'Adwaita:dark'
+	# Set Adwaita dark as the default GTK theme
+	set GTK_THEME 'Adwaita:dark'
+end
