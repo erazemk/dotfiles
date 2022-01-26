@@ -1,0 +1,11 @@
+#!/bin/sh
+# This scripts sets up Ubuntu WSL
+
+# Update and download packages
+# Set fish shell
+# Setup git ppa
+# Download dotfiles
+# Setup dotfiles
+# Remove bash files
+# Somehow import OpenPGP key
+# Setup sudo
