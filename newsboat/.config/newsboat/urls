@@ -1,0 +1,62 @@
+# Blogs
+https://blogs.gnome.org/uraeus/feed/        "~Christian Schaller"    blogs
+https://feeds.feedburner.com/codinghorror   "~CodingHorror"          blogs
+https://blog.brave.com/rss/                 "~Brave"                 blogs
+https://www.c0ffee.net/rss                  "~Collum Smith"          blogs
+https://drewdevault.com/feed.xml            "~Drew DeVault"          blogs
+https://blog.elementary.io/feed.xml         "~ElementaryOS"          blogs
+https://f-droid.org/en/feed.xml             "~F-Droid"               blogs
+https://blog.jolla.com/feed/                "~Jolla"                 blogs
+https://krebsonsecurity.com/feed/           "~Krebs on Security"     blogs
+https://lineageos.org/feed.xml              "~LineageOS"             blogs
+https://www.pine64.org/blog/feed/           "~Pine64"                blogs
+https://klarasystems.com/articles/feed/     "~Klara Systems"         blogs
+https://piratskastranka.si/blog/feed        "~Pirati (blog)"         blogs
+https://piratskastranka.si/izjave/feed      "~Pirati (izjave)"       blogs
+https://piratskastranka.si/zgodbe/feed      "~Pirati (zgodbe)"       blogs
+https://blogs.gnome.org/hughsie/feed/       "~Richard Huges"         blogs
+https://samsai.eu/index.xml                 "~Samsai"                blogs
+https://secretgeek.net/Rss                  "~SecretGeek"            blogs
+https://sourcehut.org/blog/index.xml        "~Sourcehut"             blogs
+https://www.stoutner.com/feed/              "~Stoutner"              blogs
+https://www.schneier.com/feed/atom          "~Schneier on Security"  blogs
+https://twrp.me/feed.xml                    "~TWRP"                  blogs
+https://unixsheikh.com/feed.rss             "~Unixsheikh"            blogs
+
+# News
+https://www.archlinux.org/feeds/news/       "~Arch Linux News"       news
+https://fedoramagazine.org/feed/            "~Fedora Magazine"       news
+https://opensource.com/feed                 "~OpenSource.com"        news
+https://www.rtvslo.si/feeds/01.xml          "~RTVSLO Slovenija"      news
+https://torrentfreak.com/feed/              "~TorrentFreak"          news
+
+# Comics
+https://dilbert.com/feed                    "~Dilbert"               news
+https://xkcd.com/atom.xml                   "~XKCD"                  news
+
+# Download Updates
+https://sourceforge.net/projects/havoc-os/rss?path=/kenzo                     "~HavocOS"               downloads
+
+# Youtube Channels
+https://www.youtube.com/feeds/videos.xml?channel_id=UC_EzCruiFF-QNJCkBOSCYhA  "~A Hill to Die On"      youtube
+https://www.youtube.com/feeds/videos.xml?user=OmegaDungeon                    "~Brodie Robertson"      youtube
+https://www.youtube.com/feeds/videos.xml?user=MentalOutlawStudios             "~Mental Outlaw"         youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UCr3cBLTYmIK9kY0F_OdFWFQ  "~Casually Explained"    youtube
+https://www.youtube.com/feeds/videos.xml?user=CGPGrey                         "~CGP Grey"              youtube
+https://www.youtube.com/feeds/videos.xml?user=CheeseHead585                   "~Chessed Gamon"         youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UCfcQPMZg4tNk6tKUTHbAr0g  "~Cinema Summary"        youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UC2IYWWifoIht9T47z1Z5lJw  "~Dead Meat"             youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UCVWifhNM3tx877Z7h3ovtRA  "~FoundFlix"             youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UCuCkxoKLYO_EQ2GeFtbM_bw  "~Half as Interesting"   youtube
+https://www.youtube.com/feeds/videos.xml?user=Top10Memes                      "~LEMMiNO"               youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UCm9K6rby98W8JigLoZOh6FQ  "~LockPickingLawyer"     youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UC2eYFnH61tmytImy1mTYvhA  "~Luke Smith"            youtube
+https://www.youtube.com/feeds/videos.xml?user=onemeeeliondollars              "~Mark Rober"            youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UCtHaxi4GTYDpJgMSGy7AeSw  "~Michael Reeves"        youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UCIOE_IzglfnHyaOYbvpJxjA  "~Nerd Explains"         youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UCgNg3vwj3xt7QOrcIDaHdFg  "~PolyMatter"            youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UC1DTYW241WD64ah5BFWn4JA  "~Sam O'Nella Academy"   youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UCj1VqrHhDte54oLgPG4xpuQ  "~Stuff Made Here"       youtube
+https://www.youtube.com/feeds/videos.xml?channel_id=UCCrnCItH17W-64FDzjwOi5w  "~The Science Elf"       youtube
+https://www.youtube.com/feeds/videos.xml?user=enyay                           "~Tom Scott"             youtube
+https://www.youtube.com/feeds/videos.xml?user=Wendoverproductions             "~Wendover Productions"  youtube
