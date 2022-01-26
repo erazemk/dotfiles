@@ -1,7 +1,0 @@
-#!/bin/sh
-# A wrapper script for installing Stylus Labs' Write
-
-TAR_URL="http://www.styluslabs.com/download/write-tgz"
-TMP_DIR="$(mktemp -d)"
-
-wget -q "${TAR_URL}" -P "${TMP_DIR}"/
