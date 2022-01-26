@@ -1,0 +1,19 @@
+# Packages to install using DNF, excluding those from custom repos (VSCodium, RPM Fusion etc.)
+ansible
+arm-image-installer
+celluloid
+flatpak-builder
+git
+git-lfs
+gnome-tweaks
+golang
+gtk-murrine-engine
+java-11-openjdk-devel
+java-latest-openjdk-devel
+neovim
+ShellCheck
+speedtest-cli
+syncthing
+toolbox
+unar
+wireshark

@@ -1,0 +1,14 @@
+# Flatpak packages to install
+
+com.bitwarden.desktop
+com.discordapp.Discord
+com.github.tchx84.Flatseal
+com.mojang.Minecraft
+com.spotify.Client
+com.transmissionbt.Transmission
+im.riot.Riot
+org.gnome.Extensions
+org.gnome.GHex
+org.mozilla.firefox
+org.telegram.desktop
+us.zoom.Zoom
