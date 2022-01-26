@@ -1,1 +1,31 @@
-add-highlighter global/ number-lines
+#
+# ~/.config/kak/kakrc
+#
+
+# Add line numbering
+add-highlighter global/ number-lines -relative
+
+# Show matching braces
+add-highlighter global/ show-matching
+
+# Set indentation
+set-option global tabstop 4
+set-option global indentwidth 4
+
+# Character auto-pairing
+#enable-auto-pairs
+
+# Sync clipboard with terminal
+#synchronize-terminal-keyboard
+
+# Create directory if not exists
+#make-directory-on-save
+
+# Show whitespace
+#show-whitespaces
+
+# Set when to scroll at bottom
+set-option global scrolloff 5,1
+
+# Soft wrapping
+add-highlighter global/ wrap
