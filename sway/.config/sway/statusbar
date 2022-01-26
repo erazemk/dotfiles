@@ -1,0 +1,25 @@
+#!/bin/sh
+
+curr_date="$(date +'%a, %d. %m. %Y')"
+curr_time="$(date +'%H:%M:%S')"
+bat_capacity="$(cat /sys/class/power_supply/BAT0/capacity)"
+bat_state="$(cat /sys/class/power_supply/BAT0/status)"
+#volume="$(pamixer --get-volume-human)"
+#brightness="$(light -G | cut -d '.' -f1)"
+wifi_network="$(iwctl station wlan0 show | grep "Connected network" | tr -s ' ' \
+	| cut -d ' ' -f4-)"
+
+if [ "${bat_state}" == "Charging" ]; then
+	charging_icon="~"
+else
+	charging_icon=""
+fi
+
+[ "${wifi_network}" ] && statusbar="[net: ${wifi_network}] "
+[ "${bat_capacity}" ] && statusbar+="[bat: ${charging_icon}${bat_capacity}%] "
+#statusbar+="[light: ${brightness}] "
+#statusbar+="[vol: ${volume}] "
+statusbar+="[${curr_time}] "
+statusbar+="[${curr_date}]"
+
+echo "${statusbar}"

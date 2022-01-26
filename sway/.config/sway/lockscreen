@@ -1,0 +1,5 @@
+#!/bin/sh
+# Lock the screen
+
+WALLPAPER=/usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png
+swaylock -e -f -i $WALLPAPER

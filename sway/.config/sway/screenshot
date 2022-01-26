@@ -1,0 +1,5 @@
+#!/bin/sh
+# Support script for taking screenshots
+
+FILE="$HOME/pictures/screenshots/$(date +%Y-%m-%d_%H-%M-%S).png"
+grimshot --notify "$1" "$2" "${FILE}"
