@@ -11,6 +11,10 @@ set -U fish_greeting ""
 
 # Random
 abbr lsblk 'lsblk -f'
+abbr code 'codium'
+abbr c 'codium'
+abbr top 'gotop'
+abbr conf 'kak ~/.config/fish/config.fish'
 
 # Directories
 abbr mkdir 'mkdir -p'
@@ -23,22 +27,6 @@ abbr ..... 'cd ../../../..'
 abbr cp 'cp -Riv'
 abbr mv 'mv -iv'
 abbr rm 'rm -Iv'
-
-# Thinkpad T540p-specific config
-if test (hostname) = "t540p"
-	abbr upgrade 'sudo dnf upgrade --refresh'
-	abbr conf 'nvim ~/.config/fish/config.fish'
-	abbr fpk 'flatpak kill'
-	abbr code 'codium'
-	abbr c 'codium'
-	abbr top 'gotop --nvidia'
-	abbr pc 'podman-compose'
-	abbr flaptak 'flatpak'
-
-	# Toolbox
-	abbr tb 'toolbox'
-	abbr tbe 'toolbox enter'
-end
 
 #############
 # Functions #
@@ -69,8 +57,8 @@ set PATH $PATH $HOME/.local/bin
 
 # Global variables
 set -x EDITOR kak
-set -x PAGER less
-set -x MANPAGER less
+set -x PAGER kak-pager
+set -x MANPAGER kak-pager
 
 set -x XDG_CACHE_HOME $HOME/.cache
 set -x XDG_CONFIG_HOME $HOME/.config
@@ -87,8 +75,21 @@ eval (gpgconf --launch gpg-agent)
 # Add Golang binaries to PATH
 set PATH $PATH $GOPATH/bin
 
-# Thinkpad T540p-specific config
-if test (hostname) = "t540p"
+# Fedora-specific config
+if test (cat /etc/os-release | grep -m 1 "ID" | cut -d '=' -f2) = "fedora"
+	# Set common abbreviations
+	abbr upgrade 'sudo dnf upgrade --refresh'
+	abbr fpk 'flatpak kill'
+	abbr flaptak 'flatpak'
+	abbr tb 'toolbox'
+	abbr tbe 'toolbox enter'
+
+	# Set Adwaita dark as the default GTK theme
+	set GTK_THEME 'Adwaita:dark'
+end
+
+# If flutter is installed, add its files to PATH
+if test -d $XDG_DATA_HOME/flutter
 	# Add Flutter binaries to PATH
 	set PATH $PATH $XDG_DATA_HOME/flutter/bin
 
@@ -99,7 +100,4 @@ if test (hostname) = "t540p"
 	set -x ANDROID_HOME $XDG_DATA_HOME/android-sdk
 	set PATH $PATH $ANDROID_HOME/cmdline-tools/latest/bin
 	set PATH $PATH $ANDROID_HOME/platform-tools
-
-	# Set Adwaita dark as the default GTK theme
-	set GTK_THEME 'Adwaita:dark'
 end
