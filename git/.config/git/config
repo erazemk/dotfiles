@@ -15,12 +15,13 @@
     b = branch
     m = merge
     cl = clone --recurse-submodules
+    clone = clone --recurse-submodules
     ps = push
     pl = pull
     rb = rebase -i
-    re = reset
-    reh = reset --hard
-    res = reset --soft
+    #re = reset
+    #reh = reset --hard
+    #res = reset --soft
     r = remote
     ra = remote add
     rv = remote -c
@@ -36,7 +37,7 @@
 
 [core]
     autocrlf = input
-    editor = nvim
+    editor = kak
     excludesfile = ~/.config/git/gitignore
     pager = less
 
