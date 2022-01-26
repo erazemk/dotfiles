@@ -1,0 +1,10 @@
+#
+# ~/.config/zathura/zathurarc
+#
+
+# Use system clipboard
+set selection-clipboard clipboard
+
+# Map vim keybindings
+map l scroll full-down
+map h scroll full-up
