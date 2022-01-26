@@ -1,0 +1,2 @@
+#!/bin/sh
+col -b -x | kak -e 'set buffer filetype man'
