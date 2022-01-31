@@ -63,17 +63,21 @@ set -x MANPAGER kak-pager
 set -x XDG_CACHE_HOME $HOME/.cache
 set -x XDG_CONFIG_HOME $HOME/.config
 set -x XDG_DATA_HOME $HOME/.local/share
-
 set -x GNUPGHOME $XDG_CONFIG_HOME/gnupg
-set -x GOPATH $XDG_DATA_HOME/go
 
 # GPG config
-set -x SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
-set -x GPG_TTY (tty)
-eval (gpgconf --launch gpg-agent)
+if test -d $XDG_CONFIG_HOME/gnupg
+	set -x SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
+	set -x GPG_TTY (tty)
+	eval (gpgconf --launch gpg-agent)
+end
 
-# Add Golang binaries to PATH
-set PATH $PATH $GOPATH/bin
+# Go config
+if test -d /usr/local/go
+	set -x GOPATH $XDG_DATA_HOME/go
+	set PATH $PATH $GOPATH/bin
+	set PATH $PATH /usr/local/go/bin
+end
 
 # Fedora-specific config
 if test (cat /etc/os-release | grep -m 1 "ID" | cut -d '=' -f2) = "fedora"
@@ -86,6 +90,11 @@ if test (cat /etc/os-release | grep -m 1 "ID" | cut -d '=' -f2) = "fedora"
 
 	# Set Adwaita dark as the default GTK theme
 	set GTK_THEME 'Adwaita:dark'
+end
+
+# WSL-specific config
+if set -q WSL_DISTRO_NAME
+    abbr dir 'cd /mnt/c/Users/Erazem'
 end
 
 # If flutter is installed, add its files to PATH
