@@ -14,14 +14,10 @@
     cm = commit -m
     b = branch
     m = merge
-    cl = clone --recurse-submodules
-    clone = clone --recurse-submodules
+    cl = clone
     ps = push
     pl = pull
     rb = rebase -i
-    #re = reset
-    #reh = reset --hard
-    #res = reset --soft
     r = remote
     ra = remote add
     rv = remote -c
@@ -59,6 +55,9 @@
 
 [pull]
     rebase = true
+
+[submodule]
+	recurse = true
 
 [user]
     email = mail@erazem.eu
