@@ -8,9 +8,14 @@ add-highlighter global/ number-lines -relative
 # Show matching braces
 add-highlighter global/ show-matching
 
+# Display status bar on top
+set-option global ui_options ncurses_status_on_top=true
+
+#colorscheme kaleidoscope-dark
+
 # Set indentation
-set-option global tabstop 4
-set-option global indentwidth 4
+#set-option global tabstop 4
+#set-option global indentwidth 4
 
 # Character auto-pairing
 #enable-auto-pairs
@@ -26,6 +31,9 @@ set-option global indentwidth 4
 
 # Set when to scroll at bottom
 set-option global scrolloff 5,1
+
+# Highlight trailing white space
+add-highlighter global/ regex \h+$ 0:Error
 
 # Soft wrapping
 add-highlighter global/ wrap
