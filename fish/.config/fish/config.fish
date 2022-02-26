@@ -101,7 +101,7 @@ if test -d $XDG_CONFIG_HOME/gnupg
 end
 
 # Go config
-if type -sq go
+if type -sq go; or test -d /usr/local/go
 	set -x GOPATH $XDG_DATA_HOME/go
 	set PATH $PATH $GOPATH/bin
 	set PATH $PATH /usr/local/go/bin
