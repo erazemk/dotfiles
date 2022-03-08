@@ -15,7 +15,6 @@ abbr top 'gotop'
 
 # Directories
 abbr mkdir 'mkdir -p'
-abbr .. 'cd ..'
 abbr ... 'cd ../..'
 abbr .... 'cd ../../..'
 abbr ..... 'cd ../../../..'
@@ -131,10 +130,10 @@ if test -d $XDG_DATA_HOME/flutter
 	set PATH $PATH $XDG_DATA_HOME/flutter/bin
 
 	# Set CHROME_EXECUTABLE to please flutter doctor
-	set -x CHROME_EXECUTABLE /usr/bin/brave-browser
+	#set -x CHROME_EXECUTABLE /usr/bin/brave-browser
 
 	# Add Android binaries to PATH
-	set -x ANDROID_HOME $XDG_DATA_HOME/android-sdk
+	set -x ANDROID_HOME $XDG_DATA_HOME/android
 	set PATH $PATH $ANDROID_HOME/cmdline-tools/latest/bin
 	set PATH $PATH $ANDROID_HOME/platform-tools
 end
