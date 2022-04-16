@@ -67,7 +67,7 @@ function cdtmp
     cd (mktemp -d $argv[1])
 end
 
-function info
+function tldr
     command curl cheat.sh/$argv[1]
 end
 
@@ -100,11 +100,21 @@ if test -d $XDG_CONFIG_HOME/gnupg
 end
 
 # Go config
-if type -sq go; or test -d /usr/local/go
+if test -d $HOME/.local/go
 	set -x GOPATH $XDG_DATA_HOME/go
+	set -x GOROOT $HOME/.local/go
 	set PATH $PATH $GOPATH/bin
-	set PATH $PATH /usr/local/go/bin
+	set PATH $PATH $GOROOT/bin
 end
+
+#if type -sq go; or test -d /usr/local/go; or test -d $XDG_DATA_HOME/go; or test -d $HOME/.local/go
+#	set -x GOPATH $XDG_DATA_HOME/go
+#	set PATH $PATH $GOPATH/bin
+#
+#	if test -d /usr/local/go
+#		set PATH $PATH /usr/local/go/bin
+#	end
+#end
 
 # Fedora-specific config
 if test (cat /etc/os-release | grep -m 1 "ID" | cut -d '=' -f2) = "fedora"
