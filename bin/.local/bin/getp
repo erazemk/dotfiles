@@ -1,0 +1,105 @@
+#!/usr/bin/env python
+# A script for installing ventoy
+import json
+import os
+import sys
+import tarfile
+import tempfile
+import requests
+import shutil
+from pathlib import Path
+
+BIN_DIR = os.getenv("HOME") + "/.local/bin"
+
+def get_ventoy():
+    VENTOY_URL = "https://api.github.com/repos/ventoy/Ventoy/releases/latest"
+    VENTOY_DIR = (os.getenv("XDG_DATA_HOME") or (os.getenv("HOME") + "/.local/share")) + "/ventoy"
+    TMP_DIR = tempfile.mkdtemp()
+    JSON = json.loads(requests.get(VENTOY_URL).text)
+    LATEST_VERSION = JSON['tag_name']
+    LATEST_ARCHIVE = JSON['assets'][1]['name']
+    LATEST_URL = JSON['assets'][1]['browser_download_url']
+    WRAPPER_TEXT = f"""#!/bin/sh
+    cd {VENTOY_DIR}
+    sudo ./Ventoy2Disk.sh "$@"
+    """
+
+    print("Downloading latest version of Ventoy: " + LATEST_VERSION)
+
+    # Download the latest archive
+    req = requests.get(LATEST_URL, stream=True)
+    with open(TMP_DIR + "/" + LATEST_ARCHIVE, 'wb') as fd:
+        for chunk in req.iter_content(chunk_size=512):
+            fd.write(chunk)
+
+    # Prepare ventoy directory
+    if os.path.isdir(VENTOY_DIR):
+        shutil.rmtree(VENTOY_DIR)
+    os.mkdir(VENTOY_DIR)
+
+    # Extract the archive
+    file = tarfile.open(TMP_DIR + "/" + LATEST_ARCHIVE)
+    file.extractall(TMP_DIR)
+
+    # Move the extracted files
+    for f in Path(TMP_DIR + "/ventoy-" + LATEST_VERSION[1:]).glob("*"):
+        shutil.move(f, VENTOY_DIR + "/")
+
+    # Create a wrapper script if needed
+    if not os.path.isdir(BIN_DIR):
+        os.mkdir(BIN_DIR)
+
+    WRAPPER_FILE = BIN_DIR + "/ventoy"
+    if not os.path.isfile(WRAPPER_FILE):
+        f = open(WRAPPER_FILE, "w")
+        f.write(WRAPPER_TEXT)
+        f.close()
+        os.chmod(WRAPPER_FILE, 0o755)
+
+    # Clean up
+    shutil.rmtree(TMP_DIR)
+
+    print("Finished installing Ventoy")
+
+
+def get_gotop():
+    GOTOP_URL = "https://api.github.com/repos/xxxserxxx/gotop/releases/latest"
+    TMP_DIR = tempfile.mkdtemp()
+    JSON = json.loads(requests.get(GOTOP_URL).text)
+    LATEST_VERSION = JSON['tag_name']
+    LATEST_ARCHIVE = JSON['assets'][1]['name']
+    LATEST_URL = JSON['assets'][1]['browser_download_url']
+
+    print(JSON)
+
+    # print("Downloading latest version of Gotop: " + LATEST_VERSION)
+    #
+    # # Download the latest archive
+    # req = requests.get(LATEST_URL, stream=True)
+    # with open(TMP_DIR + "/" + LATEST_ARCHIVE, 'wb') as fd:
+    #     for chunk in req.iter_content(chunk_size=512):
+    #         fd.write(chunk)
+    #
+    # print(TMP_DIR)
+    #
+    # # Extract the archive
+    # file = tarfile.open(TMP_DIR + "/" + LATEST_ARCHIVE)
+    # file.extractall(TMP_DIR)
+    #
+    # # Move the extracted files
+    # #gotop_binary = TMP_DIR + "/gotop"
+    # #if os.path.isfile(BIN_DIR + "/gotop"):
+    # #    os.remove(BIN_DIR + "/gotop")
+    # #shutil.move(gotop_binary, BIN_DIR)
+    #
+    # # Clean up
+    # #shutil.rmtree(TMP_DIR)
+    #
+    # print("Finished installing Gotop")
+
+
+if __name__ == "__main__":
+    if sys.argv[1] == "ventoy":
+        get_ventoy()
+    elif sys.argv[1] == "gotop":
+        get_gotop()
