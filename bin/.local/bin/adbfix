@@ -1,5 +1,5 @@
 #!/bin/sh
-cd $HOME/.local/share/android-sdk/platform-tools
+cd $HOME/.local/share/android/platform-tools
 ./adb kill-server
 sudo ./adb start-server
 ./adb devices
