@@ -12,6 +12,7 @@ set -U fish_greeting ""
 # Random
 abbr lsblk 'lsblk -f'
 abbr top 'gotop'
+abbr fpi 'flatpak install flathub'
 
 # Directories
 abbr mkdir 'mkdir -p'
@@ -71,9 +72,9 @@ function tldr
     command curl cheat.sh/$argv[1]
 end
 
-function sha256sum -w sha256sum
-    command sha256sum --ignore-missing $argv
-end
+#function sha256sum -w sha256sum
+#    command sha256sum --ignore-missing $argv
+#end
 
 #############
 # Variables #
@@ -90,60 +91,44 @@ set -x MANPAGER less
 set -x XDG_CACHE_HOME $HOME/.cache
 set -x XDG_CONFIG_HOME $HOME/.config
 set -x XDG_DATA_HOME $HOME/.local/share
-set -x GNUPGHOME $XDG_CONFIG_HOME/gnupg
 
-# GPG config
+# Specify R user library location
+set -x R_LIBS_USER $XDG_DATA_HOME/R
+
+# GPG
 if test -d $XDG_CONFIG_HOME/gnupg
-	set -x SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
-	set -x GPG_TTY (tty)
-	eval (gpgconf --launch gpg-agent)
+    set -x GNUPGHOME $XDG_CONFIG_HOME/gnupg
+    set -x SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
+    set -x GPG_TTY (tty)
+    eval (gpgconf --launch gpg-agent)
 end
 
-# Go config
-if test -d $HOME/.local/go
-	set -x GOPATH $XDG_DATA_HOME/go
-	set -x GOROOT $HOME/.local/go
-	set PATH $PATH $GOPATH/bin
-	set PATH $PATH $GOROOT/bin
+# Go
+if test -e /usr/bin/go
+    set -x GOPATH $XDG_DATA_HOME/go
+    set PATH $PATH $GOPATH/bin
 end
 
-#if type -sq go; or test -d /usr/local/go; or test -d $XDG_DATA_HOME/go; or test -d $HOME/.local/go
-#	set -x GOPATH $XDG_DATA_HOME/go
-#	set PATH $PATH $GOPATH/bin
-#
-#	if test -d /usr/local/go
-#		set PATH $PATH /usr/local/go/bin
-#	end
-#end
-
-# Fedora-specific config
-if test (cat /etc/os-release | grep -m 1 "ID" | cut -d '=' -f2) = "fedora"
-	# Set common abbreviations
-	abbr upgrade 'sudo dnf upgrade --refresh'
-	abbr fpk 'flatpak kill'
-	abbr flaptak 'flatpak'
-	abbr tb 'toolbox'
-	abbr tbe 'toolbox enter'
-
-	# Set Adwaita dark as the default GTK theme
-	set GTK_THEME 'Adwaita:dark'
+# Android
+if test -d $XDG_DATA_HOME/android
+    set PATH $PATH $XDG_DATA_HOME/android/platform-tools
+    set PATH $PATH $ANDROID_HOME/cmdline-tools/latest/bin
+    set -x ANDROID_HOME $XDG_DATA_HOME/android
 end
 
-# WSL-specific config
-#if set -q WSL_DISTRO_NAME
-#    abbr dir 'cd /mnt/c/Users/Erazem'
-#end
-
-# If flutter is installed, add its files to PATH
+# Flutter
 if test -d $XDG_DATA_HOME/flutter
-	# Add Flutter binaries to PATH
-	set PATH $PATH $XDG_DATA_HOME/flutter/bin
-
-	# Set CHROME_EXECUTABLE to please flutter doctor
-	#set -x CHROME_EXECUTABLE /usr/bin/brave-browser
-
-	# Add Android binaries to PATH
-	set -x ANDROID_HOME $XDG_DATA_HOME/android
-	set PATH $PATH $ANDROID_HOME/cmdline-tools/latest/bin
-	set PATH $PATH $ANDROID_HOME/platform-tools
+    set PATH $PATH $XDG_DATA_HOME/flutter/bin
 end
+
+# Fedora-specific
+if test (cat /etc/os-release | grep -m 1 "ID" | cut -d '=' -f2) = "fedora"
+    abbr upgrade 'sudo dnf upgrade --refresh'
+    abbr fpk 'flatpak kill'
+    abbr flaptak 'flatpak'
+    abbr tb 'toolbox'
+    abbr tbe 'toolbox enter'
+    abbr db 'distrobox'
+    abbr dbe 'distrobox enter'
+end
+
