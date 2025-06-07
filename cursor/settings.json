@@ -1,0 +1,96 @@
+{
+  "accessibility.underlineLinks": true,
+  "cursor.cpp.enablePartialAccepts": true,
+  "diffEditor.codeLens": true,
+  "editor.formatOnSave": true,
+  "editor.inlineSuggest.syntaxHighlightingEnabled": true,
+  "editor.lightbulb.enabled": "onCode",
+  "editor.renderFinalNewline": "dimmed",
+  "editor.renderWhitespace": "boundary",
+  "editor.rulers": [
+    80,
+    100,
+    120
+  ],
+  "editor.tabCompletion": "on",
+  "explorer.confirmDragAndDrop": false,
+  "files.associations": {
+    "Makefile.*": "makefile",
+    "*.jsonl": "json"
+  },
+  "files.autoSave": "onFocusChange",
+  "files.dialog.defaultPath": "/Users/erazemk/Code/DevRev",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "git.autofetch": "all",
+  "git.autoStash": true,
+  "git.blame.editorDecoration.enabled": true,
+  "git.blame.statusBarItem.enabled": true,
+  "git.branchPrefix": "erazemk/",
+  "git.branchValidationRegex": "erazemk\/(ISS-[0-9]+\/)*[a-z-]+",
+  "git.closeDiffOnOperation": true,
+  "git.confirmSync": false,
+  "git.defaultCloneDirectory": "/Users/erazemk/Code/DevRev",
+  "git.enableSmartCommit": true,
+  "git.fetchOnPull": true,
+  "git.followTagsWhenSync": true,
+  "git.inputValidation": true,
+  "git.mergeEditor": true,
+  "git.openAfterClone": "always",
+  "git.pruneOnFetch": true,
+  "git.pullBeforeCheckout": true,
+  "git.scanRepositories": [
+    "/Users/erazemk/Code"
+  ],
+  "github.gitProtocol": "ssh",
+  "go.diagnostic.vulncheck": "Imports",
+  "go.toolsManagement.autoUpdate": true,
+  "makefile.configureOnOpen": false,
+  "markdown.validate.enabled": true,
+  "merge-conflict.autoNavigateNextConflict.enabled": true,
+  "scm.diffDecorationsGutterPattern": {
+    "added": true
+  },
+  "testing.coverageToolbarEnabled": true,
+  "window.autoDetectColorScheme": true,
+  "window.newWindowDimensions": "inherit",
+  "window.openWithoutArgumentsInNewWindow": "on",
+  "window.restoreWindows": "none",
+  "workbench.editor.closeOnFileDelete": true,
+  "workbench.editor.highlightModifiedTabs": true,
+  "workbench.preferredDarkColorTheme": "Default Dark Modern",
+  "workbench.preferredLightColorTheme": "Default Light Modern",
+  "explorer.confirmDelete": false,
+  "git.branchProtectionPrompt": "alwaysCommit",
+  "git.repositoryScanIgnoredFolders": [
+    "node_modules",
+    "_build",
+    ".cursor/libraries"
+  ],
+  "search.exclude": {
+    "**/_build": true,
+    "**/.cursor/libraries": true
+  },
+  "editor.fontFamily": "'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace",
+  "scm.inputFontFamily": "editor",
+  "[scminput]": {
+    "editor.rulers": [
+      50,
+      72
+    ],
+    "editor.wordWrap": "off"
+  },
+  "diffEditor.experimental.showMoves": true,
+  "git.useCommitInputAsStashMessage": true,
+  "remote.SSH.remotePlatform": {
+    "lima": "linux"
+  },
+  "git.replaceTagsWhenPull": true,
+  "editor.fontSize": 13,
+  "cursor.composer.shouldChimeAfterChatFinishes": true,
+  "git.autoRepositoryDetection": false,
+  "terraform.codelens.referenceCount": true,
+  "terraform.experimentalFeatures.validateOnSave": true,
+  "terraform.experimentalFeatures.prefillRequiredFields": true
+}
