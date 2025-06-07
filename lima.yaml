@@ -1,0 +1,315 @@
+minimumLimaVersion: 1.1.0
+
+# VM configuration
+cpus: 8
+memory: 12GiB
+disk: 128GiB
+base:
+  - template://_images/fedora-42
+  - template://_default/mounts
+timezone: Europe/Ljubljana
+ssh:
+  localPort: 60000
+  loadDotSSHPubKeys: true
+
+# Post-install script and files
+provision:
+  # DNF config
+  - mode: data
+    path: /etc/dnf/dnf.conf
+    owner: root:root
+    permissions: 644
+    overwrite: true
+    content: |
+      [main]
+      fastestmirror=true
+      max_parallel_downloads=10
+
+  # GitHub public keys for known hosts
+  - mode: data
+    path: /home/{{.User}}.linux/.ssh/known_hosts
+    owner: "{{.User}}:{{.User}}"
+    permissions: 644
+    overwrite: true
+    content: |
+      github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+      github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+      github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=
+
+  # Set up system
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      exec >> /dev/hvc0 2>&1
+
+      # Install packages
+      dnf upgrade -y --refresh
+      dnf copr enable -y atim/bottom
+      dnf config-manager addrepo --from-repofile=https://download.docker.com/linux/fedora/docker-ce.repo
+      dnf install -y fish helix git gh jq yq ripgrep go make awscli2 dnf-plugins-core nodejs bottom which docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+      systemctl enable --now docker
+      usermod -aG docker {{.User}}
+
+      # Switch to fish shell
+      chsh -s /usr/bin/fish {{.User}}
+      chsh -s /usr/bin/fish root
+
+      # Remove unnecessary files
+      rm /root/.bash* /root/.cshrc /root/.tcshrc
+
+  # Set up user configs
+  - mode: user
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      exec > >(sudo tee -a /dev/hvc0) 2>&1
+
+      # Copy SSH keys
+      cp /Users/{{.User}}/.ssh/id_ed25519 $HOME/.ssh/id_ed25519
+      sudo chown -R {{.User}}:{{.User}} $HOME/
+
+      # Install Claude Code
+      mkdir -p $HOME/.local/share/npm
+      npm config set prefix $HOME/.local/share/npm
+      npm install -g @anthropic-ai/claude-code
+
+      # Add SSH key to agent
+      eval "$(ssh-agent)" >/dev/null
+      ssh-add -q $HOME/.ssh/id_ed25519
+
+      # Install DevRev CLI (this takes a very long time)
+      # export GOPRIVATE=github.com/devrev
+      # export GOPATH=$HOME/.local/share/go
+      # go install github.com/devrev/devrev-cli/devrev@main
+
+      # Clone Git repos
+      repos=(
+        airdrop-common
+        airdrop-devrev-extractor
+        airdrop-devrev-loader
+        airdrop-extractor-adapter
+        airdrop-loader-adapter
+        airdrop-kafka-consumer
+        cursor
+        sidekick
+        starbase
+      )
+      for repo in "${repos[@]}"; do
+        git clone git@github.com:devrev/$repo.git $HOME/$repo
+      done
+
+      # Remove unnecessary files
+      rm $HOME/.bash* $HOME/.profile $HOME/.zshrc
+
+  # Fish config
+  - mode: data
+    path: /home/{{.User}}.linux/.config/fish/config.fish
+    owner: "{{.User}}:{{.User}}"
+    permissions: 644
+    overwrite: true
+    content: |
+      set -x fish_greeting
+
+      # XDG paths
+      set -x XDG_CACHE_HOME $HOME/.cache
+      set -x XDG_CONFIG_HOME $HOME/.config
+      set -x XDG_DATA_HOME $HOME/.local/share
+
+      # SSH agent
+      if not pgrep ssh-agent >/dev/null
+        eval (ssh-agent -c)
+        set -Ux SSH_AUTH_SOCK $SSH_AUTH_SOCK
+        set -Ux SSH_AGENT_PID $SSH_AGENT_PID
+      end
+      ssh-add -q $HOME/.ssh/id_ed25519
+
+      # Go
+      set -x GOPRIVATE github.com/devrev
+      set -x GOPATH $XDG_DATA_HOME/go
+      set -x GIT_TERMINAL_PROMPT 1
+
+      # less (pager) colors
+      set -x LESS_TERMCAP_mb (set_color brred)
+      set -x LESS_TERMCAP_md (set_color brred)
+      set -x LESS_TERMCAP_me (set_color normal)
+      set -x LESS_TERMCAP_se (set_color normal)
+      set -x LESS_TERMCAP_so (set_color -b blue bryellow)
+      set -x LESS_TERMCAP_ue (set_color normal)
+      set -x LESS_TERMCAP_us (set_color brgreen)
+
+      # Other
+      set -x EDITOR hx
+      set -x PATH $HOME/.local/bin:$GOPATH/bin:$XDG_DATA_HOME/npm/bin:$PATH
+
+      # Aliases
+      abbr mkdir 'mkdir -p'
+      abbr cp 'cp -Riv'
+      abbr mv 'mv -iv'
+      abbr rm 'rm -Iv'
+      abbr cdtmp 'cd (mktemp -d)'
+
+      # Functions
+      function tldr
+        command curl cheat.sh/"$argv[1]"
+      end
+
+      function jwt
+        echo "$argv[1]" | jq -R 'split(".") | .[1] | @base64d | fromjson'
+      end
+
+      function dr
+        if ! command -v devrev &>/dev/null
+          go install -v github.com/devrev/devrev-cli/devrev@main
+        end
+
+        command devrev -q $argv
+      end
+
+  # Root fish config
+  - mode: data
+    path: /root/.config/fish/config.fish
+    owner: root:root
+    permissions: 644
+    overwrite: true
+    content: |
+      set -x fish_greeting
+
+  # AWS config
+  - mode: data
+    path: /home/{{.User}}.linux/.aws/config
+    owner: "{{.User}}:{{.User}}"
+    permissions: 644
+    overwrite: true
+    content: |
+      [sso-session DevRev]
+      sso_start_url = https://d-9067645937.awsapps.com/start
+      sso_region = us-east-1
+      sso_registration_scopes = sso:account:access
+
+      [default]
+      sso_session = DevRev
+      sso_account_id = 020040093233
+      sso_role_name = EngineeringDevAccess
+      region = us-east-1
+      output = json
+
+      [profile qa]
+      sso_session = DevRev
+      sso_account_id = 990737956189
+      sso_role_name = EngineeringQAAccess
+      region = us-east-1
+      output = json
+
+      [profile prod]
+      sso_session = DevRev
+      sso_account_id = 087878894592
+      sso_role_name = ProdAirdropIncidents
+      region = us-east-1
+      output = json
+
+  # Claude Code config
+  - mode: data
+    path: /home/{{.User}}.linux/.claude/settings.json
+    owner: "{{.User}}:{{.User}}"
+    permissions: 644
+    overwrite: true
+    content: |
+      {
+        "permissions": {
+          "allow": [
+            "Write(file_path: CLAUDE.md)"
+          ]
+        },
+        "env": {
+          "CLAUDE_CODE_USE_BEDROCK": 1
+        }
+      }
+
+  # Git config
+  - mode: data
+    path: /home/{{.User}}.linux/.config/git/config
+    owner: "{{.User}}:{{.User}}"
+    permissions: 644
+    overwrite: true
+    content: |
+      [alias]
+        a = add
+        d = diff
+        l = log
+        ch = checkout
+        c = commit
+        cm = commit -m
+        b = branch
+        cl = clone --recursive
+        clone = clone --recursive
+        ps = push
+        pl = pull
+        rb = rebase -i
+        r = remote
+        s = status
+
+      [color]
+        ui = true
+        pager = yes
+
+      [core]
+        autocrlf = input
+        editor = hx
+        pager = less
+
+      [init]
+        defaultBranch = main
+
+      [push]
+        followTags = true
+        default = simple
+
+      [rebase]
+        autoStash = true
+
+      [submodule]
+        recurse = true
+
+      [url "git@github.com:"]
+        insteadOf = https://github.com/
+
+      [user]
+        email = erazem.kokot@devrev.ai
+        name = Erazem Kokot
+        username = {{.User}}
+
+  # Git ignore config
+  - mode: data
+    path: /home/{{.User}}.linux/.config/git/ignore
+    owner: "{{.User}}:{{.User}}"
+    permissions: 644
+    overwrite: true
+    content: |
+      .cursor/
+      CLAUDE.md
+
+  # GitHub CLI config
+  - mode: data
+    path: /home/{{.User}}.linux/.config/gh/config.yml
+    owner: "{{.User}}:{{.User}}"
+    permissions: 644
+    overwrite: true
+    content: |
+      version: 1
+      git_protocol: ssh
+      prompt: enabled
+      prefer_editor_prompt: disabled
+
+  # GitHub CLI hosts
+  - mode: data
+    path: /home/{{.User}}.linux/.config/gh/hosts.yml
+    owner: "{{.User}}:{{.User}}"
+    permissions: 644
+    overwrite: true
+    content: |
+      github.com:
+        git_protocol: ssh
+        users:
+          {{.User}}:
+        user: {{.User}}

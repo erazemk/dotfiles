@@ -1,0 +1,45 @@
+[alias]
+  a = add
+  d = diff
+  l = log
+  ch = checkout
+  c = commit
+  cm = commit -m
+  b = branch
+  cl = clone --recursive
+  clone = clone --recursive
+  ps = push
+  pl = pull
+  rb = rebase -i
+  r = remote
+  s = status
+
+[color]
+  ui = true
+  pager = yes
+
+[core]
+  autocrlf = input
+  editor = hx
+  pager = less
+
+[init]
+  defaultBranch = main
+
+[push]
+  followTags = true
+  default = simple
+
+[rebase]
+  autoStash = true
+
+[submodule]
+  recurse = true
+
+[url "git@github.com:"]
+  insteadOf = https://github.com/
+
+[user]
+  email = mail@erazemk.com
+  name = Erazem Kokot
+  username = erazemk

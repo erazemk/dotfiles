@@ -1,0 +1,9 @@
+Host lima
+	HostName localhost
+	Port 60000
+
+Host mikrotik
+	IdentityFile ~/.ssh/mikrotik
+	User admin
+	HostName 93.103.13.78
+	Port 777
