@@ -92,5 +92,6 @@
   "git.autoRepositoryDetection": false,
   "terraform.codelens.referenceCount": true,
   "terraform.experimentalFeatures.validateOnSave": true,
-  "terraform.experimentalFeatures.prefillRequiredFields": true
+  "terraform.experimentalFeatures.prefillRequiredFields": true,
+  "redhat.telemetry.enabled": false
 }
