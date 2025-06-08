@@ -58,6 +58,8 @@ provision:
       # Remove unnecessary files
       rm /root/.bash* /root/.cshrc /root/.tcshrc
 
+      echo "Finished running system script."
+
   # Set up user configs
   - mode: user
     script: |
@@ -79,9 +81,9 @@ provision:
       ssh-add -q $HOME/.ssh/id_ed25519
 
       # Install DevRev CLI (this takes a very long time)
-      # export GOPRIVATE=github.com/devrev
-      # export GOPATH=$HOME/.local/share/go
-      # go install github.com/devrev/devrev-cli/devrev@main
+      export GOPRIVATE=github.com/devrev
+      export GOPATH=$HOME/.local/share/go
+      go install -v github.com/devrev/devrev-cli/devrev@main
 
       # Clone Git repos
       repos=(
@@ -92,6 +94,7 @@ provision:
         airdrop-loader-adapter
         airdrop-kafka-consumer
         cursor
+        shared
         sidekick
         starbase
       )
@@ -101,6 +104,8 @@ provision:
 
       # Remove unnecessary files
       rm $HOME/.bash* $HOME/.profile $HOME/.zshrc
+
+      echo "Finished running user script."
 
   # Fish config
   - mode: data
@@ -218,6 +223,15 @@ provision:
       {
         "permissions": {
           "allow": [
+            "Bash(make:*)",
+            "Bash(git:*)",
+            "Bash(grep:*)",
+            "Bash(go:*)",
+            "Bash(rg:*)",
+            "Bash(ls:*)",
+            "Bash(find:*)",
+            "Bash(docker:*)",
+            "Bash(mkdir:*)",
             "Write(file_path: CLAUDE.md)"
           ]
         },
