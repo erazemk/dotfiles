@@ -1,0 +1,25 @@
+[sso-session DevRev]
+sso_region = us-east-1
+sso_registration_scopes = sso:account:access
+sso_start_url = https://d-9067645937.awsapps.com/start
+
+[default]
+sso_session = DevRev
+sso_account_id = 020040093233
+sso_role_name = EngineeringDevAccess
+region = us-east-1
+output = json
+
+[profile qa]
+sso_session = DevRev
+sso_account_id = 990737956189
+sso_role_name = EngineeringQAAccess
+region = us-east-1
+output = json
+
+[profile prod]
+sso_session = DevRev
+sso_account_id = 087878894592
+sso_role_name = ProdAirdropIncidents
+region = us-east-1
+output = json
