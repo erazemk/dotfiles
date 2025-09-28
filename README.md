@@ -1,6 +1,7 @@
 # Dotfiles
 
 These are my macOS + lima (Fedora) dotfiles.
+Lima is too inefficient for daily use, so I just use macOS for now.
 
 ## Usage
 
