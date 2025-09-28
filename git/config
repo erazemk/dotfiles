@@ -1,45 +1,36 @@
 [alias]
-  a = add
-  d = diff
-  l = log
-  ch = checkout
-  c = commit
-  cm = commit -m
-  b = branch
-  cl = clone --recursive
-  clone = clone --recursive
-  ps = push
-  pl = pull
-  rb = rebase -i
-  r = remote
-  s = status
-
-[color]
-  ui = true
-  pager = yes
-
-[core]
-  autocrlf = input
-  editor = hx
-  pager = less
+a = add
+d = diff
+l = log
+lo = log --oneline
+ch = checkout
+c = commit
+cm = commit -m
+b = branch
+cl = clone --recursive
+clone = clone --recursive
+ps = push
+pl = pull
+rb = rebase -i
+r = remote
+s = status
 
 [init]
-  defaultBranch = main
-
-[push]
-  followTags = true
-  default = simple
+defaultBranch = main
 
 [rebase]
-  autoStash = true
+autoStash = true
 
 [submodule]
-  recurse = true
+recurse = true
 
 [url "git@github.com:"]
-  insteadOf = https://github.com/
+insteadOf = https://github.com/
 
 [user]
-  email = mail@erazemk.com
-  name = Erazem Kokot
-  username = erazemk
+email = mail@erazemk.com
+name = Erazem Kokot
+username = erazemk
+
+[includeIf "gitdir:~/DevRev/"]
+path = ~/.config/git/devrev
