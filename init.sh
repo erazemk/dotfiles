@@ -13,10 +13,12 @@ if ! command -v stow > /dev/null 2>&1; then
     exit 1
 fi
 
-mkdir -p "$HOME/Library/Application Support/Cursor/User"
-mkdir -p "$HOME/.config/fish"
-mkdir -p "$HOME/.config/git"
-mkdir -p "$HOME/.ssh"
+mkdir -p \
+    "$HOME/Library/Application Support/Cursor/User" \
+    "$HOME/.config/fish" \
+    "$HOME/.config/git" \
+    "$HOME/.claude" \
+    "$HOME/.ssh"
 
 stow -t "$HOME/Library/Application Support/Cursor/User" -S cursor
 stow -t "$HOME/.config/fish" -S fish
