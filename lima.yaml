@@ -47,7 +47,7 @@ provision:
       dnf upgrade -y --refresh
       dnf copr enable -y atim/bottom
       dnf config-manager addrepo --from-repofile=https://download.docker.com/linux/fedora/docker-ce.repo
-      dnf install -y fish helix git gh jq yq ripgrep go make awscli2 dnf-plugins-core nodejs bottom which docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+      dnf install -y fish helix git gh jq yq ripgrep ShellCheck go delve make unzip awscli2 dnf-plugins-core nodejs bottom which docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
       systemctl enable --now docker
       usermod -aG docker {{.User}}
 
