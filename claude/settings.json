@@ -1,0 +1,29 @@
+{
+  "includeCoAuthoredBy": false,
+  "awsAuthRefresh": "aws sso login --profile default",
+  "env": {
+    "AWS_REGION": "us-east-1",
+    "AWS_PROFILE": "default"
+  },
+  "permissions": {
+    "allow": [
+      "Fetch",
+      "WebFetch",
+      "WebSearch",
+      "Bash(make:*)",
+      "Bash(go:*)",
+      "Bash(git:*)",
+      "Bash(grep:*)",
+      "Bash(gh:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(cd:*)",
+      "Fetch",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(zola:*)",
+      "mcp__ide__getDiagnostics",
+      "mcp__devrev__get_issue"
+    ]
+  }
+}
