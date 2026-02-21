@@ -9,6 +9,7 @@ RUN dnf --assumeyes --refresh upgrade \
     awscli2 \
     coreutils \
     curl \
+    deno \
     diffutils \
     fish \
     gh \
@@ -18,6 +19,7 @@ RUN dnf --assumeyes --refresh upgrade \
     helix \
     jq \
     make \
+    nodejs \
     ripgrep \
     sudo \
     which \
