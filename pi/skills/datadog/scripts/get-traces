@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+"""Datadog traces: search spans (stdlib-only)."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+import urllib.request
+from typing import Any, Dict, Tuple
+
+DD_SITE = "datadoghq.com"
+
+DEFAULT_FROM = "now-1h"
+DEFAULT_TO = "now"
+DEFAULT_LIMIT = 20
+MAX_LINES = 120
+MAX_BYTES = 16 * 1024
+
+
+def get_keys() -> Tuple[str, str]:
+    return os.environ.get("DD_API_KEY", ""), os.environ.get("DD_APP_KEY", "")
+
+
+def truncate_result(text: str) -> str:
+    lines = text.splitlines()
+    if len(lines) <= MAX_LINES and len(text.encode("utf-8")) <= MAX_BYTES:
+        return text
+    truncated_lines = lines[-MAX_LINES:]
+    truncated_text = "\n".join(truncated_lines)
+    footer = (
+        f"\n\n[Truncated: showing {len(truncated_lines)}/{len(lines)} lines "
+        f"({len(truncated_text.encode('utf-8'))}/{len(text.encode('utf-8'))} bytes)]"
+    )
+    return truncated_text + footer
+
+
+def dd_fetch(path: str, method: str, body: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    api_key, app_key = get_keys()
+    if not api_key or not app_key:
+        raise SystemExit("DD_API_KEY and DD_APP_KEY must be set")
+
+    url = f"https://api.{DD_SITE}{path}"
+    data = None
+    headers = {
+        "Content-Type": "application/json",
+        "DD-API-KEY": api_key,
+        "DD-APPLICATION-KEY": app_key,
+    }
+    if body is not None:
+        data = json.dumps(body).encode("utf-8")
+
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    with urllib.request.urlopen(req) as resp:
+        payload = resp.read().decode("utf-8")
+        return json.loads(payload)
+
+
+def format_span(span: Dict[str, Any], include_all: bool) -> str:
+    attrs = span.get("attributes", {})
+    start = attrs.get("start_timestamp", "?")
+    service = attrs.get("service", "?")
+    resource = attrs.get("resource_name", "")
+    span_type = attrs.get("type", "")
+    env = attrs.get("env", "")
+    host = attrs.get("host", "")
+    duration = attrs.get("duration")
+    trace_id = attrs.get("trace_id", "")
+    span_id = attrs.get("span_id", "")
+    lines = [f"[{start}] {service}"]
+    if resource:
+        lines[0] += f" {resource}"
+    if span_type:
+        lines[0] += f" ({span_type})"
+    if env:
+        lines[0] += f" env={env}"
+    if host and include_all:
+        lines[0] += f" host={host}"
+    if duration:
+        lines[0] += f" duration={duration / 1e6:.1f}ms"
+    if trace_id:
+        lines[0] += f" trace={trace_id}"
+    if span_id:
+        lines[0] += f" span={span_id}"
+    custom = attrs.get("custom", {})
+    if include_all and custom:
+        lines.append(f"  custom={json.dumps(custom)}")
+    error = custom.get("error") if isinstance(custom, dict) else None
+    if error and isinstance(error, dict):
+        stack = error.get("stack")
+        message = error.get("message")
+        if stack:
+            lines.append(f"  stack: {stack}")
+        elif message:
+            lines.append(f"  error: {message}")
+    return "\n".join(lines)
+
+
+def search_spans(query: str, from_: str, to: str, limit: int, include_all: bool) -> str:
+    body = {
+        "data": {
+            "type": "search_request",
+            "attributes": {
+                "filter": {"query": query, "from": from_, "to": to},
+                "page": {"limit": limit},
+                "sort": "-timestamp",
+            },
+        },
+    }
+    json_data = dd_fetch("/api/v2/spans/events/search", "POST", body)
+    spans = json_data.get("data", [])
+    if not spans:
+        return "No spans found."
+    formatted = [format_span(span, include_all) for span in spans]
+    header = f"Found {len(spans)} span(s):\n"
+    return truncate_result(header + "\n\n".join(formatted))
+
+
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser()
+    p.add_argument("action", choices=["search"])
+    p.add_argument("--query", required=True)
+    p.add_argument("--from", dest="from_", default=DEFAULT_FROM)
+    p.add_argument("--to", dest="to", default=DEFAULT_TO)
+    p.add_argument("--limit", type=int, default=DEFAULT_LIMIT)
+    p.add_argument("--all", action="store_true")
+    return p.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        if args.action == "search":
+            text = search_spans(args.query, args.from_, args.to, args.limit, args.all)
+        else:
+            raise SystemExit("Unknown action")
+        print(text)
+    except Exception as err:
+        raise SystemExit(f"Error: {err}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

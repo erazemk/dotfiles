@@ -1,0 +1,431 @@
+#!/usr/bin/env python3
+"""Fetch a DevRev work item or knowledge base article and output JSON.
+
+Auto-detects the resource type from the identifier:
+  - Work items: ISS-123, TKT-456, TASK-789, works/ URLs, issue/ticket/task DONs
+  - Articles:   ART-123, articles/ URLs, article DONs, bare numeric IDs
+
+Usage:
+  scripts/get <identifier> [options]
+
+Requires DEVREV_API_KEY environment variable.
+"""
+
+import argparse
+import json
+import os
+import re
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+
+BASE_URL = "https://api.devrev.ai"
+ARTICLE_DON_PREFIX = "don:core:dvrv-us-1:devo/0:article/"
+
+
+# ---------------------------------------------------------------------------
+# Shared helpers
+# ---------------------------------------------------------------------------
+
+
+def eprint(msg):
+    sys.stderr.write(msg + "\n")
+
+
+def get_token():
+    token = os.environ.get("DEVREV_API_KEY")
+    if not token:
+        raise RuntimeError(
+            "DEVREV_API_KEY environment variable is not set. "
+            "Create a Personal Access Token at "
+            "https://app.devrev.ai/settings/account/personal-access-token"
+        )
+    return token
+
+
+def api_post(path, params):
+    """POST JSON to a DevRev API endpoint and return the parsed response."""
+    token = get_token()
+    url = BASE_URL + path
+    body = json.dumps(params).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Authorization": token, "Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req) as resp:
+            data = resp.read().decode("utf-8")
+            return json.loads(data) if data else {}
+    except urllib.error.HTTPError as err:
+        body = err.read().decode("utf-8", errors="replace") if err.fp else ""
+        raise RuntimeError(f"DevRev API error {err.code}: {err.reason}\n{body}")
+
+
+def api_get(path, params):
+    """GET from a DevRev API endpoint with query params."""
+    token = get_token()
+    qs = urllib.parse.urlencode(params)
+    url = f"{BASE_URL}{path}?{qs}"
+    req = urllib.request.Request(url, headers={"Authorization": token})
+    try:
+        with urllib.request.urlopen(req) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as err:
+        body = err.read().decode("utf-8", errors="replace") if err.fp else ""
+        raise RuntimeError(f"DevRev API error {err.code}: {err.reason}\n{body}")
+
+
+def download_url(url):
+    """Download raw bytes from a URL."""
+    req = urllib.request.Request(url)
+    with urllib.request.urlopen(req) as resp:
+        return resp.read()
+
+
+# ---------------------------------------------------------------------------
+# Identifier detection and parsing
+# ---------------------------------------------------------------------------
+
+
+def detect_type(identifier):
+    """Return 'work' or 'article' based on the identifier format, or None."""
+    trimmed = identifier.strip()
+
+    # URL patterns
+    if "/works/" in trimmed:
+        return "work"
+    if "/articles/" in trimmed:
+        return "article"
+
+    # DON patterns
+    if trimmed.startswith("don:"):
+        if ":article/" in trimmed:
+            return "article"
+        # issue, ticket, task DONs
+        if any(x in trimmed for x in (":issue/", ":ticket/", ":task/")):
+            return "work"
+
+    # Display ID patterns
+    if re.match(r"^ART-\d+$", trimmed, re.IGNORECASE):
+        return "article"
+    if re.match(r"^(ISS|TKT|TASK)-\d+$", trimmed, re.IGNORECASE):
+        return "work"
+
+    # Bare numeric ID — default to article (matches original view-article behaviour)
+    if trimmed.isdigit():
+        return "article"
+
+    return None
+
+
+def parse_work_id(value):
+    """Extract a usable work item ID from various input formats."""
+    trimmed = value.strip()
+
+    url_match = re.match(
+        r"(?:https?://)?app\.devrev\.ai/[^/]+/works/([A-Z]+-\d+)",
+        trimmed,
+        re.IGNORECASE,
+    )
+    if url_match:
+        return url_match.group(1)
+
+    if trimmed.startswith("don:"):
+        return trimmed
+
+    if re.match(r"^[A-Z]+-\d+$", trimmed, re.IGNORECASE):
+        return trimmed
+
+    return trimmed
+
+
+def parse_article_id(value):
+    """Resolve an article identifier to a DON."""
+    trimmed = value.strip()
+
+    if trimmed.startswith("don:"):
+        return trimmed
+
+    art_match = re.search(r"ART-(\d+)", trimmed, re.IGNORECASE)
+    if art_match:
+        return f"{ARTICLE_DON_PREFIX}{art_match.group(1)}"
+
+    if trimmed.isdigit():
+        return f"{ARTICLE_DON_PREFIX}{trimmed}"
+
+    raise RuntimeError(
+        f"Cannot resolve article identifier: {trimmed}\n"
+        "Expected a DON, URL, ART-<id>, or numeric ID"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Work item fetching
+# ---------------------------------------------------------------------------
+
+
+def format_user(user):
+    if not user:
+        return None
+    return (
+        user.get("display_name")
+        or user.get("full_name")
+        or user.get("display_id")
+        or user.get("id")
+    )
+
+
+def fetch_work(identifier, include_comments):
+    """Fetch a work item and return a dict with title, description, and optional comments."""
+    work_id = parse_work_id(identifier)
+    resp = api_post("/works.get", {"id": work_id})
+    work = resp.get("work")
+    if not work:
+        raise RuntimeError(f"No work item found for ID: {work_id}")
+
+    output = {
+        "title": work.get("title"),
+        "description": work.get("body"),
+    }
+
+    if include_comments:
+        output["comments"] = _fetch_comments(work.get("id"))
+
+    return output
+
+
+def _fetch_comments(object_id):
+    """Paginate through timeline comment entries for a work item."""
+    comments = []
+    cursor = None
+    while True:
+        params = {
+            "object": object_id,
+            "collections": ["discussions"],
+            "limit": 50,
+        }
+        if cursor:
+            params["cursor"] = cursor
+        tl = api_post("/timeline-entries.list", params)
+        for entry in tl.get("timeline_entries") or []:
+            if entry.get("type") != "timeline_comment":
+                continue
+            comment = {}
+            author = format_user(entry.get("created_by"))
+            if author:
+                comment["author"] = author
+            if entry.get("created_date"):
+                comment["created_date"] = entry["created_date"]
+            if entry.get("visibility"):
+                comment["visibility"] = entry["visibility"]
+            if entry.get("body"):
+                comment["body"] = entry["body"]
+            if comment:
+                comments.append(comment)
+        cursor = tl.get("next_cursor")
+        if not cursor:
+            break
+    return comments
+
+
+# ---------------------------------------------------------------------------
+# Article fetching
+# ---------------------------------------------------------------------------
+
+
+def fetch_article(identifier):
+    """Fetch an article and return a dict with title, description, and body (markdown)."""
+    article_don = parse_article_id(identifier)
+    data = api_get("/internal/articles.get", {"article_id": article_don})
+    article = data.get("article", {})
+
+    title = article.get("title")
+    description = article.get("description")
+
+    # Find and download the ProseMirror rich-text artifact
+    rt_url = _find_rt_artifact(article)
+    if not rt_url:
+        raise RuntimeError("No devrev/rt artifact found on this article")
+
+    rt_raw = download_url(rt_url)
+    rt_json = json.loads(rt_raw)
+    doc = rt_json.get("article", rt_json)
+    body = pm_convert_node(doc)
+
+    return {
+        "title": title,
+        "description": description,
+        "body": body,
+    }
+
+
+def _find_rt_artifact(article):
+    for artifact in article.get("resource", {}).get("artifacts", []):
+        if artifact.get("file", {}).get("type") == "devrev/rt":
+            return artifact.get("original_url")
+    return None
+
+
+# ---------------------------------------------------------------------------
+# ProseMirror JSON → Markdown conversion
+# ---------------------------------------------------------------------------
+
+
+def pm_convert_marks(text, marks):
+    for mark in marks:
+        mt = mark.get("type", "")
+        if mt == "bold":
+            text = f"**{text}**"
+        elif mt == "italic":
+            text = f"*{text}*"
+        elif mt == "code":
+            text = f"`{text}`"
+        elif mt == "strike":
+            text = f"~~{text}~~"
+        elif mt == "link":
+            href = mark.get("attrs", {}).get("href", "")
+            text = f"[{text}]({href})"
+    return text
+
+
+def pm_convert_node(node, list_depth=0, ordered_index=None):
+    node_type = node.get("type", "")
+    content = node.get("content", [])
+    attrs = node.get("attrs", {})
+
+    if node_type == "doc":
+        return pm_convert_children(content, list_depth).strip() + "\n"
+
+    if node_type == "text":
+        text = node.get("text", "")
+        marks = node.get("marks", [])
+        return pm_convert_marks(text, marks)
+
+    if node_type == "paragraph":
+        inner = pm_convert_children(content, list_depth)
+        return inner + "\n\n"
+
+    if node_type == "heading":
+        level = attrs.get("level", 1)
+        inner = pm_convert_children(content, list_depth)
+        return f"{'#' * level} {inner}\n\n"
+
+    if node_type == "bulletList":
+        return pm_convert_list_items(content, list_depth, ordered=False)
+
+    if node_type == "orderedList":
+        return pm_convert_list_items(content, list_depth, ordered=True)
+
+    if node_type == "listItem":
+        indent = "  " * list_depth
+        prefix = (
+            f"{indent}{ordered_index}. " if ordered_index is not None else f"{indent}- "
+        )
+        parts = []
+        for i, child in enumerate(content):
+            if child.get("type") == "paragraph":
+                inner = pm_convert_children(child.get("content", []), list_depth)
+                if i == 0:
+                    parts.append(f"{prefix}{inner}\n")
+                else:
+                    parts.append(f"{indent}  {inner}\n")
+            else:
+                parts.append(pm_convert_node(child, list_depth))
+        return "".join(parts)
+
+    if node_type == "codeBlock":
+        lang = attrs.get("language", "")
+        inner = pm_convert_children(content, list_depth)
+        return f"```{lang}\n{inner}\n```\n\n"
+
+    if node_type == "blockquote":
+        inner = pm_convert_children(content, list_depth)
+        lines = inner.strip().split("\n")
+        quoted = "\n".join(f"> {line}" for line in lines)
+        return quoted + "\n\n"
+
+    if node_type == "horizontalRule":
+        return "---\n\n"
+
+    if node_type == "image":
+        return ""
+
+    return pm_convert_children(content, list_depth)
+
+
+def pm_convert_list_items(items, list_depth, ordered):
+    parts = []
+    for i, item in enumerate(items):
+        if ordered:
+            parts.append(pm_convert_node(item, list_depth + 1, ordered_index=i + 1))
+        else:
+            parts.append(pm_convert_node(item, list_depth + 1))
+    result = "".join(parts)
+    if list_depth == 0:
+        result += "\n"
+    return result
+
+
+def pm_convert_children(children, list_depth=0):
+    return "".join(pm_convert_node(child, list_depth) for child in children)
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Fetch a DevRev work item or article and output JSON.",
+    )
+    parser.add_argument(
+        "id",
+        help="Identifier: display ID, URL, or DON (auto-detects work vs article)",
+    )
+    parser.add_argument(
+        "--include-comments",
+        action="store_true",
+        help="Include timeline comments (work items only)",
+    )
+    parser.add_argument(
+        "--pretty",
+        action="store_true",
+        help="Pretty-print JSON output",
+    )
+    args = parser.parse_args()
+
+    identifier = args.id.strip()
+    resource_type = detect_type(identifier)
+
+    if resource_type is None:
+        eprint(
+            f"Cannot determine resource type for: {identifier}\n"
+            "Expected a work item ID (ISS-/TKT-/TASK-), article ID (ART-), "
+            "URL, DON, or numeric ID."
+        )
+        return 1
+
+    try:
+        if resource_type == "work":
+            output = fetch_work(identifier, args.include_comments)
+        else:
+            if args.include_comments:
+                eprint("Warning: --include-comments is ignored for articles")
+            output = fetch_article(identifier)
+    except Exception as exc:
+        eprint(str(exc))
+        return 1
+
+    if args.pretty:
+        print(json.dumps(output, indent=2, ensure_ascii=False))
+    else:
+        print(json.dumps(output, separators=(",", ":"), ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

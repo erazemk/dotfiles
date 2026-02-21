@@ -1,0 +1,289 @@
+#!/usr/bin/env python3
+"""Datadog logs: search, aggregate, pattern clustering (stdlib-only)."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+import urllib.request
+from typing import Any, Dict, List, Tuple
+
+DD_SITE = "datadoghq.com"
+
+DEFAULT_FROM = "now-1h"
+DEFAULT_TO = "now"
+DEFAULT_SEARCH_LIMIT = 20
+DEFAULT_AGG_LIMIT = 10
+DEFAULT_PATTERN_LIMIT = 10
+MAX_SAMPLE_SIZE = 5000
+MAX_LINES = 120
+MAX_BYTES = 16 * 1024
+PAGE_LIMIT = 1000
+MAX_PAGES = 100
+
+PATTERN_REPLACEMENTS = [
+    (re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?"), "*"),
+    (re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"), "*"),
+    (re.compile(r"\b[0-9a-fA-F]{8,}\b"), "*"),
+    (re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"), "*"),
+    (re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?\b"), "*"),
+    (re.compile(r'"[^"]*"'), '"**"'),
+    (re.compile(r"(?<![a-zA-Z:])\b\d+\b(?![a-zA-Z])"), "*"),
+]
+
+NOISY_ATTRS = {"sync_options", "lambda"}
+
+
+def get_keys() -> Tuple[str, str]:
+    return os.environ.get("DD_API_KEY", ""), os.environ.get("DD_APP_KEY", "")
+
+
+def truncate_result(text: str) -> str:
+    lines = text.splitlines()
+    if len(lines) <= MAX_LINES and len(text.encode("utf-8")) <= MAX_BYTES:
+        return text
+
+    truncated_lines = lines[-MAX_LINES:]
+    truncated_text = "\n".join(truncated_lines)
+    output_bytes = len(truncated_text.encode("utf-8"))
+    total_lines = len(lines)
+    total_bytes = len(text.encode("utf-8"))
+    footer = (
+        f"\n\n[Truncated: showing {len(truncated_lines)}/{total_lines} lines "
+        f"({output_bytes}/{total_bytes} bytes)]"
+    )
+    return truncated_text + footer
+
+
+def dd_fetch(path: str, method: str, body: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    api_key, app_key = get_keys()
+    if not api_key or not app_key:
+        raise SystemExit("DD_API_KEY and DD_APP_KEY must be set")
+
+    url = f"https://api.{DD_SITE}{path}"
+    data = None
+    headers = {
+        "Content-Type": "application/json",
+        "DD-API-KEY": api_key,
+        "DD-APPLICATION-KEY": app_key,
+    }
+    if body is not None:
+        data = json.dumps(body).encode("utf-8")
+
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    with urllib.request.urlopen(req) as resp:
+        payload = resp.read().decode("utf-8")
+        return json.loads(payload)
+
+
+def format_log(log: Dict[str, Any], include_all: bool) -> str:
+    attrs = log.get("attributes", {})
+    content = attrs.get("attributes", {}) if "attributes" in attrs else {}
+    timestamp = attrs.get("timestamp", "?")
+    level = attrs.get("status", attrs.get("level", "?")).upper()
+    service = attrs.get("service", "?")
+    msg = attrs.get("message", "")
+    log_id = log.get("id", "")
+
+    lines = [f"[{timestamp}] {level} {service} id={log_id}"]
+    if include_all and attrs.get("host"):
+        lines[0] += f" host={attrs.get('host')}"
+    lines.append(f"  {msg}")
+
+    if include_all and attrs.get("tags"):
+        lines.append(f"  tags={json.dumps(attrs.get('tags'))}")
+
+    useful = ["run_id", "trace_id", "span_id", "status", "level", "input_filename", "sequence_version"]
+    shown = []
+    for key in useful:
+        value = content.get(key) or attrs.get(key)
+        if value is not None and value != "":
+            shown.append(f"  {key}: {value}")
+
+    if include_all:
+        filtered_attrs = {k: v for k, v in {**attrs, **content}.items() if k not in NOISY_ATTRS}
+        shown.extend([f"  {k}: {v}" for k, v in filtered_attrs.items() if k not in shown])
+    else:
+        shown.extend(sorted(set(shown), key=lambda x: x))
+
+    lines.extend(shown)
+    return "\n".join(lines)
+
+
+def build_aggregate_body(query: str, from_: str, to: str, group_by: str, aggregation: str, metric: str | None, limit: int) -> Dict[str, Any]:
+    compute: Dict[str, Any] = {"aggregation": aggregation, "type": "total"}
+    if metric:
+        compute["metric"] = metric
+    return {
+        "filter": {"query": query, "from": from_, "to": to},
+        "compute": [compute],
+        "group_by": [
+            {
+                "facet": group_by,
+                "limit": limit,
+                "sort": {"aggregation": aggregation, "order": "desc", "type": "measure"},
+            }
+        ],
+    }
+
+
+def format_buckets(buckets: List[Dict[str, Any]]) -> str:
+    if not buckets:
+        return "No results."
+    lines = []
+    for bucket in buckets:
+        by = bucket.get("by", {})
+        computes = bucket.get("computes", {})
+        key = " ".join(f"{k}={v}" for k, v in by.items())
+        value = " ".join(f"{k}={v}" for k, v in computes.items())
+        lines.append(f"{key}  →  {value}")
+    return "\n".join(lines)
+
+
+def search_logs(query: str, from_: str, to: str, limit: int, include_all: bool) -> str:
+    body = {"filter": {"query": query, "from": from_, "to": to}, "page": {"limit": limit}, "sort": "-timestamp"}
+    json_data = dd_fetch("/api/v2/logs/events/search", "POST", body)
+    logs = json_data.get("data", [])
+    if not logs:
+        return "No logs found."
+    formatted = [format_log(log, include_all) for log in logs]
+    header = f"Found {len(logs)} log(s):\n"
+    return truncate_result(header + "\n\n".join(formatted))
+
+
+def aggregate_logs(query: str, from_: str, to: str, group_by: str, aggregation: str, metric: str | None, limit: int) -> str:
+    body = build_aggregate_body(query, from_, to, group_by, aggregation, metric, limit)
+    json_data = dd_fetch("/api/v2/logs/analytics/aggregate", "POST", body)
+    buckets = json_data.get("data", {}).get("buckets", [])
+    header = f"{len(buckets)} bucket(s) (grouped by {group_by}):\n"
+    return header + format_buckets(buckets)
+
+
+def normalize_pattern(message: str) -> str:
+    pattern = message
+    for regex, replacement in PATTERN_REPLACEMENTS:
+        pattern = regex.sub(replacement, pattern)
+    pattern = re.sub(r"(\*\s*){2,}", "**", pattern).strip()
+    return pattern
+
+
+def extract_field(log: Dict[str, Any], field: str) -> str:
+    attrs = log.get("attributes", {})
+    if field == "message":
+        return attrs.get("message", "") or ""
+    path = field.replace("@", "").split(".")
+    value: Any = attrs.get("attributes", {})
+    for part in path:
+        if isinstance(value, dict) and part in value:
+            value = value[part]
+        else:
+            return ""
+    return value if isinstance(value, str) else ""
+
+
+def pattern_cluster(query: str, from_: str, to: str, limit: int, field: str) -> str:
+    collected: List[Dict[str, Any]] = []
+    cursor: str | None = None
+    pages = 0
+    capped = False
+    capped = False
+    while pages < MAX_PAGES:
+        body: Dict[str, Any] = {
+            "filter": {"query": query, "from": from_, "to": to},
+            "page": {"limit": PAGE_LIMIT, **({"cursor": cursor} if cursor else {})},
+            "sort": "-timestamp",
+        }
+        json_data = dd_fetch("/api/v2/logs/events/search", "POST", body)
+        data = json_data.get("data", [])
+        if not data:
+            break
+        collected.extend(data)
+        if len(collected) >= MAX_PAGES * PAGE_LIMIT:
+            collected = collected[: MAX_PAGES * PAGE_LIMIT]
+            capped = True
+            break
+        cursor = json_data.get("meta", {}).get("page", {}).get("after")
+        pages += 1
+        if not cursor:
+            break
+    if not collected:
+        return "No logs found."
+
+    pattern_counts: Dict[str, Dict[str, Any]] = {}
+    for log in collected:
+        field_val = extract_field(log, field)
+        if not field_val:
+            continue
+        pattern = normalize_pattern(field_val)
+        entry = pattern_counts.setdefault(pattern, {"count": 0, "example": field_val})
+        entry["count"] += 1
+    if not pattern_counts:
+        return "No patterns found."
+    sorted_patterns = sorted(pattern_counts.items(), key=lambda x: -x[1]["count"])[:limit]
+    samples = len(collected)
+    header_line = f"Sampled {samples} log(s), found {len(pattern_counts)} pattern(s)."
+    if capped:
+        header_line += f" (capped at {MAX_PAGES} pages / {MAX_PAGES * PAGE_LIMIT} logs)"
+    lines = [header_line, f"Top {len(sorted_patterns)} patterns:", ""]
+    for pattern, info in sorted_patterns:
+        lines.append(f"[{info['count']} logs] {pattern}")
+        lines.append(f"  example: {info['example']}")
+        lines.append("")
+    return truncate_result("\n".join(lines))
+
+
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser()
+    p.add_argument("action", choices=["search", "aggregate", "pattern"])
+    p.add_argument("--query", required=True)
+    p.add_argument("--from", dest="from_", default=DEFAULT_FROM)
+    p.add_argument("--to", dest="to", default=DEFAULT_TO)
+    p.add_argument("--limit", type=int)
+    p.add_argument("--all", action="store_true")
+    p.add_argument("--group-by")
+    p.add_argument("--aggregation", default="count")
+    p.add_argument("--metric")
+    p.add_argument("--pattern-field", default="message")
+    return p.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+
+    try:
+        if args.action == "search":
+            limit = args.limit or DEFAULT_SEARCH_LIMIT
+            text = search_logs(args.query, args.from_, args.to, limit, args.all)
+        elif args.action == "aggregate":
+            if not args.group_by:
+                raise SystemExit("--group-by is required for aggregate")
+            limit = args.limit or DEFAULT_AGG_LIMIT
+            text = aggregate_logs(
+                args.query,
+                args.from_,
+                args.to,
+                args.group_by,
+                args.aggregation,
+                args.metric,
+                limit,
+            )
+        else:
+            limit = args.limit or DEFAULT_PATTERN_LIMIT
+            text = pattern_cluster(
+                args.query,
+                args.from_,
+                args.to,
+                limit,
+                args.pattern_field,
+            )
+        print(text)
+    except Exception as err:
+        raise SystemExit(f"Error: {err}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

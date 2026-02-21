@@ -1,0 +1,1 @@
+- Use the `questionnaire` tool when we are planning a new feature and there are edge cases we haven't discussed or when there are unclear requirements.

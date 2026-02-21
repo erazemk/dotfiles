@@ -1,0 +1,210 @@
+#!/usr/bin/env python3
+"""Generate a VS Code launch config for airdrop-devrev-loader from a Datadog log."""
+
+import argparse
+import json
+import os
+import sys
+from typing import Any, Dict, List, Tuple
+
+REQUIRED_FIELDS: List[Tuple[str, str]] = [
+    ("--dev-org", "dev_oid"),
+    ("--dev-user", "dev_uid"),
+    ("--external-system-type", "external_system_type"),
+    ("--external-system-name", "external_system_name"),
+    ("--external-system-id", "external_system_id"),
+    ("--external-sync-unit-id", "external_sync_unit_id"),
+    ("--sync-unit-id", "sync_unit_id"),
+    ("--sync-run-id", "run_id"),
+    ("--keyring-id", "keyring_id"),
+    ("--service-account-id", "service_account_id"),
+]
+
+OPTIONAL_FIELDS: List[Tuple[str, str]] = [
+    ("--import-slug", "import_slug"),
+    ("--snap-in-slug", "snap_in_slug"),
+]
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Insert a launch config into .vscode/launch.json from a Datadog log JSON.",
+    )
+    parser.add_argument(
+        "log_path",
+        nargs="?",
+        default="-",
+        help="Path to Datadog log JSON file, or '-' for stdin.",
+    )
+    parser.add_argument(
+        "--launch-path",
+        dest="launch_path",
+        default=None,
+        help="Optional path to .vscode/launch.json. Defaults to searching upward from CWD.",
+    )
+    return parser.parse_args()
+
+
+def read_payload(log_path: str) -> Dict[str, Any]:
+    if log_path == "-":
+        raw = sys.stdin.read()
+    else:
+        with open(log_path, "r", encoding="utf-8") as handle:
+            raw = handle.read()
+    raw = raw.strip()
+    if not raw:
+        raise ValueError("No JSON content provided.")
+    return json.loads(raw)
+
+
+def extract_attributes(payload: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
+    if not isinstance(payload, dict):
+        raise ValueError("Expected a JSON object.")
+
+    content = payload.get("content") if isinstance(payload.get("content"), dict) else None
+    attrs = None
+    tags: List[str] = []
+
+    if content is not None:
+        attrs = content.get("attributes")
+        tags = content.get("tags") or []
+        if attrs is None:
+            attrs = content
+    else:
+        attrs = payload.get("attributes")
+        tags = payload.get("tags") or []
+
+    if attrs is None:
+        attrs = payload
+
+    if not isinstance(attrs, dict):
+        raise ValueError("Attributes payload is not a JSON object.")
+
+    return attrs, tags
+
+
+def parse_env(tags: List[str]) -> str:
+    for tag in tags:
+        if tag.startswith("env:"):
+            return tag.split(":", 1)[1]
+        if tag.startswith("environment:"):
+            return tag.split(":", 1)[1]
+    return ""
+
+
+def build_args(attrs: Dict[str, Any], tags: List[str]) -> Tuple[List[str], str]:
+    missing = []
+    args: List[str] = []
+
+    for flag, key in REQUIRED_FIELDS:
+        value = attrs.get(key)
+        if value in (None, ""):
+            missing.append(key)
+            continue
+        args.append(f"{flag}={value}")
+
+    if missing:
+        raise ValueError(f"Missing required fields: {', '.join(missing)}")
+
+    for flag, key in OPTIONAL_FIELDS:
+        value = attrs.get(key)
+        if value not in (None, ""):
+            args.append(f"{flag}={value}")
+
+    sync_options = attrs.get("sync_options")
+    if isinstance(sync_options, dict) and sync_options.get("s3_encryption_enabled") is True:
+        args.append("--s3-encryption-enabled")
+
+    env_value = parse_env(tags)
+    if env_value and env_value != "dev":
+        args.append(f"--env={env_value}")
+
+    args.append("--event=LOAD_MIGRATION_UNIT_CONTINUE")
+    args.append("--incremental")
+    args.append("--with-debug-logs")
+
+    name = f"{attrs.get('external_system_name')} - {attrs.get('external_system_id')}"
+    return args, name
+
+
+def find_launch_json(start_dir: str) -> str:
+    current = os.path.abspath(start_dir)
+    while True:
+        candidate = os.path.join(current, ".vscode", "launch.json")
+        if os.path.isfile(candidate):
+            return candidate
+        parent = os.path.dirname(current)
+        if parent == current:
+            break
+        current = parent
+    return ""
+
+
+def build_config_block(name: str, args: List[str]) -> str:
+    lines = [
+        "    {",
+        f'      "name": "{name}",',
+        '      "type": "go",',
+        '      "request": "launch",',
+        '      "mode": "auto",',
+        '      "program": "${workspaceFolder}/cmd/local/main.go",',
+        '      "args": [',
+    ]
+    for arg in args:
+        lines.append(f'        "{arg}",')
+    lines.extend([
+        "      ],",
+        "    },",
+    ])
+    return "\n".join(lines)
+
+
+def insert_config(launch_path: str, config_block: str, name: str) -> None:
+    with open(launch_path, "r", encoding="utf-8") as handle:
+        content = handle.read()
+
+    if f'"name": "{name}"' in content:
+        raise ValueError(f"Configuration named '{name}' already exists in {launch_path}.")
+
+    closing_index = content.rfind("\n  ]")
+    if closing_index == -1:
+        raise ValueError("Could not locate configurations array in launch.json.")
+
+    prefix = content[:closing_index]
+    suffix = content[closing_index:]
+
+    prefix = prefix.rstrip()
+    if not prefix.endswith(","):
+        prefix += ","
+    prefix += "\n"
+
+    config_block = config_block.rstrip() + "\n"
+
+    updated = prefix + config_block + suffix
+
+    with open(launch_path, "w", encoding="utf-8") as handle:
+        handle.write(updated)
+
+
+def main() -> None:
+    args = parse_args()
+
+    payload = read_payload(args.log_path)
+    attrs, tags = extract_attributes(payload)
+    arg_list, config_name = build_args(attrs, tags)
+
+    launch_path = args.launch_path or find_launch_json(os.getcwd())
+    if not launch_path:
+        raise ValueError("Could not find .vscode/launch.json from current directory. Use --launch-path.")
+
+    config_block = build_config_block(config_name, arg_list)
+    insert_config(launch_path, config_block, config_name)
+
+    print(f"Inserted launch configuration '{config_name}' into {launch_path}.")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as exc:  # pylint: disable=broad-except
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
