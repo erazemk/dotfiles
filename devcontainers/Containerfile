@@ -1,0 +1,48 @@
+FROM quay.io/fedora/fedora
+
+ENV TERM=xterm-256color
+
+# Install development-related packages
+COPY dnf.conf /etc/dnf/dnf.conf
+RUN dnf --assumeyes --refresh upgrade \
+    && dnf --assumeyes install \
+    awscli2 \
+    coreutils \
+    curl \
+    diffutils \
+    fish \
+    gh \
+    git \
+    git-lfs \
+    golang \
+    helix \
+    jq \
+    make \
+    ripgrep \
+    sudo \
+    which \
+    && dnf clean all --assumeyes
+
+# Configure fish shell
+RUN rm -rf /etc/skel/*
+RUN chsh -s /usr/bin/fish root
+RUN mkdir -p /etc/fish/conf.d
+COPY defaults.sh /etc/profile.d/defaults.sh
+COPY defaults.fish /etc/fish/conf.d/defaults.fish
+
+# AWS CLI configuration
+RUN mkdir -p /etc/aws
+COPY aws-config.ini /etc/aws/config
+ENV AWS_CONFIG_FILE=/etc/aws/config
+
+# Git configuration
+COPY gitconfig /etc/gitconfig
+
+# Add a user 'dev'
+RUN useradd -m -s /usr/bin/fish -G wheel dev \
+    && passwd -d dev \
+    && echo 'dev ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/dev \
+    && chmod 0440 /etc/sudoers.d/dev
+
+# Required to fix mounted volume permissions
+ENTRYPOINT ["sh", "-c", "chown -R dev:dev /home/dev || true; exec \"$@\"", "--"]

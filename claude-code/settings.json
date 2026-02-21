@@ -1,0 +1,40 @@
+{
+  "env": {
+    "DISABLE_TELEMETRY": "1",
+    "AWS_REGION": "eu-central-1",
+    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "eu.anthropic.claude-opus-4-6-v1",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "eu.anthropic.claude-haiku-4-5-20251001-v1:0"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "Bash(gh:*)",
+      "Bash(git:*)",
+      "Bash(go:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(make:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "~/DevRev/",
+      "~/Personal/"
+    ]
+  },
+  "model": "eu.anthropic.claude-opus-4-6-v1",
+  "enabledPlugins": {
+    "gopls-lsp@claude-plugins-official": true
+  }
+}

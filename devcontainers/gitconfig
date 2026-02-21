@@ -1,0 +1,14 @@
+[clone]
+recurseSubmodules = true
+
+[init]
+defaultBranch = main
+
+[rebase]
+autoStash = true
+
+[submodule]
+recurse = true
+
+[url "git@github.com:"]
+insteadOf = https://github.com/

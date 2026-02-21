@@ -1,0 +1,66 @@
+[
+    {
+        "command": "git.pull",
+        "key": "cmd+g cmd+p"
+    },
+    {
+        "command": "git.push",
+        "key": "cmd+g cmd+shift+p"
+    },
+    {
+        "command": "git.fetchAll",
+        "key": "cmd+g cmd+f"
+    },
+    {
+        "command": "pr.deleteLocalBranchesNRemotes",
+        "key": "cmd+g cmd+d"
+    },
+    {
+        "command": "git.deleteBranch",
+        "key": "cmd+g cmd+shift+d"
+    },
+    {
+        "key": "cmd+g shift+cmd+w",
+        "command": "git.deleteWorktree"
+    },
+    {
+        "command": "git.checkout",
+        "key": "cmd+g cmd+c"
+    },
+    {
+        "command": "git.createWorktree",
+        "key": "cmd+g cmd+w"
+    },
+    {
+        "command": "git.stashIncludeUntracked",
+        "key": "cmd+g cmd+s"
+    },
+    {
+        "command": "git.stashPop",
+        "key": "cmd+g shift+cmd+s"
+    },
+    {
+        "command": "git.merge",
+        "key": "cmd+g cmd+m"
+    },
+    {
+        "command": "git.mergeAbort",
+        "key": "cmd+g shift+cmd+m"
+    },
+    {
+        "command": "workbench.view.testing.focus",
+        "key": "ctrl+shift+t"
+    },
+    {
+        "command": "workbench.files.action.collapseExplorerFolders",
+        "key": "shift+cmd+0"
+    },
+    {
+        "command": "editor.action.goToTypeDefinition",
+        "key": "ctrl+f12"
+    },
+    {
+        "key": "cmd+g cmd+o",
+        "command": "git.openWorktree"
+    }
+]

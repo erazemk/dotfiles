@@ -1,0 +1,98 @@
+{
+    "[markdown]": {
+        "editor.wordWrap": "on"
+    },
+    "[scminput]": {
+        "editor.rulers": [
+            50,
+            72
+        ]
+    },
+    "accessibility.underlineLinks": true,
+    "chat.disableAIFeatures": true,
+    "comments.openView": "never",
+    "debug.console.fontSize": 14,
+    "debug.openExplorerOnEnd": true,
+    "debug.showVariableTypes": true,
+    "debug.terminal.clearBeforeReusing": true,
+    "diffEditor.experimental.showMoves": true,
+    "diffEditor.renderSideBySide": true,
+    "editor.fontSize": 14,
+    "editor.formatOnSave": true,
+    "editor.linkedEditing": true,
+    "editor.minimap.enabled": false,
+    "editor.renderWhitespace": "boundary",
+    "editor.rulers": [
+        80,
+        100,
+        120
+    ],
+    "explorer.autoRevealExclude": {
+        "**/_build": true,
+        "**/converters": true,
+        "**/testdata": true
+    },
+    "explorer.confirmDelete": false,
+    "explorer.confirmDragAndDrop": false,
+    "files.associations": {
+        "Makefile.*": "makefile"
+    },
+    "files.autoSave": "onFocusChange",
+    "files.autoSaveWhenNoErrors": true,
+    "files.autoSaveWorkspaceFilesOnly": true,
+    "files.dialog.defaultPath": "/Users/erazemk/DevRev",
+    "files.insertFinalNewline": true,
+    "files.simpleDialog.enable": true,
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    "git.autofetch": "all",
+    "git.autoStash": true,
+    "git.blame.statusBarItem.enabled": true,
+    "git.branchPrefix": "erazemk/",
+    "git.closeDiffOnOperation": true,
+    "git.confirmSync": false,
+    "git.defaultCloneDirectory": "~/DevRev",
+    "git.enableSmartCommit": true,
+    "git.fetchOnPull": true,
+    "git.inputValidation": true,
+    "git.mergeEditor": true,
+    "git.openAfterClone": "always",
+    "git.openRepositoryInParentFolders": "never",
+    "git.pruneOnFetch": true,
+    "git.pullBeforeCheckout": true,
+    "git.scanRepositories": [
+        "~/DevRev",
+        "~/Personal"
+    ],
+    "git.terminalGitEditor": true,
+    "github.gitProtocol": "ssh",
+    "githubPullRequests.pullBranch": "never",
+    "githubPullRequests.pullRequestDescription": "commit",
+    "go.lintOnSave": "workspace",
+    "go.testExplorer.showDynamicSubtestsInEditor": true,
+    "go.toolsManagement.autoUpdate": true,
+    "gopls": {
+        "ui.semanticTokens": true
+    },
+    "json.schemaDownload.enable": true,
+    "makefile.configureOnOpen": false,
+    "markdown.occurrencesHighlight.enabled": true,
+    "markdown.preview.fontSize": 16,
+    "python.analysis.typeCheckingMode": "standard",
+    "scm.diffDecorationsGutterPattern": {
+        "added": true
+    },
+    "scm.inputFontFamily": "editor",
+    "scm.inputMaxLineCount": 50,
+    "search.exclude": {
+        "**/_build": true
+    },
+    "search.showLineNumbers": true,
+    "security.workspace.trust.enabled": false,
+    "telemetry.telemetryLevel": "off",
+    "terminal.integrated.fontSize": 14,
+    "terminal.integrated.initialHint": false,
+    "window.autoDetectColorScheme": true,
+    "window.restoreWindows": "none",
+    "workbench.startupEditor": "none"
+}

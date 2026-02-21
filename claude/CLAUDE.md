@@ -1,1 +1,0 @@
-- When writing to Markdown files, write each sentence on a separate line.
