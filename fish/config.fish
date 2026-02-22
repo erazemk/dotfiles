@@ -28,6 +28,9 @@ if status is-interactive
             case Linux; sudo dnf upgrade --refresh
             case Darwin; brew update && brew upgrade && brew autoremove && brew cleanup
         end
+
+        npm i -g @openai/codex@latest
+        npm i -g @mariozechner/pi-coding-agent@latest
     end
 
     function howto --description "CLI AI-assisted cheat sheet"
@@ -39,14 +42,20 @@ if status is-interactive
     end
 
     function codex --description "Codex CLI"
-        if not set -q CODEX_API_KEY
-            set -gx CODEX_API_KEY (security find-generic-password -w -s codex -a codex)
+        if set -q argv[1]; and test "$argv[1]" = "update"
+            npm i -g @openai/codex@latest
+            return $status
         end
 
-        npx @openai/codex $argv
+        command codex $argv
     end
 
     function pi --description "Pi coding agent"
+        if set -q argv[1]; and test "$argv[1]" = "update"
+            npm i -g @mariozechner/pi-coding-agent@latest
+            return $status
+        end
+
         if not set -q AWS_BEARER_TOKEN_BEDROCK
             set -gx AWS_BEARER_TOKEN_BEDROCK (security find-generic-password -w -s aws-bedrock -a aws-bedrock)
         end
@@ -68,6 +77,6 @@ if status is-interactive
 
         set -x AWS_REGION eu-central-1
 
-        npx @mariozechner/pi-coding-agent $argv
+        command pi $argv
     end
 end
