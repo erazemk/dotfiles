@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.request
 from typing import Any, Dict, List, Tuple
@@ -37,8 +38,31 @@ PATTERN_REPLACEMENTS = [
 NOISY_ATTRS = {"sync_options", "lambda"}
 
 
+def _load_key(env_var: str, service: str, account: str) -> str:
+    value = os.environ.get(env_var, "")
+    if value:
+        return value
+    try:
+        result = subprocess.run(
+            ["security", "find-generic-password", "-w", "-s", service, "-a", account],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return ""
+    value = result.stdout.strip()
+    if value:
+        os.environ[env_var] = value
+    return value
+
+
 def get_keys() -> Tuple[str, str]:
-    return os.environ.get("DD_API_KEY", ""), os.environ.get("DD_APP_KEY", "")
+    return (
+        _load_key("DD_API_KEY", "datadog", "datadog-api-key"),
+        _load_key("DD_APP_KEY", "datadog", "datadog-app-key"),
+    )
 
 
 def truncate_result(text: str) -> str:

@@ -6,19 +6,19 @@ set -x EDITOR hx
 set -x GOKRAZY_PARENT_DIR ~/Personal
 
 if test -d /opt/homebrew
-    set --global --export HOMEBREW_PREFIX "/opt/homebrew"
-    set --global --export HOMEBREW_CELLAR "/opt/homebrew/Cellar"
-    set --global --export HOMEBREW_REPOSITORY "/opt/homebrew"
+    set --global --export HOMEBREW_PREFIX /opt/homebrew
+    set --global --export HOMEBREW_CELLAR /opt/homebrew/Cellar
+    set --global --export HOMEBREW_REPOSITORY /opt/homebrew
 
-    fish_add_path --global --move --path "/opt/homebrew/bin" "/opt/homebrew/sbin"
+    fish_add_path --global --move --path /opt/homebrew/bin /opt/homebrew/sbin
     fish_add_path $HOMEBREW_PREFIX/opt/curl/bin
 
     if test -n "$MANPATH[1]"
         set --global --export MANPATH '' $MANPATH
     end
 
-    if not contains "/opt/homebrew/share/info" $INFOPATH
-        set --global --export INFOPATH "/opt/homebrew/share/info" $INFOPATH
+    if not contains /opt/homebrew/share/info $INFOPATH
+        set --global --export INFOPATH /opt/homebrew/share/info $INFOPATH
     end
 end
 
@@ -42,7 +42,7 @@ if status is-interactive
     end
 
     function codex --description "Codex CLI"
-        if set -q argv[1]; and test "$argv[1]" = "update"
+        if set -q argv[1]; and test "$argv[1]" = update
             npm i -g @openai/codex@latest
             return $status
         end
@@ -51,7 +51,7 @@ if status is-interactive
     end
 
     function pi --description "Pi coding agent"
-        if set -q argv[1]; and test "$argv[1]" = "update"
+        if set -q argv[1]; and test "$argv[1]" = update
             npm i -g @mariozechner/pi-coding-agent@latest
             return $status
         end
@@ -62,17 +62,8 @@ if status is-interactive
         if not set -q OPENAI_API_KEY
             set -gx OPENAI_API_KEY (security find-generic-password -w -s openai -a openai)
         end
-        if not set -q DD_API_KEY
-            set -gx DD_API_KEY (security find-generic-password -w -s datadog -a datadog-api-key)
-        end
-        if not set -q DD_APP_KEY
-            set -gx DD_APP_KEY (security find-generic-password -w -s datadog -a datadog-app-key)
-        end
-        if not set -q DEVREV_API_KEY
-            set -gx DEVREV_API_KEY (security find-generic-password -w -s devrev -a devrev)
-        end
-        if not set -q JINA_API_KEY
-            set -gx JINA_API_KEY (security find-generic-password -w -s jina-ai -a jina-ai)
+        if not set -q OLLAMA_API_KEY
+            set -gx OLLAMA_API_KEY (security find-generic-password -w -s ollama -a ollama)
         end
 
         set -x AWS_REGION eu-central-1

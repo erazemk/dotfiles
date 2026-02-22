@@ -15,6 +15,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.error
 import urllib.parse
@@ -33,8 +34,28 @@ def eprint(msg):
     sys.stderr.write(msg + "\n")
 
 
+def _load_token(env_var: str, service: str, account: str) -> str:
+    value = os.environ.get(env_var, "")
+    if value:
+        return value
+    try:
+        result = subprocess.run(
+            ["security", "find-generic-password", "-w", "-s", service, "-a", account],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return ""
+    value = result.stdout.strip()
+    if value:
+        os.environ[env_var] = value
+    return value
+
+
 def get_token():
-    token = os.environ.get("DEVREV_API_KEY")
+    token = _load_token("DEVREV_API_KEY", "devrev", "devrev")
     if not token:
         raise RuntimeError(
             "DEVREV_API_KEY environment variable is not set. "
