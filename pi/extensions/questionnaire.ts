@@ -8,7 +8,16 @@
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { Editor, type EditorTheme, Key, matchesKey, Text, truncateToWidth } from "@mariozechner/pi-tui";
+import {
+    Editor,
+    type EditorTheme,
+    Key,
+    matchesKey,
+    Text,
+    truncateToWidth,
+    visibleWidth,
+    wrapTextWithAnsi,
+} from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
 
 // Types
@@ -108,6 +117,7 @@ export default function questionnaire(pi: ExtensionAPI) {
                 let inputMode = false;
                 let inputQuestionId: string | null = null;
                 let cachedLines: string[] | undefined;
+                let cachedWidth: number | undefined;
                 const answers = new Map<string, Answer>();
 
                 // Editor for "Type something" option
@@ -126,6 +136,7 @@ export default function questionnaire(pi: ExtensionAPI) {
                 // Helpers
                 function refresh() {
                     cachedLines = undefined;
+                    cachedWidth = undefined;
                     tui.requestRender();
                 }
 
@@ -258,7 +269,7 @@ export default function questionnaire(pi: ExtensionAPI) {
                 }
 
                 function render(width: number): string[] {
-                    if (cachedLines) return cachedLines;
+                    if (cachedLines && cachedWidth === width) return cachedLines;
 
                     const lines: string[] = [];
                     const q = currentQuestion();
@@ -266,6 +277,34 @@ export default function questionnaire(pi: ExtensionAPI) {
 
                     // Helper to add truncated line
                     const add = (s: string) => lines.push(truncateToWidth(s, width));
+                    const addWrapped = (text: string, indent = 0) => {
+                        const indentStr = " ".repeat(indent);
+                        const wrapWidth = Math.max(1, width - indent);
+                        const wrapped = wrapTextWithAnsi(text, wrapWidth);
+                        if (wrapped.length === 0) {
+                            add(indentStr);
+                            return;
+                        }
+                        for (const line of wrapped) {
+                            add(indentStr + line);
+                        }
+                    };
+                    const addWrappedWithPrefix = (prefix: string, text: string) => {
+                        const prefixWidth = visibleWidth(prefix);
+                        const wrapWidth = Math.max(1, width - prefixWidth);
+                        const wrapped = wrapTextWithAnsi(text, wrapWidth);
+                        if (wrapped.length === 0) {
+                            add(prefix);
+                            return;
+                        }
+                        wrapped.forEach((line, index) => {
+                            if (index === 0) {
+                                add(prefix + line);
+                            } else {
+                                add(" ".repeat(prefixWidth) + line);
+                            }
+                        });
+                    };
 
                     add(theme.fg("accent", "─".repeat(width)));
 
@@ -301,21 +340,19 @@ export default function questionnaire(pi: ExtensionAPI) {
                             const isOther = opt.isOther === true;
                             const prefix = selected ? theme.fg("accent", "> ") : "  ";
                             const color = selected ? "accent" : "text";
-                            // Mark "Type something" differently when in input mode
-                            if (isOther && inputMode) {
-                                add(prefix + theme.fg("accent", `${i + 1}. ${opt.label} ✎`));
-                            } else {
-                                add(prefix + theme.fg(color, `${i + 1}. ${opt.label}`));
-                            }
+                            const labelColor = isOther && inputMode ? "accent" : color;
+                            const labelSuffix = isOther && inputMode ? " ✎" : "";
+                            const labelText = `${i + 1}. ${opt.label}${labelSuffix}`;
+                            addWrappedWithPrefix(prefix, theme.fg(labelColor, labelText));
                             if (opt.description) {
-                                add(`     ${theme.fg("muted", opt.description)}`);
+                                addWrapped(theme.fg("muted", opt.description), 5);
                             }
                         }
                     }
 
                     // Content
                     if (inputMode && q) {
-                        add(theme.fg("text", ` ${q.prompt}`));
+                        addWrapped(theme.fg("text", q.prompt), 1);
                         lines.push("");
                         // Show options for reference
                         renderOptions();
@@ -347,7 +384,7 @@ export default function questionnaire(pi: ExtensionAPI) {
                             add(theme.fg("warning", ` Unanswered: ${missing}`));
                         }
                     } else if (q) {
-                        add(theme.fg("text", ` ${q.prompt}`));
+                        addWrapped(theme.fg("text", q.prompt), 1);
                         lines.push("");
                         renderOptions();
                     }
@@ -362,6 +399,7 @@ export default function questionnaire(pi: ExtensionAPI) {
                     add(theme.fg("accent", "─".repeat(width)));
 
                     cachedLines = lines;
+                    cachedWidth = width;
                     return lines;
                 }
 
@@ -369,6 +407,7 @@ export default function questionnaire(pi: ExtensionAPI) {
                     render,
                     invalidate: () => {
                         cachedLines = undefined;
+                        cachedWidth = undefined;
                     },
                     handleInput,
                 };
