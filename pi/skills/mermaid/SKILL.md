@@ -12,7 +12,7 @@ Validate Mermaid diagram syntax. Supports all diagram types (flowchart, sequence
 ### Validate a diagram
 
 ```bash
-./scripts/validate.ts <file.mmd|file.md>
+~/.agents/skills/mermaid/scripts/validate.ts <file.mmd|file.md>
 ```
 
 - **Markdown files** (`.md`, `.mdx`, `.markdown`): extracts all `` ```mermaid `` blocks and validates each one, reporting errors by block number and line.
@@ -22,6 +22,6 @@ Validate Mermaid diagram syntax. Supports all diagram types (flowchart, sequence
 ## Notes
 
 1. Write or update the Mermaid diagram directly in the Markdown file.
-2. Run `./scripts/validate.ts document.md`.
+2. Run `~/.agents/skills/mermaid/scripts/validate.ts document.md`.
 3. Fix any errors reported by the parser (errors include block number and line number).
 4. Repeat until all blocks pass.

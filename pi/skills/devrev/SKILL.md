@@ -14,7 +14,7 @@ Unified script to fetch DevRev work items and knowledge base articles. Theresour
 ## Usage
 
 ```bash
-scripts/get <identifier> [--include-comments] [--pretty]
+~/.agents/skills/devrev/scripts/get <identifier> [--include-comments] [--pretty]
 ```
 
 ### Options
@@ -48,23 +48,23 @@ The script returns JSON objects. Fields depend on the resource type.
 Fetch an issue:
 
 ```bash
-scripts/get ISS-216760
+~/.agents/skills/devrev/scripts/get ISS-216760
 ```
 
 Fetch a ticket with comments:
 
 ```bash
-scripts/get TKT-42 --include-comments --pretty
+~/.agents/skills/devrev/scripts/get TKT-42 --include-comments --pretty
 ```
 
 Fetch an article by URL:
 
 ```bash
-scripts/get "https://app.devrev.ai/devrev/settings/knowledge-base/articles/ART-15160" --pretty
+~/.agents/skills/devrev/scripts/get "https://app.devrev.ai/devrev/settings/knowledge-base/articles/ART-15160" --pretty
 ```
 
 Fetch an article by numeric ID:
 
 ```bash
-scripts/get 21296
+~/.agents/skills/devrev/scripts/get 21296
 ```

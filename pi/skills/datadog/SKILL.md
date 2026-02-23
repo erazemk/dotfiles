@@ -5,7 +5,7 @@ description: Work with Datadog logs and traces for debugging. Use when you need 
 
 # Datadog Debug Skill
 
-Use the scripts in `scripts/` to query Datadog and return concise, actionable output. Default output omits noisy fields (`tags`, `host`, and large attribute subtrees). Use `--all` to include everything.
+Use the scripts in `~/.agents/skills/datadog/scripts/` to query Datadog and return concise, actionable output. Default output omits noisy fields (`tags`, `host`, and large attribute subtrees). Use `--all` to include everything.
 
 ## Quick Start
 
@@ -17,14 +17,14 @@ Use the scripts in `scripts/` to query Datadog and return concise, actionable ou
 
 `logs` supports log search, aggregation, and pattern clustering.
 ```bash
-scripts/logs search --query 'service:airdrop-devrev-loader @run_id:8ea11faf-4b93-47d8-bbf8-f4541a395cc8'
-scripts/logs aggregate --query 'service:airdrop-devrev-loader status:error' --group-by @error.message
-scripts/logs pattern --query 'service:airdrop-devrev-loader status:warn'
+~/.agents/skills/datadog/scripts/logs search --query 'service:airdrop-devrev-loader @run_id:8ea11faf-4b93-47d8-bbf8-f4541a395cc8'
+~/.agents/skills/datadog/scripts/logs aggregate --query 'service:airdrop-devrev-loader status:error' --group-by @error.message
+~/.agents/skills/datadog/scripts/logs pattern --query 'service:airdrop-devrev-loader status:warn'
 ```
 
 `traces` supports span search.
 ```bash
-scripts/traces search --query 'service:airdrop-devrev-loader @trace_id:1234'
+~/.agents/skills/datadog/scripts/traces search --query 'service:airdrop-devrev-loader @trace_id:1234'
 ```
 
 ## Interface

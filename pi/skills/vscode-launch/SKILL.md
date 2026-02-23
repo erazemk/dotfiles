@@ -17,13 +17,13 @@ Creates a new VS Code launch configuration using fields from a Datadog log JSON 
 From the repo root (or any subdirectory inside it):
 
 ```bash
-/Users/erazemk/.config/pi/skills/vscode-launch/scripts/dd-to-launch /path/to/log.json
+~/.agents/skills/vscode-launch/scripts/dd-to-launch /path/to/log.json
 ```
 
 Or pipe JSON from stdin:
 
 ```bash
-cat /path/to/log.json | /Users/erazemk/.config/pi/skills/vscode-launch/scripts/dd-to-launch -
+cat /path/to/log.json | ~/.agents/skills/vscode-launch/scripts/dd-to-launch -
 ```
 
 ## Notes
