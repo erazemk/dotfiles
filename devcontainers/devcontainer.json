@@ -1,5 +1,6 @@
 {
     "image": "ghcr.io/erazemk/devcontainer:latest",
+    "postCreateCommand": "sudo chown -R dev:dev /home/dev",
     "remoteUser": "dev",
     "runArgs": [
         "--hostname",
@@ -12,5 +13,21 @@
         "source=go-build-cache,target=/home/dev/.cache/go-build,type=volume",
         "source=sidekick-cache,target=/home/dev/.cache/sidekick,type=volume",
         "source=aws-credentials,target=/home/dev/.aws,type=volume"
-    ]
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "Augment.vscode-augment",
+                "bierner.markdown-mermaid",
+                "GitHub.vscode-pull-request-github",
+                "golang.go",
+                "ms-azuretools.vscode-containers",
+                "ms-python.python",
+                "ms-vscode.makefile-tools",
+                "samuelcolvin.jinjahtml",
+                "tamasfe.even-better-toml",
+                "tsandall.opa"
+            ]
+        }
+    }
 }

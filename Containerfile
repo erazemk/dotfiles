@@ -42,6 +42,3 @@ RUN useradd -m -s /usr/bin/fish -G wheel dev \
     && passwd -d dev \
     && echo 'dev ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/dev \
     && chmod 0440 /etc/sudoers.d/dev
-
-# Required to fix mounted volume permissions
-ENTRYPOINT ["sh", "-c", "chown -R dev:dev /home/dev || true; exec \"$@\"", "--"]
