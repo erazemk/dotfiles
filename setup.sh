@@ -14,7 +14,7 @@ if [[ $(uname) == "Darwin" ]]; then
 
     # Homebrew
     NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    brew install -y awscli colima curl deno docker docker-buildx docker-compose fish gh git git-lfs go helix jq node openssh python ripgrep tree unzip uv xz zstd
+    brew install -y awscli colima curl docker docker-buildx docker-compose fish gh git git-lfs go helix jq node openssh python ripgrep tree unzip uv xz zstd
     brew install -y --cask aerospace aws-vpn-client brave-browser codex ghostty lookaway monitorcontrol pearcleaner slack visual-studio-code
 
     # Switch to fish shell

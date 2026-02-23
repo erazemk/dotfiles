@@ -1,8 +1,5 @@
-// Template devcontainer configuration
 {
-    "build": {
-        "dockerfile": "Containerfile"
-    },
+    "image": "ghcr.io/erazemk/devcontainer:latest",
     "remoteUser": "dev",
     "runArgs": [
         "--hostname",
@@ -15,6 +12,5 @@
         "source=go-build-cache,target=/home/dev/.cache/go-build,type=volume",
         "source=sidekick-cache,target=/home/dev/.cache/sidekick,type=volume",
         "source=aws-credentials,target=/home/dev/.aws,type=volume"
-    ],
-    "postCreateCommand": "sudo chown -R dev:dev /home/dev"
+    ]
 }

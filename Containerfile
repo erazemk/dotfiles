@@ -2,14 +2,19 @@ FROM quay.io/fedora/fedora
 
 ENV TERM=xterm-256color
 
+# Copy configuration files
+COPY aws/config /etc/aws/config
+COPY devcontainers/dnf.conf /etc/dnf/dnf.conf
+COPY devcontainers/defaults.sh /etc/profile.d/defaults.sh
+COPY fish/conf.d/defaults.fish /etc/fish/conf.d/defaults.fish
+COPY git/config /etc/gitconfig
+
 # Install development-related packages
-COPY dnf.conf /etc/dnf/dnf.conf
 RUN dnf --assumeyes --refresh upgrade \
     && dnf --assumeyes install \
     awscli2 \
     coreutils \
     curl \
-    deno \
     diffutils \
     fish \
     gh \
@@ -26,19 +31,11 @@ RUN dnf --assumeyes --refresh upgrade \
     && dnf clean all --assumeyes
 
 # Configure fish shell
-RUN rm -rf /etc/skel/*
+RUN rm -rf /etc/skel/* /root/.*rc /root/.bash*
 RUN chsh -s /usr/bin/fish root
-RUN mkdir -p /etc/fish/conf.d
-COPY defaults.sh /etc/profile.d/defaults.sh
-COPY defaults.fish /etc/fish/conf.d/defaults.fish
 
 # AWS CLI configuration
-RUN mkdir -p /etc/aws
-COPY aws-config.ini /etc/aws/config
 ENV AWS_CONFIG_FILE=/etc/aws/config
-
-# Git configuration
-COPY gitconfig /etc/gitconfig
 
 # Add a user 'dev'
 RUN useradd -m -s /usr/bin/fish -G wheel dev \
