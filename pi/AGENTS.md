@@ -1,4 +1,5 @@
-- Use web search/fetch when researching new general topics
+- Use web search when researching new general topics
+- Use web fetch if user passed a URL, or if needing to get more context from web search
 - Use `gh pr view/diff` to review PRs
 - Some DevRev repos are cloned to ~/DevRev, you can use those during DevRev-related research
 - Git commit and push only when explicitly asked
