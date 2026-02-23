@@ -1,1 +1,7 @@
-- Use the `questionnaire` tool when we are planning a new feature and there are edge cases we haven't discussed or when there are unclear requirements.
+- Use web search/fetch when researching new general topics
+- Use `gh pr view/diff` to review PRs
+- Some DevRev repos are cloned to ~/DevRev, you can use those during DevRev-related research
+- Git commit and push only when explicitly asked
+- Destructive git actions forbidden unless explicit (`reset --hard`, `clean`, `restore`, `rm`, etc.)
+- Only switch git branches if asked by the user
+- Do not remove files automatically, but when asked to, use `trash` to remove files instead of `rm`
