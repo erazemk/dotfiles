@@ -6,7 +6,7 @@ ln -s $(PWD)/fish/config.fish ~/.config/fish/
 
 # macOS-specific
 if [[ $(uname) == "Darwin" ]]; then
-    mkdir -p ~/.aws ~/Library/Application\ Support/Code/User/
+    mkdir -p ~/.aws ~/.colima/_templates ~/Library/Application\ Support/Code/User/
     ln -s $(PWD)/aws/config ~/.aws/
     ln -s $(PWD)/aerospace ~/.config/
     ln -s $(PWD)/fish/conf.d ~/.config/fish/
@@ -14,14 +14,15 @@ if [[ $(uname) == "Darwin" ]]; then
 
     # Homebrew
     NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    brew install -y awscli colima curl docker docker-buildx docker-compose fish gh git git-lfs go helix jq node openssh python ripgrep tree unzip uv xz zstd
+    brew install -y awscli colima curl docker docker-buildx docker-compose docker-credential-helper fish gh git git-lfs go helix jq node openssh python ripgrep tree unzip uv xz zstd
     brew install -y --cask aerospace aws-vpn-client brave-browser codex ghostty lookaway monitorcontrol pearcleaner slack visual-studio-code
 
     # Switch to fish shell
     sudo chsh -s $(which fish) $(id -un)
     sudo chsh -s $(which fish) root
 
-    # TODO: Setup and start colima container
+    ln -s $(PWD)/colima/template.yml ~/.colima/_templates/default.yml
+    brew services start colima
 fi
 
 # Coding agents

@@ -1,0 +1,37 @@
+cpu: 6
+disk: 128
+memory: 8
+arch: host
+runtime: docker
+modelRunner: docker
+hostname: "colima"
+kubernetes:
+  enabled: false
+autoActivate: true
+network:
+  address: false
+  mode: shared
+  interface: en0
+  preferredRoute: false
+  dns: []
+  dnsHosts:
+    host.docker.internal: host.lima.internal
+  hostAddresses: false
+  gatewayAddress: 192.168.5.2
+forwardAgent: true
+docker: {}
+vmType: vz
+portForwarder: ssh
+rosetta: false
+binfmt: true
+nestedVirtualization: false
+mountType: virtiofs
+mountInotify: false
+cpuType: host
+provision: []
+sshConfig: true
+sshPort: 0
+mounts: []
+diskImage: ""
+rootDisk: 20
+env: {}
