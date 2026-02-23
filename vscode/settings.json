@@ -94,5 +94,7 @@
     "terminal.integrated.initialHint": false,
     "window.autoDetectColorScheme": true,
     "window.restoreWindows": "none",
-    "workbench.startupEditor": "none"
+    "workbench.startupEditor": "none",
+    "dotfiles.repository": "erazemk/dotfiles",
+    "dotfiles.targetPath": "~/.config/dotfiles"
 }
