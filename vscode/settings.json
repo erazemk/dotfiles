@@ -11,12 +11,18 @@
     "accessibility.underlineLinks": true,
     "chat.disableAIFeatures": true,
     "comments.openView": "never",
+    "cursor.composer.shouldChimeAfterChatFinishes": true,
+    "cursor.cpp.enablePartialAccepts": true,
     "debug.console.fontSize": 14,
     "debug.openExplorerOnEnd": true,
     "debug.showVariableTypes": true,
     "debug.terminal.clearBeforeReusing": true,
+    "diffEditor.codeLens": true,
     "diffEditor.experimental.showMoves": true,
-    "diffEditor.renderSideBySide": true,
+    "diffEditor.hideUnchangedRegions.enabled": true,
+    "diffEditor.ignoreTrimWhitespace": false,
+    "dotfiles.repository": "erazemk/dotfiles",
+    "dotfiles.targetPath": "~/.config/dotfiles",
     "editor.fontSize": 14,
     "editor.formatOnSave": true,
     "editor.linkedEditing": true,
@@ -35,6 +41,7 @@
     "explorer.confirmDelete": false,
     "explorer.confirmDragAndDrop": false,
     "files.associations": {
+        "*.jsonl": "json",
         "Makefile.*": "makefile"
     },
     "files.autoSave": "onFocusChange",
@@ -78,7 +85,6 @@
     "makefile.configureOnOpen": false,
     "markdown.occurrencesHighlight.enabled": true,
     "markdown.preview.fontSize": 16,
-    "python.analysis.typeCheckingMode": "standard",
     "scm.diffDecorationsGutterPattern": {
         "added": true
     },
@@ -93,8 +99,9 @@
     "terminal.integrated.fontSize": 14,
     "terminal.integrated.initialHint": false,
     "window.autoDetectColorScheme": true,
+    "window.commandCenter": true,
     "window.restoreWindows": "none",
-    "workbench.startupEditor": "none",
-    "dotfiles.repository": "erazemk/dotfiles",
-    "dotfiles.targetPath": "~/.config/dotfiles"
+    "workbench.preferredDarkColorTheme": "Default Dark Modern",
+    "workbench.preferredLightColorTheme": "Default Light Modern",
+    "workbench.startupEditor": "none"
 }
