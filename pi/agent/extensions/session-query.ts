@@ -5,7 +5,7 @@
  * decisions, code changes, or other information.
  *
  * Works with handoff: when a handoff prompt includes "Parent session: <path>",
- * the model can use this tool to look up details from that session.
+ * the model can use the `session_query` tool to look up details from that session.
  *
  * Source: https://github.com/pasky/pi-amplike/blob/main/extensions/session-query.ts
  */
@@ -22,24 +22,25 @@ import {
 import { Container, Markdown, Spacer, Text, truncateToWidth } from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
 
-const QUERY_SYSTEM_PROMPT = `You are a session context assistant. Given the conversation history from a pi coding session and a question, provide a concise answer based on the session contents.
+const QUERY_SYSTEM_PROMPT = `You are a session context assistant. Given the conversation history from a pi coding session and a question, provide a concise answer based only on the session contents.
 
 Focus on:
 - Specific facts, decisions, and outcomes
 - File paths and code changes mentioned
 - Key context the user is asking about
 
-Be concise and direct. If the information isn't in the session, say so.`;
+Answer only the question asked. If the information is not in the session, say so.`;
 
 export default function (pi: ExtensionAPI) {
     pi.registerTool({
         name: "session_query",
         label: "Session Query",
         description:
-            "Query a previous pi session file for context, decisions, or information. Use when you need to look up what happened in a parent session or any other session.",
+            "Query a previous pi session file for context, decisions, or information. Use when you need to look up what happened in a parent session or another prior session, especially after a handoff prompt mentions a Parent session path.",
         promptSnippet: "Look up context, decisions, or outcomes from a previous pi session file.",
         promptGuidelines: [
             "Use this tool when you need to look up what happened in a parent session or another prior session.",
+            "If a handoff prompt mentions a Parent session path and you need more detail, pass that path here with a focused question.",
             "Pass the full session .jsonl path and a focused question.",
         ],
         renderCall: (args, theme) => {
@@ -51,8 +52,9 @@ export default function (pi: ExtensionAPI) {
         renderResult: (result, _options, theme) => {
             const container = new Container();
 
-            if (result.content && result.content[0]?.text) {
-                const text = result.content[0].text;
+            const firstContent = result.content?.[0];
+            if (firstContent?.type === "text") {
+                const text = firstContent.text;
                 // Parse: **Query:** question\n\n---\n\nanswer
                 const match = text.match(/\*\*Query:\*\* (.+?)\n\n---\n\n([\s\S]+)/);
 

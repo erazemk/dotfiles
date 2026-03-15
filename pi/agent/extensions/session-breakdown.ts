@@ -19,15 +19,8 @@
 
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
 import { BorderedLoader, getAgentDir } from "@mariozechner/pi-coding-agent";
-import {
-    Key,
-    matchesKey,
-    sliceByColumn,
-    type Component,
-    type TUI,
-    truncateToWidth,
-    visibleWidth,
-} from "@mariozechner/pi-tui";
+import { Key, matchesKey, type Component, type TUI, truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
+import { sliceByColumn } from "@mariozechner/pi-tui/dist/utils.js";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { createReadStream, type Dirent } from "node:fs";

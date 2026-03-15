@@ -430,7 +430,7 @@ export default function contextExtension(pi: ExtensionAPI) {
         if (!isReadToolResult(event) || event.isError) return;
 
         const p = event.input.path;
-        if (!p) return;
+        if (typeof p !== "string" || !p) return;
 
         ensureCaches(ctx);
         const abs = normalizeReadPath(p, ctx.cwd);

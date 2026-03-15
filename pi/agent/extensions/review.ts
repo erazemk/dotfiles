@@ -612,6 +612,41 @@ export default function reviewExtension(pi: ExtensionAPI) {
         }
     }
 
+    function isPrintableFilterInput(data: string): boolean {
+        if (data.length === 0) return false;
+        return [...data].every((ch) => {
+            const code = ch.charCodeAt(0);
+            return code >= 32 && code !== 0x7f && !(code >= 0x80 && code <= 0x9f);
+        });
+    }
+
+    function isBackspaceInput(data: string): boolean {
+        return data === "\x7f" || data === "\b";
+    }
+
+    function createFilterableSelectInput(selectList: SelectList, requestRender: () => void) {
+        let filter = "";
+
+        return (data: string) => {
+            if (isBackspaceInput(data)) {
+                if (filter.length > 0) {
+                    filter = filter.slice(0, -1);
+                    selectList.setFilter(filter);
+                    requestRender();
+                    return;
+                }
+            } else if (isPrintableFilterInput(data)) {
+                filter += data;
+                selectList.setFilter(filter);
+                requestRender();
+                return;
+            }
+
+            selectList.handleInput(data);
+            requestRender();
+        };
+    }
+
     /**
      * Show branch selector for base branch review
      */
@@ -656,9 +691,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
                 scrollInfo: (text) => theme.fg("dim", text),
                 noMatch: (text) => theme.fg("warning", text),
             });
-
-            // Enable search
-            selectList.searchable = true;
+            const handleSelectInput = createFilterableSelectInput(selectList, () => tui.requestRender());
 
             selectList.onSelect = (item) => done(item.value);
             selectList.onCancel = () => done(null);
@@ -675,8 +708,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
                     container.invalidate();
                 },
                 handleInput(data: string) {
-                    selectList.handleInput(data);
-                    tui.requestRender();
+                    handleSelectInput(data);
                 },
             };
         });
@@ -714,9 +746,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
                 scrollInfo: (text) => theme.fg("dim", text),
                 noMatch: (text) => theme.fg("warning", text),
             });
-
-            // Enable search
-            selectList.searchable = true;
+            const handleSelectInput = createFilterableSelectInput(selectList, () => tui.requestRender());
 
             selectList.onSelect = (item) => {
                 const commit = commits.find((c) => c.sha === item.value);
@@ -740,8 +770,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
                     container.invalidate();
                 },
                 handleInput(data: string) {
-                    selectList.handleInput(data);
-                    tui.requestRender();
+                    handleSelectInput(data);
                 },
             };
         });

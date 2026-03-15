@@ -36,5 +36,6 @@
       "Working"
     ]
   },
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "high"
 }
