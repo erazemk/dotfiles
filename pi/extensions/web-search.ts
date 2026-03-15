@@ -178,7 +178,7 @@ export default function ollamaWebExtension(pi: ExtensionAPI) {
 	pi.registerTool({
 		name: "web_search",
 		label: "Ollama Web Search",
-		description: `Search the web via Ollama's web search API. Requires OLLAMA_API_KEY. Output is truncated to ${DEFAULT_MAX_LINES} lines or ${formatSize(
+		description: `Search the web via Ollama's web search API. Output is truncated to ${DEFAULT_MAX_LINES} lines or ${formatSize(
 			DEFAULT_MAX_BYTES,
 		)}.`,
 		parameters: WebSearchParams,
@@ -211,7 +211,7 @@ export default function ollamaWebExtension(pi: ExtensionAPI) {
 	pi.registerTool({
 		name: "web_fetch",
 		label: "Ollama Web Fetch",
-		description: `Fetch a single web page via Ollama's web fetch API. Requires OLLAMA_API_KEY. Output is truncated to ${DEFAULT_MAX_LINES} lines or ${formatSize(
+		description: `Fetch a single web page via Ollama's web fetch API. Output is truncated to ${DEFAULT_MAX_LINES} lines or ${formatSize(
 			DEFAULT_MAX_BYTES,
 		)}. If the URL has no scheme, https:// is assumed.`,
 		parameters: WebFetchParams,
