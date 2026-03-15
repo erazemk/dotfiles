@@ -25,8 +25,10 @@ end
 if status is-interactive
     function update --description "Update system packages"
         switch (uname)
-            case Linux; sudo dnf upgrade --refresh
-            case Darwin; brew update && brew upgrade && brew autoremove && brew cleanup
+            case Linux
+                sudo dnf upgrade --refresh
+            case Darwin
+                brew update && brew upgrade && brew autoremove && brew cleanup
         end
 
         npm i -g @openai/codex@latest
@@ -47,7 +49,7 @@ if status is-interactive
             return $status
         end
 
-        command codex $argv
+        command codex --full-auto --search --add-dir ~/DevRev $argv
     end
 
     function pi --description "Pi coding agent"

@@ -1,10 +1,11 @@
 {
+  "awsAuthRefresh": "aws sso login --profile claude",
   "env": {
     "DISABLE_TELEMETRY": "1",
     "AWS_REGION": "eu-central-1",
     "CLAUDE_CODE_USE_BEDROCK": "1",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "eu.anthropic.claude-opus-4-6-v1",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "eu.anthropic.claude-sonnet-4-6",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "eu.anthropic.claude-haiku-4-5-20251001-v1:0"
   },
   "attribution": {
@@ -13,28 +14,27 @@
   },
   "permissions": {
     "allow": [
-      "Bash(cat:*)",
-      "Bash(curl:*)",
-      "Bash(find:*)",
-      "Bash(gh:*)",
-      "Bash(git:*)",
-      "Bash(go:*)",
-      "Bash(grep:*)",
-      "Bash(ls:*)",
-      "Bash(make:*)",
-      "Bash(tree:*)",
-      "Bash(wc:*)",
+      "Bash(cat *)",
+      "Bash(curl *)",
+      "Bash(find *)",
+      "Bash(go *)",
+      "Bash(grep *)",
+      "Bash(ls *)",
+      "Bash(make *)",
       "WebFetch",
       "WebSearch"
     ],
-    "defaultMode": "acceptEdits",
-    "additionalDirectories": [
-      "~/DevRev/",
-      "~/Personal/"
+    "deny": [
+      "Bash(rm *)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "model": "opusplan",
+  "spinnerVerbs": {
+    "mode": "replace",
+    "verbs": [
+      "Working"
     ]
   },
-  "model": "eu.anthropic.claude-opus-4-6-v1",
-  "enabledPlugins": {
-    "gopls-lsp@claude-plugins-official": true
-  }
+  "alwaysThinkingEnabled": true
 }

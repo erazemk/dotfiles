@@ -28,7 +28,10 @@ if [[ $(uname) == "Darwin" ]]; then
 fi
 
 # Coding agents
-mkdir ~/.pi/agent ~/.agents ~/.claude
-ln -s $DOTFILES/pi/extensions $DOTFILES/pi/prompts $DOTFILES/pi/AGENTS.md ~/.pi/agent/
+mkdir ~/.pi/agent ~/.agents ~/.claude ~/.codex
+ln -s $DOTFILES/pi/extensions $DOTFILES/pi/prompts ~/.pi/agent/
 ln -s $DOTFILES/pi/skills ~/.agents/
 ln -s $DOTFILES/pi/skills $DOTFILES/claude-code/settings.json ~/.claude/
+ln -s $DOTFILES/pi/AGENTS.md ~/.pi/agent/
+ln -s $DOTFILES/pi/AGENTS.md ~/.claude/CLAUDE.md
+ln -s $DOTFILES/pi/AGENTS.md ~/.codex/

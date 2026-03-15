@@ -9,18 +9,35 @@
         ]
     },
     "accessibility.underlineLinks": true,
+    "augment.completions.enableAutomaticCompletions": false,
+    "augment.completions.enableQuickSuggestions": false,
+    "augment.disableFocusOnAugmentPanel": true,
+    "augment.enableEmptyFileHint": false,
     "chat.disableAIFeatures": true,
+    "chatgpt.commentCodeLensEnabled": false,
+    "chatgpt.composerEnterBehavior": "cmdIfMultiline",
+    "codeium.enableConfig": {
+        "*": true,
+        "markdown": true
+    },
     "comments.openView": "never",
     "cursor.composer.shouldChimeAfterChatFinishes": true,
+    "cursor.cpp.disabledLanguages": [
+        "plaintext"
+    ],
     "cursor.cpp.enablePartialAccepts": true,
+    "cursorpyright.analysis.exclude": [
+        "_build"
+    ],
+    "cursorpyright.shouldImportPylanceSettings": "always",
     "debug.console.fontSize": 14,
     "debug.openExplorerOnEnd": true,
     "debug.showVariableTypes": true,
     "debug.terminal.clearBeforeReusing": true,
     "diffEditor.codeLens": true,
     "diffEditor.experimental.showMoves": true,
-    "diffEditor.hideUnchangedRegions.enabled": true,
     "diffEditor.ignoreTrimWhitespace": false,
+    "diffEditor.renderSideBySide": true,
     "dotfiles.repository": "erazemk/dotfiles",
     "dotfiles.targetPath": "~/.config/dotfiles",
     "editor.fontSize": 14,
@@ -85,6 +102,13 @@
     "makefile.configureOnOpen": false,
     "markdown.occurrencesHighlight.enabled": true,
     "markdown.preview.fontSize": 16,
+    "python.analysis.exclude": [
+        "_build",
+        "**/node_modules",
+        "**/__pycache__",
+        "**/.*"
+    ],
+    "python.analysis.typeCheckingMode": "standard",
     "scm.diffDecorationsGutterPattern": {
         "added": true
     },

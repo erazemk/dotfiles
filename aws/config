@@ -28,3 +28,10 @@ region = us-east-1
 output = json
 s3 =
   max_concurrent_requests = 64
+
+[profile claude]
+sso_session = DevRev
+sso_account_id = 020040093233
+sso_role_name = BedrockLongLivedTokenAccess
+region = eu-central-1
+output = json
