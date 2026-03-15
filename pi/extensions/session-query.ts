@@ -19,7 +19,7 @@ import {
     serializeConversation,
     type SessionEntry,
 } from "@mariozechner/pi-coding-agent";
-import { Container, Markdown, Spacer, Text } from "@mariozechner/pi-tui";
+import { Container, Markdown, Spacer, Text, truncateToWidth } from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
 
 const QUERY_SYSTEM_PROMPT = `You are a session context assistant. Given the conversation history from a pi coding session and a question, provide a concise answer based on the session contents.
@@ -34,9 +34,20 @@ Be concise and direct. If the information isn't in the session, say so.`;
 export default function (pi: ExtensionAPI) {
     pi.registerTool({
         name: "session_query",
-        label: (params) => `Session Query: ${params.question}`,
+        label: "Session Query",
         description:
             "Query a previous pi session file for context, decisions, or information. Use when you need to look up what happened in a parent session or any other session.",
+        promptSnippet: "Look up context, decisions, or outcomes from a previous pi session file.",
+        promptGuidelines: [
+            "Use this tool when you need to look up what happened in a parent session or another prior session.",
+            "Pass the full session .jsonl path and a focused question.",
+        ],
+        renderCall: (args, theme) => {
+            const question = typeof args.question === "string" ? args.question : "";
+            let text = theme.fg("toolTitle", theme.bold("session_query "));
+            text += theme.fg("muted", truncateToWidth(question, 80));
+            return new Text(text, 0, 0);
+        },
         renderResult: (result, _options, theme) => {
             const container = new Container();
 
@@ -70,7 +81,7 @@ export default function (pi: ExtensionAPI) {
             }),
         }),
 
-        async execute(toolCallId, params, signal, onUpdate, ctx) {
+        async execute(_toolCallId, params, signal, onUpdate, ctx) {
             const { sessionPath, question } = params;
 
             // Helper for error returns

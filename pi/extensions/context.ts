@@ -10,8 +10,8 @@
  * Source: https://github.com/mitsuhiko/agent-stuff/blob/main/pi-extensions/context.ts
  */
 
-import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, ToolResultEvent } from "@mariozechner/pi-coding-agent";
-import { DynamicBorder } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@mariozechner/pi-coding-agent";
+import { DynamicBorder, getAgentDir, isReadToolResult } from "@mariozechner/pi-coding-agent";
 import { Container, Key, Text, matchesKey, type Component, type TUI } from "@mariozechner/pi-tui";
 import os from "node:os";
 import path from "node:path";
@@ -38,33 +38,6 @@ function normalizeReadPath(inputPath: string, cwd: string): string {
     else if (p.startsWith("~/")) p = path.join(os.homedir(), p.slice(2));
     if (!path.isAbsolute(p)) p = path.resolve(cwd, p);
     return path.resolve(p);
-}
-
-function getAgentDir(): string {
-    // Mirrors pi's behavior reasonably well.
-    const envCandidates = ["PI_CODING_AGENT_DIR", "TAU_CODING_AGENT_DIR"];
-    let envDir: string | undefined;
-    for (const k of envCandidates) {
-        if (process.env[k]) {
-            envDir = process.env[k];
-            break;
-        }
-    }
-    if (!envDir) {
-        for (const [k, v] of Object.entries(process.env)) {
-            if (k.endsWith("_CODING_AGENT_DIR") && v) {
-                envDir = v;
-                break;
-            }
-        }
-    }
-
-    if (envDir) {
-        if (envDir === "~") return os.homedir();
-        if (envDir.startsWith("~/")) return path.join(os.homedir(), envDir.slice(2));
-        return envDir;
-    }
-    return path.join(os.homedir(), ".pi", "agent");
 }
 
 async function readFileIfExists(filePath: string): Promise<{ path: string; content: string; bytes: number } | null> {
@@ -452,13 +425,11 @@ export default function contextExtension(pi: ExtensionAPI) {
         return best?.name ?? null;
     };
 
-    pi.on("tool_result", (event: ToolResultEvent, ctx: ExtensionContext) => {
+    pi.on("tool_result", (event, ctx: ExtensionContext) => {
         // Only count successful reads.
-        if ((event as any).toolName !== "read") return;
-        if ((event as any).isError) return;
+        if (!isReadToolResult(event) || event.isError) return;
 
-        const input = (event as any).input as { path?: unknown } | undefined;
-        const p = typeof input?.path === "string" ? input.path : "";
+        const p = event.input.path;
         if (!p) return;
 
         ensureCaches(ctx);

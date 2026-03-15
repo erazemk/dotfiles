@@ -32,7 +32,7 @@ if status is-interactive
         end
 
         npm i -g @openai/codex@latest
-        npm i -g @mariozechner/pi-coding-agent@latest
+        npm i -g @mariozechner/pi-coding-agent
     end
 
     function howto --description "CLI AI-assisted cheat sheet"
@@ -52,12 +52,8 @@ if status is-interactive
         command codex --full-auto --search --add-dir ~/DevRev $argv
     end
 
+    abbr upi 'npm i -g @mariozechner/pi-coding-agent'
     function pi --description "Pi coding agent"
-        if set -q argv[1]; and test "$argv[1]" = update
-            npm i -g @mariozechner/pi-coding-agent@latest
-            return $status
-        end
-
         if not set -q AWS_BEARER_TOKEN_BEDROCK
             set -gx AWS_BEARER_TOKEN_BEDROCK (security find-generic-password -w -s aws-bedrock -a aws-bedrock)
         end

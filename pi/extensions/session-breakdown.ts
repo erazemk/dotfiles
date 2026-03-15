@@ -1,7 +1,7 @@
 /**
  * /session-breakdown
  *
- * Interactive TUI that analyzes ~/.pi/agent/sessions (recursively, *.jsonl) and shows
+ * Interactive TUI that analyzes pi's configured sessions directory (`<agentDir>/sessions`, recursively, *.jsonl) and shows
  * last 7/30/90 days of:
  * - sessions/day
  * - messages/day
@@ -18,7 +18,7 @@
  */
 
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { BorderedLoader } from "@mariozechner/pi-coding-agent";
+import { BorderedLoader, getAgentDir } from "@mariozechner/pi-coding-agent";
 import {
     Key,
     matchesKey,
@@ -28,7 +28,6 @@ import {
     truncateToWidth,
     visibleWidth,
 } from "@mariozechner/pi-tui";
-import os from "node:os";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { createReadStream, type Dirent } from "node:fs";
@@ -91,7 +90,7 @@ interface BreakdownData {
     };
 }
 
-const SESSION_ROOT = path.join(os.homedir(), ".pi", "agent", "sessions");
+const SESSION_ROOT = path.join(getAgentDir(), "sessions");
 const RANGE_DAYS = [7, 30, 90] as const;
 
 type MeasurementMode = "sessions" | "messages" | "tokens";
@@ -1065,7 +1064,7 @@ class BreakdownComponent implements Component {
 
 export default function sessionBreakdownExtension(pi: ExtensionAPI) {
     pi.registerCommand("session-breakdown", {
-        description: "Interactive breakdown of last 7/30/90 days of ~/.pi session usage (sessions/messages/tokens + cost by model)",
+        description: "Interactive breakdown of last 7/30/90 days of pi session usage from the configured agent directory (sessions/messages/tokens + cost by model)",
         handler: async (_args, ctx: ExtensionContext) => {
             if (!ctx.hasUI) {
                 // Non-interactive fallback: just notify.

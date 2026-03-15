@@ -1,7 +1,17 @@
+import { mkdtemp, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { StringEnum } from "@mariozechner/pi-ai";
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import {
+	DEFAULT_MAX_BYTES,
+	DEFAULT_MAX_LINES,
+	formatSize,
+	truncateHead,
+	type ExtensionAPI,
+	type TruncationResult,
+} from "@mariozechner/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
 
 const GENERATED_CLI_PATH = fileURLToPath(new URL("./datadog.js", import.meta.url));
@@ -114,41 +124,6 @@ const SearchDatadogLogsParams = Type.Object({
 	),
 });
 
-const SearchDatadogMonitorsParams = Type.Object({
-	query: Type.Optional(Type.String({ description: "Monitor search query." })),
-	sort: Type.Optional(Type.String({ description: "Sort monitors by the given field." })),
-	start_at: Type.Optional(Type.Number({ description: "Offset to start returning results from." })),
-	max_tokens: Type.Optional(Type.Number({ description: "Maximum number of tokens to include in the response." })),
-});
-
-const SearchDatadogDashboardsParams = Type.Object({
-	query: Type.Optional(Type.String({ description: "Dashboard search query." })),
-	sort_by: Type.Optional(Type.String({ description: "Sort dashboards by the given field." })),
-	start_at: Type.Optional(Type.Number({ description: "Offset to start returning results from." })),
-	max_tokens: Type.Optional(Type.Number({ description: "Maximum number of tokens to include in the response." })),
-	include_template_variables: Type.Optional(
-		Type.Boolean({
-			description: "If true, include information about template variables.",
-		}),
-	),
-	max_queries_per_dashboard: Type.Optional(
-		Type.Number({
-			description: "Maximum number of queries to return per dashboard.",
-		}),
-	),
-});
-
-const SearchDatadogServicesParams = Type.Object({
-	query: Type.Optional(Type.String({ description: "Service search query." })),
-	start_at: Type.Optional(Type.Number({ description: "Offset to start returning results from." })),
-	max_tokens: Type.Optional(Type.Number({ description: "Maximum number of tokens to include in the response." })),
-	detailed_output: Type.Optional(
-		Type.Boolean({
-			description: "If true, include more detailed metadata for each service.",
-		}),
-	),
-});
-
 const SearchDatadogSpansParams = Type.Object({
 	query: Type.String({
 		description: "Datadog span query to search.",
@@ -165,41 +140,40 @@ const SearchDatadogSpansParams = Type.Object({
 	start_at: Type.Optional(Type.Number({ description: "Offset to start returning results from." })),
 });
 
-const SearchDatadogMetricsParams = Type.Object({
-	from: Type.Optional(Type.String({ description: "Lookback time window for filtering metrics." })),
-	name_filter: Type.Optional(Type.String({ description: "Filter metrics by name." })),
-	tag_filter: Type.Optional(Type.String({ description: "Filter metrics by tags." })),
-	max_tokens: Type.Optional(Type.Number({ description: "Maximum number of tokens to include in the response." })),
-	start_at: Type.Optional(Type.Number({ description: "Offset to start returning results from." })),
-	has_related_assets: Type.Optional(Type.Boolean({ description: "Filter by whether metrics have related assets." })),
-	is_configured: Type.Optional(Type.Boolean({ description: "Filter by Metrics Without Limits configuration status." })),
-	is_queried: Type.Optional(Type.Boolean({ description: "Filter by whether metrics were queried in the lookback window." })),
-	percentiles_enabled: Type.Optional(Type.Boolean({ description: "Filter by percentile aggregation status." })),
-});
+type ToolOutput = {
+	text: string;
+	truncation?: TruncationResult;
+	fullOutputPath?: string;
+};
 
-function truncateText(text: string, maxLines = 2000, maxBytes = 50 * 1024) {
-	const lines = text.split("\n");
-	let output = text;
-	let truncated = false;
-	let reason = "";
+async function truncateOutput(label: string, output: string): Promise<ToolOutput> {
+	const truncation = truncateHead(output, {
+		maxLines: DEFAULT_MAX_LINES,
+		maxBytes: DEFAULT_MAX_BYTES,
+	});
 
-	if (lines.length > maxLines) {
-		output = lines.slice(0, maxLines).join("\n");
-		truncated = true;
-		reason = `showing first ${maxLines} of ${lines.length} lines`;
+	let text = truncation.content;
+	let fullOutputPath: string | undefined;
+
+	if (truncation.truncated) {
+		const tempDir = await mkdtemp(path.join(os.tmpdir(), "pi-datadog-"));
+		fullOutputPath = path.join(tempDir, `${label}.txt`);
+		await writeFile(fullOutputPath, output, "utf8");
+
+		const truncatedLines = truncation.totalLines - truncation.outputLines;
+		const truncatedBytes = truncation.totalBytes - truncation.outputBytes;
+
+		text += `\n\n[Output truncated: showing ${truncation.outputLines} of ${truncation.totalLines} lines`;
+		text += ` (${formatSize(truncation.outputBytes)} of ${formatSize(truncation.totalBytes)}).`;
+		text += ` ${truncatedLines} lines (${formatSize(truncatedBytes)}) omitted.`;
+		text += ` Full output saved to: ${fullOutputPath}]`;
 	}
 
-	while (Buffer.byteLength(output, "utf8") > maxBytes) {
-		output = output.slice(0, Math.max(0, output.length - 1024));
-		truncated = true;
-		reason = reason ? `${reason}; capped at ${(maxBytes / 1024).toFixed(0)}KB` : `capped at ${(maxBytes / 1024).toFixed(0)}KB`;
-	}
-
-	if (truncated) {
-		output += `\n\n[Output truncated: ${reason}]`;
-	}
-
-	return { text: output, truncated };
+	return {
+		text,
+		truncation: truncation.truncated ? truncation : undefined,
+		fullOutputPath,
+	};
 }
 
 function buildTelemetryIntent(toolName: string): string {
@@ -210,16 +184,8 @@ function buildTelemetryIntent(toolName: string): string {
 			return "Retrieve a Datadog trace for debugging and request flow investigation.";
 		case "search_datadog_logs":
 			return "Search Datadog logs for debugging and log inspection.";
-		case "search_datadog_monitors":
-			return "Search Datadog monitors relevant to an incident or investigation.";
-		case "search_datadog_dashboards":
-			return "Search Datadog dashboards relevant to an investigation or service.";
-		case "search_datadog_services":
-			return "Search Datadog services relevant to an investigation or system.";
 		case "search_datadog_spans":
 			return "Search Datadog spans for trace and performance investigation.";
-		case "search_datadog_metrics":
-			return "Search Datadog metrics relevant to monitoring or analysis.";
 		default:
 			return "Use Datadog MCP via pi for telemetry investigation.";
 	}
@@ -289,7 +255,7 @@ async function runDatadogTool(pi: ExtensionAPI, toolName: string, params: Record
 	}
 
 	const formatted = result.stdout.trim() || result.stderr.trim() || "";
-	return truncateText(formatted);
+	return truncateOutput(toolName.replace(/_/g, "-"), formatted);
 }
 
 export default function datadogExtension(pi: ExtensionAPI) {
@@ -298,14 +264,26 @@ export default function datadogExtension(pi: ExtensionAPI) {
 		label: "Analyze Datadog Logs",
 		description:
 			"Analyze Datadog logs using SQL. Great for both exploratory queries and analytics: quickly peek at a few recent logs with a LIMIT, SELECT specific columns, or perform aggregations (counts, group-bys, etc.). SQL runs against a virtual 'logs' table filtered by your search query. For discovering available custom attributes to use as extra_columns, first call search_datadog_logs with the extra_fields parameter. If a query times out, try again with a shorter time range.",
+		promptSnippet: "Analyze Datadog logs with SQL for counts, aggregations, grouping, and structured log inspection.",
 		promptGuidelines: [
 			"Use this tool instead of raw log search when the user needs counts, aggregations, grouped summaries, or numerical analysis of logs.",
 			"Use search_datadog_logs first if you need to discover custom log attributes before declaring extra_columns.",
 		],
 		parameters: AnalyzeDatadogLogsParams,
-		async execute(_toolCallId, params, signal) {
+		async execute(_toolCallId, params, signal, onUpdate) {
+			onUpdate?.({
+				content: [{ type: "text", text: "Running Datadog log analysis query" }],
+				details: { status: "running", toolName: "analyze_datadog_logs" },
+			});
 			const truncated = await runDatadogTool(pi, "analyze_datadog_logs", params as Record<string, unknown>, signal);
-			return { content: [{ type: "text", text: truncated.text }], details: { truncated: truncated.truncated, generatedCli: GENERATED_CLI_PATH } };
+			return {
+				content: [{ type: "text", text: truncated.text }],
+				details: {
+					truncation: truncated.truncation,
+					fullOutputPath: truncated.fullOutputPath,
+					generatedCli: GENERATED_CLI_PATH,
+				},
+			};
 		},
 	});
 
@@ -314,13 +292,23 @@ export default function datadogExtension(pi: ExtensionAPI) {
 		label: "Get Datadog Trace",
 		description:
 			"Retrieve a trace by trace ID from Datadog APM. This tool fetches all spans within a specific trace by default, providing detailed information about the request flow, timing, and service interactions. For large traces or to retrieve a summarized trace, set only_service_entry_spans=true to get a hierarchical condensed view that shows service boundaries, collapsing internal operations. The summarized view will indicate expandable spans with hidden_child_spans_count.",
-		promptGuidelines: [
-			"Use this tool when you already have a trace ID and need the full or summarized trace details.",
-		],
+		promptSnippet: "Fetch a Datadog trace by trace ID to inspect request flow, spans, and service interactions.",
+		promptGuidelines: ["Use this tool when you already have a trace ID and need the full or summarized trace details."],
 		parameters: GetDatadogTraceParams,
-		async execute(_toolCallId, params, signal) {
+		async execute(_toolCallId, params, signal, onUpdate) {
+			onUpdate?.({
+				content: [{ type: "text", text: `Fetching Datadog trace ${params.trace_id}` }],
+				details: { status: "running", toolName: "get_datadog_trace", traceId: params.trace_id },
+			});
 			const truncated = await runDatadogTool(pi, "get_datadog_trace", params as Record<string, unknown>, signal);
-			return { content: [{ type: "text", text: truncated.text }], details: { truncated: truncated.truncated, generatedCli: GENERATED_CLI_PATH } };
+			return {
+				content: [{ type: "text", text: truncated.text }],
+				details: {
+					truncation: truncated.truncation,
+					fullOutputPath: truncated.fullOutputPath,
+					generatedCli: GENERATED_CLI_PATH,
+				},
+			};
 		},
 	});
 
@@ -329,50 +317,26 @@ export default function datadogExtension(pi: ExtensionAPI) {
 		label: "Search Datadog Logs",
 		description:
 			"Search and retrieve raw log entries or log patterns from Datadog. IMPORTANT: Do NOT use this tool for counting, aggregations, or numerical analysis - use analyze_datadog_logs with SQL queries instead. This tool is best for: (1) viewing small numbers of raw logs, (2) discovering patterns in large volumes of logs, (3) discovering available custom attributes via extra_fields parameter (e.g., extra_fields: ['*'] or extra_fields: ['http*']) which can then be used as extra_columns in analyze_datadog_logs SQL queries.",
+		promptSnippet: "Search raw Datadog logs or log patterns, and discover attributes for later SQL analysis.",
 		promptGuidelines: [
 			"Do not use this tool for counts or aggregations; use analyze_datadog_logs instead.",
 			"Use this tool for raw log inspection, pattern discovery, and discovering custom attributes via extra_fields.",
 		],
 		parameters: SearchDatadogLogsParams,
-		async execute(_toolCallId, params, signal) {
+		async execute(_toolCallId, params, signal, onUpdate) {
+			onUpdate?.({
+				content: [{ type: "text", text: `Searching Datadog logs for query: ${params.query}` }],
+				details: { status: "running", toolName: "search_datadog_logs", query: params.query },
+			});
 			const truncated = await runDatadogTool(pi, "search_datadog_logs", params as Record<string, unknown>, signal);
-			return { content: [{ type: "text", text: truncated.text }], details: { truncated: truncated.truncated, generatedCli: GENERATED_CLI_PATH } };
-		},
-	});
-
-	pi.registerTool({
-		name: "search_datadog_monitors",
-		label: "Search Datadog Monitors",
-		description:
-			"List and retrieve information about Datadog monitors. This tool helps discover monitors, their status, configuration, and alerts. Use this tool when you need to find monitors for investigation, management, or analysis purposes.",
-		parameters: SearchDatadogMonitorsParams,
-		async execute(_toolCallId, params, signal) {
-			const truncated = await runDatadogTool(pi, "search_datadog_monitors", params as Record<string, unknown>, signal);
-			return { content: [{ type: "text", text: truncated.text }], details: { truncated: truncated.truncated, generatedCli: GENERATED_CLI_PATH } };
-		},
-	});
-
-	pi.registerTool({
-		name: "search_datadog_dashboards",
-		label: "Search Datadog Dashboards",
-		description:
-			"List and retrieve information about Datadog dashboards. This tool helps discover available dashboards, their IDs, titles, and underlying queries. Use this tool when you need to find specific dashboards, get an overview of all dashboards in your Datadog account, or find important logs+metrics queries in dashboards.",
-		parameters: SearchDatadogDashboardsParams,
-		async execute(_toolCallId, params, signal) {
-			const truncated = await runDatadogTool(pi, "search_datadog_dashboards", params as Record<string, unknown>, signal);
-			return { content: [{ type: "text", text: truncated.text }], details: { truncated: truncated.truncated, generatedCli: GENERATED_CLI_PATH } };
-		},
-	});
-
-	pi.registerTool({
-		name: "search_datadog_services",
-		label: "Search Datadog Services",
-		description:
-			"List and retrieve information about Datadog services. This tool helps discover services in your environment, their descriptions, teams, and links. Use this tool when you need to find services for investigation, management, or analysis purposes.",
-		parameters: SearchDatadogServicesParams,
-		async execute(_toolCallId, params, signal) {
-			const truncated = await runDatadogTool(pi, "search_datadog_services", params as Record<string, unknown>, signal);
-			return { content: [{ type: "text", text: truncated.text }], details: { truncated: truncated.truncated, generatedCli: GENERATED_CLI_PATH } };
+			return {
+				content: [{ type: "text", text: truncated.text }],
+				details: {
+					truncation: truncated.truncation,
+					fullOutputPath: truncated.fullOutputPath,
+					generatedCli: GENERATED_CLI_PATH,
+				},
+			};
 		},
 	});
 
@@ -381,22 +345,23 @@ export default function datadogExtension(pi: ExtensionAPI) {
 		label: "Search Datadog Spans",
 		description:
 			"Retrieve and analyze spans from APM traces from Datadog. This tool helps investigate distributed traces across your services, showing the complete request flow, timing information, and service dependencies. Use this tool when debugging performance issues, analyzing service interactions, or investigating request failures. The results include trace IDs, spans, timing data, and associated metadata.",
+		promptSnippet: "Search Datadog spans to investigate traces, latency, errors, and service interactions.",
+		promptGuidelines: ["Use this tool when you need to inspect APM spans, trace metadata, or service interactions without a specific trace ID."],
 		parameters: SearchDatadogSpansParams,
-		async execute(_toolCallId, params, signal) {
+		async execute(_toolCallId, params, signal, onUpdate) {
+			onUpdate?.({
+				content: [{ type: "text", text: `Searching Datadog spans for query: ${params.query}` }],
+				details: { status: "running", toolName: "search_datadog_spans", query: params.query },
+			});
 			const truncated = await runDatadogTool(pi, "search_datadog_spans", params as Record<string, unknown>, signal);
-			return { content: [{ type: "text", text: truncated.text }], details: { truncated: truncated.truncated, generatedCli: GENERATED_CLI_PATH } };
-		},
-	});
-
-	pi.registerTool({
-		name: "search_datadog_metrics",
-		label: "Search Datadog Metrics",
-		description:
-			"List available metrics in Datadog. This tool helps discover metrics available in your environment, with optional filtering by name, tags, configuration status, and query activity. Use this tool when you need to find metrics for monitoring or analysis purposes.",
-		parameters: SearchDatadogMetricsParams,
-		async execute(_toolCallId, params, signal) {
-			const truncated = await runDatadogTool(pi, "search_datadog_metrics", params as Record<string, unknown>, signal);
-			return { content: [{ type: "text", text: truncated.text }], details: { truncated: truncated.truncated, generatedCli: GENERATED_CLI_PATH } };
+			return {
+				content: [{ type: "text", text: truncated.text }],
+				details: {
+					truncation: truncated.truncation,
+					fullOutputPath: truncated.fullOutputPath,
+					generatedCli: GENERATED_CLI_PATH,
+				},
+			};
 		},
 	});
 }
