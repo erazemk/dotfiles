@@ -6,6 +6,11 @@ disable-model-invocation: true
 
 Create a git commit for the current changes following the conventions below.
 
+## Git branch
+
+If on the `main` git branch, create a new branch for the changes, with a short but descriptive name and the prefix `erazemk/`.
+The branch name should not include the issue ID, just a few dash-separated words that roughly describe the change.
+
 ## Subject Line
 
 `<type>: <summary>`
@@ -43,7 +48,7 @@ For non-trivial changes (new features, bug fixes with interesting context, refac
 
 ### Examples
 
-Simple change:
+Simple change (branch name `erazemk/meeting-channel`):
 ```
 fix: Fall back to "other" meeting channel
 
@@ -53,7 +58,7 @@ set to "other", so that such meetings are successfully imported.
 https://app.devrev.ai/devrev/works/ISS-242818
 ```
 
-Complex change:
+Complex change (branch name `erazemk/redis-locking`):
 ```
 feat: Support Redis locking per-object-type
 
@@ -67,7 +72,7 @@ Deletions still lock whole object types.
 https://app.devrev.ai/devrev/works/ISS-261375
 ```
 
-Bug fix with context:
+Bug fix with context (branch name `erazemk/policy-failure`):
 ```
 fix: Don't fail if failing to create parts of policies
 
@@ -85,7 +90,7 @@ before old permissions are deleted.
 https://app.devrev.ai/devrev/works/ISS-160146
 ```
 
-Trivial change:
+Trivial change (branch name `erazemk/chainguard`):
 ```
 chore: Switch to Chainguard images
 
