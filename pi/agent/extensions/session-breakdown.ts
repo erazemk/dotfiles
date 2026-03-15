@@ -20,7 +20,6 @@
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
 import { BorderedLoader, getAgentDir } from "@mariozechner/pi-coding-agent";
 import { Key, matchesKey, type Component, type TUI, truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
-import { sliceByColumn } from "@mariozechner/pi-tui/dist/utils.js";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { createReadStream, type Dirent } from "node:fs";
@@ -166,6 +165,44 @@ function dim(text: string): string {
 
 function bold(text: string): string {
     return `\x1b[1m${text}\x1b[0m`;
+}
+
+function sliceByColumn(text: string, startCol: number, length: number, strict = false): string {
+    if (length <= 0) return "";
+
+    const tokens = text.match(/\x1b\[[0-9;]*m|[\s\S]/gu) ?? [];
+    const endCol = startCol + length;
+    let currentCol = 0;
+    let pendingAnsi = "";
+    let result = "";
+    let sawAnsi = false;
+
+    for (const token of tokens) {
+        if (/^\x1b\[[0-9;]*m$/.test(token)) {
+            sawAnsi = true;
+            if (currentCol < startCol) pendingAnsi += token;
+            else if (currentCol < endCol) result += token;
+            continue;
+        }
+
+        const tokenWidth = visibleWidth(token);
+        const inRange = currentCol >= startCol && currentCol < endCol;
+        const fits = !strict || currentCol + tokenWidth <= endCol;
+
+        if (inRange && fits) {
+            if (result.length === 0 && pendingAnsi) result += pendingAnsi;
+            result += token;
+        }
+
+        currentCol += tokenWidth;
+        if (currentCol >= endCol) break;
+    }
+
+    if (sawAnsi && result.length > 0 && !result.endsWith("\x1b[0m")) {
+        result += "\x1b[0m";
+    }
+
+    return result;
 }
 
 function formatCount(n: number): string {
