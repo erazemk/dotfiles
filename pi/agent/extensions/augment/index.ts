@@ -13,7 +13,7 @@ import {
 } from "@mariozechner/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
 
-const GENERATED_CLI_PATH = fileURLToPath(new URL("./augment.js", import.meta.url));
+const GENERATED_CLI_PATH = fileURLToPath(new URL("./augment.cjs", import.meta.url));
 const NODE_PATH = process.execPath;
 const CLI_TIMEOUT_MS = 120_000;
 
