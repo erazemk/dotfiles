@@ -10,6 +10,12 @@
     },
     "accessibility.underlineLinks": true,
     "chat.disableAIFeatures": true,
+    "claudeCode.allowDangerouslySkipPermissions": true,
+    "claudeCode.disableLoginPrompt": true,
+    "claudeCode.enableNewConversationShortcut": true,
+    "claudeCode.initialPermissionMode": "bypassPermissions",
+    "claudeCode.preferredLocation": "sidebar",
+    "claudeCode.useCtrlEnterToSend": true,
     "codeium.enableConfig": {
         "*": true,
         "markdown": true
