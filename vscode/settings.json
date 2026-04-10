@@ -9,28 +9,14 @@
         ]
     },
     "accessibility.underlineLinks": true,
-    "augment.completions.enableAutomaticCompletions": false,
-    "augment.completions.enableQuickSuggestions": false,
-    "augment.disableFocusOnAugmentPanel": true,
-    "augment.enableEmptyFileHint": false,
     "chat.disableAIFeatures": true,
-    "chatgpt.commentCodeLensEnabled": false,
-    "chatgpt.composerEnterBehavior": "cmdIfMultiline",
     "codeium.enableConfig": {
         "*": true,
         "markdown": true
     },
     "comments.openView": "never",
-    "cursor.composer.shouldChimeAfterChatFinishes": true,
-    "cursor.cpp.disabledLanguages": [
-        "plaintext"
-    ],
-    "cursor.cpp.enablePartialAccepts": true,
-    "cursorpyright.analysis.exclude": [
-        "_build"
-    ],
-    "cursorpyright.shouldImportPylanceSettings": "always",
     "debug.console.fontSize": 14,
+    "debug.onTaskErrors": "abort",
     "debug.openExplorerOnEnd": true,
     "debug.showVariableTypes": true,
     "debug.terminal.clearBeforeReusing": true,
@@ -81,7 +67,6 @@
     "git.inputValidation": true,
     "git.mergeEditor": true,
     "git.openAfterClone": "always",
-    "git.openRepositoryInParentFolders": "never",
     "git.pruneOnFetch": true,
     "git.pullBeforeCheckout": true,
     "git.scanRepositories": [
@@ -90,8 +75,12 @@
     ],
     "git.terminalGitEditor": true,
     "github.gitProtocol": "ssh",
+    "githubPullRequests.createOnPublishBranch": "always",
+    "githubPullRequests.deleteBranchAfterMerge": true,
     "githubPullRequests.pullBranch": "never",
     "githubPullRequests.pullRequestDescription": "commit",
+    "githubPullRequests.quickDiff": true,
+    "githubPullRequests.showPullRequestNumberInTree": true,
     "go.lintOnSave": "workspace",
     "go.testExplorer.showDynamicSubtestsInEditor": true,
     "go.toolsManagement.autoUpdate": true,
@@ -106,7 +95,8 @@
         "_build",
         "**/node_modules",
         "**/__pycache__",
-        "**/.*"
+        "**/.*",
+        ".venv"
     ],
     "python.analysis.typeCheckingMode": "standard",
     "scm.diffDecorationsGutterPattern": {
@@ -125,7 +115,7 @@
     "window.autoDetectColorScheme": true,
     "window.commandCenter": true,
     "window.restoreWindows": "none",
-    "workbench.preferredDarkColorTheme": "Default Dark Modern",
-    "workbench.preferredLightColorTheme": "Default Light Modern",
+    "workbench.preferredDarkColorTheme": "Dark Modern",
+    "workbench.preferredLightColorTheme": "Light Modern",
     "workbench.startupEditor": "none"
 }
