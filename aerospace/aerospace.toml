@@ -57,8 +57,6 @@ persistent-workspaces = [
     "S",
 ] # List of workspaces that should stay alive even when they contain no windows,
 # even when they are invisible.
-# This config version is only available since 'config-version = 2'
-# Fallback value (if you omit the key): persistent-workspaces = []
 
 # A callback that runs every time binding mode changes
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -170,11 +168,6 @@ alt-shift-e = 'move-node-to-workspace E'
 alt-shift-m = 'move-node-to-workspace M'
 alt-shift-s = 'move-node-to-workspace S'
 
-# See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
-alt-tab = 'workspace-back-and-forth'
-# See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
-alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
-
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
 alt-shift-semicolon = 'mode service'
 
@@ -188,9 +181,6 @@ f = [
     'mode main',
 ] # Toggle between floating and tiling layout
 backspace = ['close-all-windows-but-current', 'mode main']
-
-# sticky is not yet supported https://github.com/nikitabobko/AeroSpace/issues/2
-#s = ['layout sticky tiling', 'mode main']
 
 alt-shift-h = ['join-with left', 'mode main']
 alt-shift-j = ['join-with down', 'mode main']
@@ -232,17 +222,26 @@ run = 'layout floating'
 if.app-id = 'com.apple.mail'
 run = 'move-node-to-workspace E'
 
-# VoiceInk
+# Claude
 [[on-window-detected]]
-if.app-id = 'com.prakashjoshipax.VoiceInk'
+if.app-id = 'com.anthropic.claudefordesktop'
 run = 'layout floating'
-
-# Spotify
-[[on-window-detected]]
-if.app-id = 'com.spotify.Client'
-run = 'move-node-to-workspace M'
 
 # Slack
 [[on-window-detected]]
 if.app-id = 'com.tinyspeck.slackmacgap'
 run = 'move-node-to-workspace S'
+
+# DevRev Computer
+[[on-window-detected]]
+if.app-id = 'ai.devrev.desktop'
+run = 'layout floating'
+
+#
+# Other actions
+#
+
+# Ghostty (resize)
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+run = 'resize smart -200'
