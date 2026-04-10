@@ -31,25 +31,7 @@ if status is-interactive
                 brew update && brew upgrade && brew autoremove && brew cleanup
         end
 
-        npm i -g @openai/codex@latest
         npm i -g @mariozechner/pi-coding-agent
-    end
-
-    function howto --description "CLI AI-assisted cheat sheet"
-        if not set -q HOWTO_AI_TOKEN
-            set -gx HOWTO_AI_TOKEN (security find-generic-password -w -s nalgeon/howto -a nalgeon/howto)
-        end
-
-        command howto $argv
-    end
-
-    function codex --description "Codex CLI"
-        if set -q argv[1]; and test "$argv[1]" = update
-            npm i -g @openai/codex@latest
-            return $status
-        end
-
-        command codex --full-auto --search --add-dir ~/DevRev $argv
     end
 
     abbr upi 'npm i -g @mariozechner/pi-coding-agent'
