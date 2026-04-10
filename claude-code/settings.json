@@ -1,30 +1,36 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "alwaysThinkingEnabled": true,
   "attribution": {
     "commit": "",
     "pr": ""
   },
   "effortLevel": "high",
   "env": {
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "eu.anthropic.claude-opus-4-6-v1[1m]",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "eu.anthropic.claude-sonnet-4-6[1m]",
     "AWS_REGION": "eu-central-1",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_NEW_INIT": "1",
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "CLAUDE_CODE_SHELL": "fish",
     "CLAUDE_CODE_USE_BEDROCK": "1",
-    "DISABLE_TELEMETRY": "1"
+    "DISABLE_ERROR_REPORTING": "1",
+    "DISABLE_EXTRA_USAGE_COMMAND": "1",
+    "DISABLE_FEEDBACK_COMMAND": "1",
+    "DISABLE_TELEMETRY": "1",
+    "ENABLE_TOOL_SEARCH": "false"
   },
   "model": "opusplan",
   "permissions": {
-    "allow": [
-      "Bash(cat *)",
-      "Bash(curl *)",
-      "Bash(find *)",
-      "Bash(go *)",
-      "Bash(grep *)",
-      "Bash(ls *)",
-      "Bash(make *)",
-      "WebFetch",
-      "WebSearch"
+    "additionalDirectories": [
+      "~/DevRev",
+      "~/Personal"
     ],
-    "defaultMode": "acceptEdits",
-    "deny": [
-      "Bash(rm *)"
-    ]
-  }
+    "defaultMode": "bypassPermissions"
+  },
+  "prefersReducedMotion": true,
+  "skipDangerousModePermissionPrompt": true,
+  "spinnerTipsEnabled": false
 }
