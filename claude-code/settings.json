@@ -1,17 +1,15 @@
 {
-  "awsAuthRefresh": "aws sso login --profile claude",
-  "env": {
-    "DISABLE_TELEMETRY": "1",
-    "AWS_REGION": "eu-central-1",
-    "CLAUDE_CODE_USE_BEDROCK": "1",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "eu.anthropic.claude-opus-4-6-v1",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "eu.anthropic.claude-sonnet-4-6",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "eu.anthropic.claude-haiku-4-5-20251001-v1:0"
-  },
   "attribution": {
     "commit": "",
     "pr": ""
   },
+  "effortLevel": "high",
+  "env": {
+    "AWS_REGION": "eu-central-1",
+    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "DISABLE_TELEMETRY": "1"
+  },
+  "model": "opusplan",
   "permissions": {
     "allow": [
       "Bash(cat *)",
@@ -24,18 +22,9 @@
       "WebFetch",
       "WebSearch"
     ],
+    "defaultMode": "acceptEdits",
     "deny": [
       "Bash(rm *)"
-    ],
-    "defaultMode": "acceptEdits"
-  },
-  "model": "opusplan",
-  "spinnerVerbs": {
-    "mode": "replace",
-    "verbs": [
-      "Working"
     ]
-  },
-  "alwaysThinkingEnabled": true,
-  "effortLevel": "high"
+  }
 }
