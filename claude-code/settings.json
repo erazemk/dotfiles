@@ -22,15 +22,72 @@
     "DISABLE_TELEMETRY": "1",
     "ENABLE_TOOL_SEARCH": "false"
   },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "code-review-graph update --skip-flows",
+            "timeout": 5000,
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write|Bash"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "code-review-graph status",
+            "timeout": 3000,
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  },
   "model": "opusplan",
   "permissions": {
     "additionalDirectories": [
       "~/DevRev",
       "~/Personal"
     ],
-    "defaultMode": "bypassPermissions"
+    "defaultMode": "bypassPermissions",
+    "deny": [
+      "mcp__datadog__aggregate_events",
+      "mcp__datadog__aggregate_rum_events",
+      "mcp__datadog__aggregate_spans",
+      "mcp__datadog__check_datadog_mcp_setup",
+      "mcp__datadog__get_datadog_incident",
+      "mcp__datadog__get_datadog_metric",
+      "mcp__datadog__get_datadog_metric_context",
+      "mcp__datadog__get_datadog_notebook",
+      "mcp__datadog__search_datadog_dashboards",
+      "mcp__datadog__search_datadog_events",
+      "mcp__datadog__search_datadog_hosts",
+      "mcp__datadog__search_datadog_incidents",
+      "mcp__datadog__search_datadog_metrics",
+      "mcp__datadog__search_datadog_monitors",
+      "mcp__datadog__search_datadog_notebooks",
+      "mcp__datadog__search_datadog_rum_events",
+      "mcp__datadog__search_datadog_service_dependencies",
+      "mcp__notion__notion-create-comment",
+      "mcp__notion__notion-create-database",
+      "mcp__notion__notion-create-pages",
+      "mcp__notion__notion-create-view",
+      "mcp__notion__notion-duplicate-page",
+      "mcp__notion__notion-get-teams",
+      "mcp__notion__notion-get-users",
+      "mcp__notion__notion-update-data-source",
+      "mcp__notion__notion-update-view",
+      "mcp__notion__notion-move-pages"
+    ]
   },
-  "prefersReducedMotion": true,
   "skipDangerousModePermissionPrompt": true,
-  "spinnerTipsEnabled": false
+  "spinnerTipsEnabled": false,
+  "statusLine": {
+    "command": "bash ~/.claude/statusline.sh",
+    "type": "command"
+  }
 }
