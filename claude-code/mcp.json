@@ -1,0 +1,27 @@
+{
+    "mcpServers": {
+        "datadog": {
+            "type": "http",
+            "url": "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp"
+        },
+        "notion": {
+            "type": "http",
+            "url": "https://mcp.notion.com/mcp"
+        },
+        "auggie": {
+            "type": "stdio",
+            "command": "auggie",
+            "args": [
+                "--mcp",
+                "--mcp-auto-workspace"
+            ]
+        },
+        "devrev": {
+            "type": "http",
+            "url": "https://api.devrev.ai/mcp/v1",
+            "headers": {
+                "Authorization": "Bearer ${DEVREV_API_KEY}"
+            }
+        }
+    }
+}

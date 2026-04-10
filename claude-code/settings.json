@@ -60,8 +60,8 @@
       "mcp__datadog__aggregate_spans",
       "mcp__datadog__check_datadog_mcp_setup",
       "mcp__datadog__get_datadog_incident",
-      "mcp__datadog__get_datadog_metric",
       "mcp__datadog__get_datadog_metric_context",
+      "mcp__datadog__get_datadog_metric",
       "mcp__datadog__get_datadog_notebook",
       "mcp__datadog__search_datadog_dashboards",
       "mcp__datadog__search_datadog_events",
@@ -72,6 +72,21 @@
       "mcp__datadog__search_datadog_notebooks",
       "mcp__datadog__search_datadog_rum_events",
       "mcp__datadog__search_datadog_service_dependencies",
+      "mcp__devrev__get_enhancement",
+      "mcp__devrev__get_incident",
+      "mcp__devrev__get_mobile_session_data",
+      "mcp__devrev__get_org_user",
+      "mcp__devrev__get_part",
+      "mcp__devrev__get_session_details",
+      "mcp__devrev__get_sprint_board",
+      "mcp__devrev__get_valid_stage_transitions",
+      "mcp__devrev__link_conversation_with_ticket",
+      "mcp__devrev__link_incident_with_issue",
+      "mcp__devrev__link_incident_with_ticket",
+      "mcp__devrev__link_issue_with_issue",
+      "mcp__devrev__link_meeting_with_ticket",
+      "mcp__devrev__link_ticket_with_issue",
+      "mcp__devrev__recall_chats",
       "mcp__notion__notion-create-comment",
       "mcp__notion__notion-create-database",
       "mcp__notion__notion-create-pages",
@@ -79,10 +94,18 @@
       "mcp__notion__notion-duplicate-page",
       "mcp__notion__notion-get-teams",
       "mcp__notion__notion-get-users",
+      "mcp__notion__notion-move-pages",
       "mcp__notion__notion-update-data-source",
-      "mcp__notion__notion-update-view",
-      "mcp__notion__notion-move-pages"
+      "mcp__notion__notion-update-view"
     ]
+  },
+  "sandbox": {
+    "enabled": false,
+    "filesystem": {
+      "allowWrite": [
+        "~/DevRev"
+      ]
+    }
   },
   "skipDangerousModePermissionPrompt": true,
   "spinnerTipsEnabled": false,
