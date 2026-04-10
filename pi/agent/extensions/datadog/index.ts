@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -7,6 +8,7 @@ import { StringEnum } from "@mariozechner/pi-ai";
 import {
 	DEFAULT_MAX_BYTES,
 	DEFAULT_MAX_LINES,
+	defineTool,
 	formatSize,
 	truncateHead,
 	type ExtensionAPI,
@@ -17,6 +19,7 @@ import { Type } from "@sinclair/typebox";
 const GENERATED_CLI_PATH = fileURLToPath(new URL("./datadog.cjs", import.meta.url));
 const NODE_PATH = process.execPath;
 const CLI_TIMEOUT_MS = 120_000;
+const DATADOG_CONFIG_PATH = path.join(os.homedir(), "Library", "Application Support", "Datadog", "datadog_mcp_cli.json");
 
 const ExtraColumnSchema = Type.Object({
 	name: Type.String({ description: "Column name as it should appear in the SQL virtual table." }),
@@ -146,6 +149,48 @@ type ToolOutput = {
 	fullOutputPath?: string;
 };
 
+function hasExecutableOnPath(command: string): boolean {
+	const pathValue = process.env.PATH;
+	if (!pathValue) return false;
+
+	for (const dir of pathValue.split(path.delimiter)) {
+		if (!dir) continue;
+		const candidate = path.join(dir, command);
+		if (existsSync(candidate)) return true;
+	}
+
+	return false;
+}
+
+function hasDatadogCapability(): boolean {
+	const hasBinary = hasExecutableOnPath("datadog") || existsSync(path.join(os.homedir(), ".local", "bin", "datadog"));
+	const hasAuth =
+		(Boolean(process.env.DD_API_KEY?.trim()) && Boolean(process.env.DD_APP_KEY?.trim())) || existsSync(DATADOG_CONFIG_PATH);
+	return hasBinary && hasAuth;
+}
+
+function prepareAliasedArguments<T extends Record<string, unknown>>(
+	args: unknown,
+	aliases: Record<string, keyof T & string>,
+): T {
+	if (!args || typeof args !== "object" || Array.isArray(args)) {
+		return args as T;
+	}
+
+	const input = args as Record<string, unknown>;
+	const next: Record<string, unknown> = { ...input };
+	let changed = false;
+
+	for (const [from, to] of Object.entries(aliases)) {
+		if (next[to] === undefined && input[from] !== undefined) {
+			next[to] = input[from];
+			changed = true;
+		}
+	}
+
+	return (changed ? next : args) as T;
+}
+
 async function truncateOutput(label: string, output: string): Promise<ToolOutput> {
 	const truncation = truncateHead(output, {
 		maxLines: DEFAULT_MAX_LINES,
@@ -259,7 +304,14 @@ async function runDatadogTool(pi: ExtensionAPI, toolName: string, params: Record
 }
 
 export default function datadogExtension(pi: ExtensionAPI) {
-	pi.registerTool({
+	if (!hasDatadogCapability()) {
+		console.warn(
+			"datadog extension: skipping Datadog tool registration because the CLI or Datadog auth is unavailable",
+		);
+		return;
+	}
+
+	const analyzeDatadogLogsTool = defineTool({
 		name: "analyze_datadog_logs",
 		label: "Analyze Datadog Logs",
 		description:
@@ -270,6 +322,15 @@ export default function datadogExtension(pi: ExtensionAPI) {
 			"Use search_datadog_logs first if you need to discover custom log attributes before declaring extra_columns.",
 		],
 		parameters: AnalyzeDatadogLogsParams,
+		prepareArguments(args) {
+			return prepareAliasedArguments(args, {
+				sqlQuery: "sql_query",
+				extraColumns: "extra_columns",
+				maxTokens: "max_tokens",
+				startAt: "start_at",
+				storageTier: "storage_tier",
+			});
+		},
 		async execute(_toolCallId, params, signal, onUpdate) {
 			onUpdate?.({
 				content: [{ type: "text", text: "Running Datadog log analysis query" }],
@@ -287,7 +348,7 @@ export default function datadogExtension(pi: ExtensionAPI) {
 		},
 	});
 
-	pi.registerTool({
+	const getDatadogTraceTool = defineTool({
 		name: "get_datadog_trace",
 		label: "Get Datadog Trace",
 		description:
@@ -295,6 +356,16 @@ export default function datadogExtension(pi: ExtensionAPI) {
 		promptSnippet: "Fetch a Datadog trace by trace ID to inspect request flow, spans, and service interactions.",
 		promptGuidelines: ["Use this tool when you already have a trace ID and need the full or summarized trace details."],
 		parameters: GetDatadogTraceParams,
+		prepareArguments(args) {
+			return prepareAliasedArguments(args, {
+				traceId: "trace_id",
+				onlyServiceEntrySpans: "only_service_entry_spans",
+				expandSpanId: "expand_span_id",
+				extraFields: "extra_fields",
+				includePath: "include_path",
+				maxTokens: "max_tokens",
+			});
+		},
 		async execute(_toolCallId, params, signal, onUpdate) {
 			onUpdate?.({
 				content: [{ type: "text", text: `Fetching Datadog trace ${params.trace_id}` }],
@@ -312,7 +383,7 @@ export default function datadogExtension(pi: ExtensionAPI) {
 		},
 	});
 
-	pi.registerTool({
+	const searchDatadogLogsTool = defineTool({
 		name: "search_datadog_logs",
 		label: "Search Datadog Logs",
 		description:
@@ -323,6 +394,15 @@ export default function datadogExtension(pi: ExtensionAPI) {
 			"Use this tool for raw log inspection, pattern discovery, and discovering custom attributes via extra_fields.",
 		],
 		parameters: SearchDatadogLogsParams,
+		prepareArguments(args) {
+			return prepareAliasedArguments(args, {
+				extraFields: "extra_fields",
+				maxTokens: "max_tokens",
+				startAt: "start_at",
+				storageTier: "storage_tier",
+				useLogPatterns: "use_log_patterns",
+			});
+		},
 		async execute(_toolCallId, params, signal, onUpdate) {
 			onUpdate?.({
 				content: [{ type: "text", text: `Searching Datadog logs for query: ${params.query}` }],
@@ -340,7 +420,7 @@ export default function datadogExtension(pi: ExtensionAPI) {
 		},
 	});
 
-	pi.registerTool({
+	const searchDatadogSpansTool = defineTool({
 		name: "search_datadog_spans",
 		label: "Search Datadog Spans",
 		description:
@@ -348,6 +428,13 @@ export default function datadogExtension(pi: ExtensionAPI) {
 		promptSnippet: "Search Datadog spans to investigate traces, latency, errors, and service interactions.",
 		promptGuidelines: ["Use this tool when you need to inspect APM spans, trace metadata, or service interactions without a specific trace ID."],
 		parameters: SearchDatadogSpansParams,
+		prepareArguments(args) {
+			return prepareAliasedArguments(args, {
+				customAttributes: "custom_attributes",
+				maxTokens: "max_tokens",
+				startAt: "start_at",
+			});
+		},
 		async execute(_toolCallId, params, signal, onUpdate) {
 			onUpdate?.({
 				content: [{ type: "text", text: `Searching Datadog spans for query: ${params.query}` }],
@@ -364,4 +451,9 @@ export default function datadogExtension(pi: ExtensionAPI) {
 			};
 		},
 	});
+
+	pi.registerTool(analyzeDatadogLogsTool);
+	pi.registerTool(getDatadogTraceTool);
+	pi.registerTool(searchDatadogLogsTool);
+	pi.registerTool(searchDatadogSpansTool);
 }

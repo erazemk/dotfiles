@@ -11,7 +11,7 @@
  */
 
 import { complete, type Message } from "@mariozechner/pi-ai";
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { defineTool, type ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import {
     SessionManager,
     convertToLlm,
@@ -31,8 +31,29 @@ Focus on:
 
 Answer only the question asked. If the information is not in the session, say so.`;
 
-export default function (pi: ExtensionAPI) {
-    pi.registerTool({
+function prepareAliasedArguments<T extends Record<string, unknown>>(
+    args: unknown,
+    aliases: Record<string, keyof T & string>,
+): T {
+    if (!args || typeof args !== "object" || Array.isArray(args)) {
+        return args as T;
+    }
+
+    const input = args as Record<string, unknown>;
+    const next: Record<string, unknown> = { ...input };
+    let changed = false;
+
+    for (const [from, to] of Object.entries(aliases)) {
+        if (next[to] === undefined && input[from] !== undefined) {
+            next[to] = input[from];
+            changed = true;
+        }
+    }
+
+    return (changed ? next : args) as T;
+}
+
+const sessionQueryTool = defineTool({
         name: "session_query",
         label: "Session Query",
         description:
@@ -82,6 +103,12 @@ export default function (pi: ExtensionAPI) {
                 description: "What you want to know about that session (e.g., 'What files were modified?' or 'What approach was chosen?')",
             }),
         }),
+
+        prepareArguments(args) {
+            return prepareAliasedArguments(args, {
+                session_path: "sessionPath",
+            });
+        },
 
         async execute(_toolCallId, params, signal, onUpdate, ctx) {
             const { sessionPath, question } = params;
@@ -161,7 +188,13 @@ export default function (pi: ExtensionAPI) {
             }
 
             try {
-                const apiKey = await ctx.modelRegistry.getApiKey(queryModel);
+                const auth = await ctx.modelRegistry.getApiKeyAndHeaders(queryModel);
+                if (!auth.ok) {
+                    return errorResult(`Error resolving auth for ${queryModel.provider}/${queryModel.id}: ${auth.error}`);
+                }
+                if (!auth.apiKey) {
+                    return errorResult(`Error: No API key available for ${queryModel.provider}/${queryModel.id}.`);
+                }
 
                 const userMessage: Message = {
                     role: "user",
@@ -177,7 +210,7 @@ export default function (pi: ExtensionAPI) {
                 const response = await complete(
                     queryModel,
                     { systemPrompt: QUERY_SYSTEM_PROMPT, messages: [userMessage] },
-                    { apiKey, signal },
+                    { apiKey: auth.apiKey, headers: auth.headers, signal },
                 );
 
                 if (response.stopReason === "aborted") {
@@ -204,5 +237,8 @@ export default function (pi: ExtensionAPI) {
                 return errorResult(`Error querying session: ${err}`);
             }
         },
-    });
+});
+
+export default function (pi: ExtensionAPI) {
+    pi.registerTool(sessionQueryTool);
 }

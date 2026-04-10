@@ -5,12 +5,13 @@
  * Requires OLLAMA_API_KEY to be set in the environment.
  */
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import {
 	DEFAULT_MAX_BYTES,
 	DEFAULT_MAX_LINES,
+	defineTool,
 	formatSize,
 	truncateHead,
+	type ExtensionAPI,
 	type TruncationResult,
 } from "@mariozechner/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
@@ -24,6 +25,10 @@ const MAX_RESULTS = 10;
 const MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 500;
 const MAX_FETCH_LINKS = 10;
+
+function hasOllamaCapability(): boolean {
+	return Boolean(process.env.OLLAMA_API_KEY?.trim());
+}
 
 const WebSearchParams = Type.Object({
 	query: Type.String({ description: "Search query" }),
@@ -239,6 +244,28 @@ function formatFetchResult(url: string, result: WebFetchResponse): string {
 	return lines.join("\n");
 }
 
+function prepareAliasedArguments<T extends Record<string, unknown>>(
+	args: unknown,
+	aliases: Record<string, keyof T & string>,
+): T {
+	if (!args || typeof args !== "object" || Array.isArray(args)) {
+		return args as T;
+	}
+
+	const input = args as Record<string, unknown>;
+	const next: Record<string, unknown> = { ...input };
+	let changed = false;
+
+	for (const [from, to] of Object.entries(aliases)) {
+		if (next[to] === undefined && input[from] !== undefined) {
+			next[to] = input[from];
+			changed = true;
+		}
+	}
+
+	return (changed ? next : args) as T;
+}
+
 async function truncateOutput(label: string, output: string): Promise<ToolOutput> {
 	const truncation = truncateHead(output, {
 		maxLines: DEFAULT_MAX_LINES,
@@ -269,101 +296,114 @@ async function truncateOutput(label: string, output: string): Promise<ToolOutput
 	};
 }
 
+const webSearchTool = defineTool({
+	name: "web_search",
+	label: "Ollama Web Search",
+	description: `Search the web via Ollama's web search API. Output is truncated to ${DEFAULT_MAX_LINES} lines or ${formatSize(
+		DEFAULT_MAX_BYTES,
+	)}.`,
+	promptSnippet: "Search the web via Ollama's web search API.",
+	promptGuidelines: [
+		"Use web_search when researching general topics or when you need to discover relevant sources on the web.",
+		"Use web_fetch after web_search when you want the full content of a specific result.",
+	],
+	parameters: WebSearchParams,
+	prepareArguments(args) {
+		return prepareAliasedArguments(args, {
+			maxResults: "max_results",
+		});
+	},
+	async execute(_toolCallId, params, signal, onUpdate) {
+		const { query, max_results } = params as WebSearchParamsType;
+		const maxResults = clamp(max_results ?? DEFAULT_MAX_RESULTS, 1, MAX_RESULTS);
+
+		onUpdate?.({
+			content: [{ type: "text", text: `Searching the web for: ${query}` }],
+			details: { phase: "start", query, maxResults },
+		});
+
+		const response = await postJson<WebSearchResponse>(
+			"/web_search",
+			{ query, max_results: maxResults },
+			signal,
+			(message, details) => {
+				onUpdate?.({
+					content: [{ type: "text", text: message }],
+					details: { query, maxResults, ...details },
+				});
+			},
+		);
+		const results = Array.isArray(response.results) ? response.results : [];
+		const output = formatSearchResults(query, results);
+		const truncated = await truncateOutput("web-search", output);
+
+		return {
+			content: [{ type: "text", text: truncated.text }],
+			details: {
+				query,
+				maxResults,
+				resultCount: results.length,
+				truncation: truncated.truncation,
+				fullOutputPath: truncated.fullOutputPath,
+			},
+		};
+	},
+});
+
+const webFetchTool = defineTool({
+	name: "web_fetch",
+	label: "Ollama Web Fetch",
+	description: `Fetch a single web page via Ollama's web fetch API. Output is truncated to ${DEFAULT_MAX_LINES} lines or ${formatSize(
+		DEFAULT_MAX_BYTES,
+	)}. If the URL has no scheme, https:// is assumed.`,
+	promptSnippet: "Fetch the full content of a specific web page via Ollama.",
+	promptGuidelines: [
+		"Use web_fetch when the user provides a URL or when you need the full content of a specific page.",
+		"Prefer web_search first when you need to discover which page to fetch.",
+	],
+	parameters: WebFetchParams,
+	async execute(_toolCallId, params, signal, onUpdate) {
+		const { url } = params as WebFetchParamsType;
+		const normalizedUrl = normalizeUrl(url);
+
+		onUpdate?.({
+			content: [{ type: "text", text: `Fetching: ${normalizedUrl}` }],
+			details: { phase: "start", url: normalizedUrl },
+		});
+
+		const response = await postJson<WebFetchResponse>(
+			"/web_fetch",
+			{ url: normalizedUrl },
+			signal,
+			(message, details) => {
+				onUpdate?.({
+					content: [{ type: "text", text: message }],
+					details: { url: normalizedUrl, ...details },
+				});
+			},
+		);
+		const output = formatFetchResult(normalizedUrl, response);
+		const truncated = await truncateOutput("web-fetch", output);
+
+		return {
+			content: [{ type: "text", text: truncated.text }],
+			details: {
+				url: normalizedUrl,
+				title: response.title ?? null,
+				linkCount: Array.isArray(response.links) ? response.links.length : 0,
+				truncation: truncated.truncation,
+				fullOutputPath: truncated.fullOutputPath,
+			},
+		};
+	},
+});
+
 export default function ollamaWebExtension(pi: ExtensionAPI) {
-	pi.registerTool({
-		name: "web_search",
-		label: "Ollama Web Search",
-		description: `Search the web via Ollama's web search API. Output is truncated to ${DEFAULT_MAX_LINES} lines or ${formatSize(
-			DEFAULT_MAX_BYTES,
-		)}.`,
-		promptSnippet: "Search the web via Ollama's web search API.",
-		promptGuidelines: [
-			"Use web_search when researching general topics or when you need to discover relevant sources on the web.",
-			"Use web_fetch after web_search when you want the full content of a specific result.",
-		],
-		parameters: WebSearchParams,
-		async execute(_toolCallId, params, signal, onUpdate) {
-			const { query, max_results } = params as WebSearchParamsType;
-			const maxResults = clamp(max_results ?? DEFAULT_MAX_RESULTS, 1, MAX_RESULTS);
+	if (!hasOllamaCapability()) {
+		console.warn("web-search extension: skipping web_search/web_fetch registration because OLLAMA_API_KEY is not set");
+		return;
+	}
 
-			onUpdate?.({
-				content: [{ type: "text", text: `Searching the web for: ${query}` }],
-				details: { phase: "start", query, maxResults },
-			});
-
-			const response = await postJson<WebSearchResponse>(
-				"/web_search",
-				{ query, max_results: maxResults },
-				signal,
-				(message, details) => {
-					onUpdate?.({
-						content: [{ type: "text", text: message }],
-						details: { query, maxResults, ...details },
-					});
-				},
-			);
-			const results = Array.isArray(response.results) ? response.results : [];
-			const output = formatSearchResults(query, results);
-			const truncated = await truncateOutput("web-search", output);
-
-			return {
-				content: [{ type: "text", text: truncated.text }],
-				details: {
-					query,
-					maxResults,
-					resultCount: results.length,
-					truncation: truncated.truncation,
-					fullOutputPath: truncated.fullOutputPath,
-				},
-			};
-		},
-	});
-
-	pi.registerTool({
-		name: "web_fetch",
-		label: "Ollama Web Fetch",
-		description: `Fetch a single web page via Ollama's web fetch API. Output is truncated to ${DEFAULT_MAX_LINES} lines or ${formatSize(
-			DEFAULT_MAX_BYTES,
-		)}. If the URL has no scheme, https:// is assumed.`,
-		promptSnippet: "Fetch the full content of a specific web page via Ollama.",
-		promptGuidelines: [
-			"Use web_fetch when the user provides a URL or when you need the full content of a specific page.",
-			"Prefer web_search first when you need to discover which page to fetch.",
-		],
-		parameters: WebFetchParams,
-		async execute(_toolCallId, params, signal, onUpdate) {
-			const { url } = params as WebFetchParamsType;
-			const normalizedUrl = normalizeUrl(url);
-
-			onUpdate?.({
-				content: [{ type: "text", text: `Fetching: ${normalizedUrl}` }],
-				details: { phase: "start", url: normalizedUrl },
-			});
-
-			const response = await postJson<WebFetchResponse>(
-				"/web_fetch",
-				{ url: normalizedUrl },
-				signal,
-				(message, details) => {
-					onUpdate?.({
-						content: [{ type: "text", text: message }],
-						details: { url: normalizedUrl, ...details },
-					});
-				},
-			);
-			const output = formatFetchResult(normalizedUrl, response);
-			const truncated = await truncateOutput("web-fetch", output);
-
-			return {
-				content: [{ type: "text", text: truncated.text }],
-				details: {
-					url: normalizedUrl,
-					title: response.title ?? null,
-					linkCount: Array.isArray(response.links) ? response.links.length : 0,
-					truncation: truncated.truncation,
-					fullOutputPath: truncated.fullOutputPath,
-				},
-			};
-		},
-	});
+	pi.registerTool(webSearchTool);
+	pi.registerTool(webFetchTool);
 }

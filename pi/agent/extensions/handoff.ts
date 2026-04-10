@@ -140,7 +140,7 @@ function buildFinalPrompt(goal: string, context: HandoffContext, parentSession: 
 
 async function generateHandoffContext(
 	model: NonNullable<ExtensionCommandContext["model"]>,
-	apiKey: string | undefined,
+	auth: { apiKey?: string; headers?: Record<string, string> },
 	messages: ConversationMessage[],
 	goal: string,
 	signal?: AbortSignal,
@@ -161,7 +161,7 @@ async function generateHandoffContext(
 	const response = await complete(
 		model,
 		{ systemPrompt: HANDOFF_EXTRACTION_SYSTEM_PROMPT, messages: [userMessage] },
-		{ apiKey, signal },
+		{ apiKey: auth.apiKey, headers: auth.headers, signal },
 	);
 
 	if (response.stopReason === "aborted") {
@@ -197,8 +197,14 @@ async function runHandoffCommand(ctx: ExtensionCommandContext, goal: string): Pr
 		loader.onAbort = () => done(null);
 
 		const generate = async () => {
-			const apiKey = await ctx.modelRegistry.getApiKey(ctx.model!);
-			return generateHandoffContext(ctx.model!, apiKey, messages, goal, loader.signal);
+			const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model!);
+			if (!auth.ok) {
+				throw new Error(auth.error);
+			}
+			if (!auth.apiKey) {
+				throw new Error(`No API key for ${ctx.model!.provider}`);
+			}
+			return generateHandoffContext(ctx.model!, auth, messages, goal, loader.signal);
 		};
 
 		generate()

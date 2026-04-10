@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -6,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import {
 	DEFAULT_MAX_BYTES,
 	DEFAULT_MAX_LINES,
+	defineTool,
 	formatSize,
 	truncateHead,
 	type ExtensionAPI,
@@ -16,6 +18,7 @@ import { Type } from "@sinclair/typebox";
 const GENERATED_CLI_PATH = fileURLToPath(new URL("./augment.cjs", import.meta.url));
 const NODE_PATH = process.execPath;
 const CLI_TIMEOUT_MS = 120_000;
+const AUGMENT_SESSION_PATH = path.join(os.homedir(), ".augment", "session.json");
 
 const toolParameters = Type.Object({
 	information_request: Type.String({
@@ -33,6 +36,24 @@ function normalizePathInput(input: string): string {
 	return input.startsWith("@") ? input.slice(1) : input;
 }
 
+function hasExecutableOnPath(command: string): boolean {
+	const pathValue = process.env.PATH;
+	if (!pathValue) return false;
+
+	for (const dir of pathValue.split(path.delimiter)) {
+		if (!dir) continue;
+		const candidate = path.join(dir, command);
+		if (existsSync(candidate)) return true;
+	}
+
+	return false;
+}
+
+function hasAugmentCapability(): boolean {
+	const hasAuth = Boolean(process.env.AUGMENT_SESSION_AUTH?.trim()) || existsSync(AUGMENT_SESSION_PATH);
+	return hasExecutableOnPath("auggie") && hasAuth;
+}
+
 function resolveDirectoryPath(input: string | undefined, cwd: string): string {
 	const candidate = normalizePathInput(input?.trim() || cwd);
 	return path.isAbsolute(candidate) ? path.resolve(candidate) : path.resolve(cwd, candidate);
@@ -43,6 +64,28 @@ type ToolOutput = {
 	truncation?: TruncationResult;
 	fullOutputPath?: string;
 };
+
+function prepareAliasedArguments<T extends Record<string, unknown>>(
+	args: unknown,
+	aliases: Record<string, keyof T & string>,
+): T {
+	if (!args || typeof args !== "object" || Array.isArray(args)) {
+		return args as T;
+	}
+
+	const input = args as Record<string, unknown>;
+	const next: Record<string, unknown> = { ...input };
+	let changed = false;
+
+	for (const [from, to] of Object.entries(aliases)) {
+		if (next[to] === undefined && input[from] !== undefined) {
+			next[to] = input[from];
+			changed = true;
+		}
+	}
+
+	return (changed ? next : args) as T;
+}
 
 async function truncateOutput(label: string, output: string): Promise<ToolOutput> {
 	const truncation = truncateHead(output, {
@@ -92,7 +135,14 @@ function formatExecError(stdout: string, stderr: string, exitCode: number | null
 }
 
 export default function augmentExtension(pi: ExtensionAPI) {
-	pi.registerTool({
+	if (!hasAugmentCapability()) {
+		console.warn(
+			"augment extension: skipping search_codebase registration because auggie or Augment auth is unavailable",
+		);
+		return;
+	}
+
+	const searchCodebaseTool = defineTool({
 		name: "search_codebase",
 		label: "Search Codebase",
 		description:
@@ -105,6 +155,11 @@ export default function augmentExtension(pi: ExtensionAPI) {
 			"Omit directory_path to search the current working directory.",
 		],
 		parameters: toolParameters,
+		prepareArguments(args) {
+			return prepareAliasedArguments(args, {
+				directoryPath: "directory_path",
+			});
+		},
 		async execute(_toolCallId, params, signal, onUpdate, ctx) {
 			const directoryPath = resolveDirectoryPath(params.directory_path, ctx.cwd);
 
@@ -148,4 +203,6 @@ export default function augmentExtension(pi: ExtensionAPI) {
 			};
 		},
 	});
+
+	pi.registerTool(searchCodebaseTool);
 }

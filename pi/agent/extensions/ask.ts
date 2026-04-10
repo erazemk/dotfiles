@@ -7,7 +7,7 @@
  * Adapted from pi's upstream example extension.
  */
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { defineTool, type ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import {
     Editor,
     type EditorTheme,
@@ -84,8 +84,7 @@ function errorResult(
     };
 }
 
-export default function ask(pi: ExtensionAPI) {
-    pi.registerTool({
+const askTool = defineTool({
         name: "ask",
         label: "Ask",
         description:
@@ -470,5 +469,8 @@ export default function ask(pi: ExtensionAPI) {
             });
             return new Text(lines.join("\n"), 0, 0);
         },
-    });
+});
+
+export default function ask(pi: ExtensionAPI) {
+    pi.registerTool(askTool);
 }
