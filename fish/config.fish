@@ -2,8 +2,9 @@
 # ~/.config/fish/config.fish
 #
 
-set -x EDITOR hx
-set -x GOKRAZY_PARENT_DIR ~/Personal
+set -gx EDITOR hx
+set -gx GOKRAZY_PARENT_DIR ~/Personal
+set -gx AWS_BEARER_TOKEN_BEDROCK (security find-generic-password -w -s aws-bedrock -a aws-bedrock)
 
 if test -d /opt/homebrew
     set --global --export HOMEBREW_PREFIX /opt/homebrew
@@ -36,9 +37,6 @@ if status is-interactive
 
     abbr upi 'npm i -g @mariozechner/pi-coding-agent'
     function pi --description "Pi coding agent"
-        if not set -q AWS_BEARER_TOKEN_BEDROCK
-            set -gx AWS_BEARER_TOKEN_BEDROCK (security find-generic-password -w -s aws-bedrock -a aws-bedrock)
-        end
         if not set -q OPENAI_API_KEY
             set -gx OPENAI_API_KEY (security find-generic-password -w -s openai -a openai)
         end
