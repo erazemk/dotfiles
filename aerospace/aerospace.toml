@@ -237,6 +237,10 @@ run = 'move-node-to-workspace S'
 if.app-id = 'ai.devrev.desktop'
 run = 'layout floating'
 
+[[on-window-detected]]
+if.app-id = 'com.granola.app'
+run = 'layout floating'
+
 #
 # Other actions
 #
