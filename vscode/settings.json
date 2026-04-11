@@ -116,6 +116,7 @@
     "search.showLineNumbers": true,
     "security.workspace.trust.enabled": false,
     "telemetry.telemetryLevel": "off",
+    "terminal.external.osxExec": "Ghostty.app",
     "terminal.integrated.fontSize": 14,
     "terminal.integrated.initialHint": false,
     "window.autoDetectColorScheme": true,
