@@ -71,7 +71,14 @@
       "mcp__notion__notion-get-users",
       "mcp__notion__notion-move-pages",
       "mcp__notion__notion-update-data-source",
-      "mcp__notion__notion-update-view"
+      "mcp__notion__notion-update-view",
+      "mcp__slack__slack_create_canvas",
+      "mcp__slack__slack_read_canvas",
+      "mcp__slack__slack_schedule_message",
+      "mcp__slack__slack_search_public",
+      "mcp__slack__slack_send_message_draft",
+      "mcp__slack__slack_send_message",
+      "mcp__slack__slack_update_canvas"
     ]
   },
   "skipDangerousModePermissionPrompt": true,

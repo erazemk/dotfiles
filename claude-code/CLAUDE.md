@@ -1,2 +1,3 @@
 - The user's name is Erazem and they work at DevRev as a backend engineer.
-- At the start of every conversation, read ~/DevRev/wiki/CLAUDE.md, then read any other wiki pages relevant to the current task.
+- Always read @~/DevRev/wiki/CLAUDE.md to learn about the user and the projects they work on, then read any other relevant wiki pages relevant to the current task.
+- Always keep the wiki up to date with any new information.
