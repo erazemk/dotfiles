@@ -9,6 +9,11 @@
         ]
     },
     "accessibility.underlineLinks": true,
+    "augment.disableFocusOnAugmentPanel": true,
+    "augment.enableEmptyFileHint": false,
+    "augment.experimental.terminal.vscodeTerminalStrategy": "VSCode",
+    "augment.nextEdit.enableGlobalBackgroundSuggestions": true,
+    "augment.nextEdit.highlightSuggestionsInTheEditor": true,
     "chat.disableAIFeatures": true,
     "claudeCode.allowDangerouslySkipPermissions": true,
     "claudeCode.disableLoginPrompt": true,
