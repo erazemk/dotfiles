@@ -41,6 +41,9 @@ if status is-interactive
         if not set -q DEVREV_API_KEY
             set -gx DEVREV_API_KEY (security find-generic-password -w -s devrev -a devrev)
         end
+        if not set -q CIRCLECI_TOKEN
+            set -gx CIRCLECI_TOKEN (security find-generic-password -w -s circleci -a circleci)
+        end
 
         command claude $argv
     end

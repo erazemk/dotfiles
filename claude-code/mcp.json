@@ -8,17 +8,13 @@
             "type": "http",
             "url": "https://mcp.notion.com/mcp"
         },
-        "search-current-codebase": {
+        "auggie": {
             "type": "stdio",
             "command": "auggie",
             "args": [
                 "--mcp",
                 "--mcp-auto-workspace"
             ]
-        },
-        "search-external-codebases": {
-            "type": "http",
-            "url": "https://api.augmentcode.com/mcp"
         },
         "devrev": {
             "type": "http",
@@ -37,6 +33,17 @@
             "oauth": {
                 "clientId": "1601185624273.8899143856786",
                 "callbackPort": 3118
+            }
+        },
+        "circleci": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "-y",
+                "@circleci/mcp-server-circleci@latest"
+            ],
+            "env": {
+                "CIRCLECI_TOKEN": "${CIRCLECI_TOKEN}"
             }
         }
     }

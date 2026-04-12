@@ -6,6 +6,12 @@
     "pr": ""
   },
   "effortLevel": "high",
+  "enabledPlugins": {
+    "code-review@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "swift-lsp@claude-plugins-official": true
+  },
   "env": {
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "eu.anthropic.claude-opus-4-6-v1[1m]",
@@ -22,7 +28,7 @@
     "DISABLE_TELEMETRY": "1",
     "ENABLE_TOOL_SEARCH": "false"
   },
-  "model": "opusplan",
+  "model": "opus[1m]",
   "permissions": {
     "additionalDirectories": [
       "~/DevRev",
@@ -30,6 +36,11 @@
     ],
     "defaultMode": "bypassPermissions",
     "deny": [
+      "EnterPlanMode",
+      "EnterWorktree",
+      "ExitWorktree",
+      "ExitPlanMode",
+      "NotebookEdit",
       "mcp__datadog__aggregate_events",
       "mcp__datadog__aggregate_rum_events",
       "mcp__datadog__aggregate_spans",
