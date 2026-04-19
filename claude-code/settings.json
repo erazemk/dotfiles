@@ -58,6 +58,7 @@
       "mcp__datadog__search_datadog_notebooks",
       "mcp__datadog__search_datadog_rum_events",
       "mcp__datadog__search_datadog_service_dependencies",
+      "mcp__devrev__fetch_object_context",
       "mcp__devrev__get_enhancement",
       "mcp__devrev__get_incident",
       "mcp__devrev__get_mobile_session_data",
@@ -87,8 +88,6 @@
       "mcp__slack__slack_read_canvas",
       "mcp__slack__slack_schedule_message",
       "mcp__slack__slack_search_public",
-      "mcp__slack__slack_send_message_draft",
-      "mcp__slack__slack_send_message",
       "mcp__slack__slack_update_canvas"
     ]
   },

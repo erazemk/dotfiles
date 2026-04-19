@@ -1,6 +1,6 @@
 # Source: https://alexwlchan.net/2023/fish-venv/
 
-set -g -x PIP_REQUIRE_VIRTUALENV true
+#set -g -x PIP_REQUIRE_VIRTUALENV true
 
 function venv --description "Create and activate a new virtual environment"
     python3 -m venv .venv --upgrade-deps
@@ -11,7 +11,7 @@ function venv --description "Create and activate a new virtual environment"
         set target_file ".git/info/exclude"
 
         if not grep --quiet --fixed-strings --line-regexp "$line_to_append" "$target_file" 2>/dev/null
-            echo "$line_to_append" >> "$target_file"
+            echo "$line_to_append" >>"$target_file"
         end
     end
 end

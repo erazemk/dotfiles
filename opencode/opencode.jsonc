@@ -1,0 +1,123 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "openai/gpt-5.4",
+  "permission": {
+    "external_directory": {
+      "~/DevRev/**": "allow",
+      "~/Personal/**": "allow"
+    }
+  },
+  "mcp": {
+    "datadog": {
+      "type": "remote",
+      "enabled": true,
+      "url": "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp"
+    },
+    "devrev": {
+      "type": "remote",
+      "enabled": true,
+      "url": "https://api.devrev.ai/mcp/v1",
+      "headers": {
+        "Authorization": "Bearer {env:DEVREV_API_KEY}"
+      }
+    },
+    "notion": {
+      "type": "remote",
+      "enabled": false,
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "auggie": {
+      "type": "remote",
+      "enabled": true,
+      "url": "https://api.augmentcode.com/mcp"
+    },
+    "granola": {
+      "type": "remote",
+      "enabled": false,
+      "url": "https://mcp.granola.ai/mcp",
+    },
+    "circleci": {
+      "type": "local",
+      "enabled": false,
+      "command": [
+        "npx",
+        "-y",
+        "@circleci/mcp-server-circleci@latest"
+      ],
+    },
+    "slack": {
+      "type": "remote",
+      "enabled": true,
+      "url": "https://mcp.slack.com/mcp",
+      "oauth": {
+        "clientId": "1601185624273.8899143856786",
+        "redirectUri": "http://localhost:3118/callback"
+      }
+    },
+  },
+  "tools": {
+    "circleci_find_flaky_tests": false,
+    "circleci_config_helper": false,
+    "circleci_create_prompt_template": false,
+    "circleci_recommend_prompt_template_tests": false,
+    "circleci_run_pipeline": false,
+    "circleci_list_followed_projects": false,
+    "circleci_run_evaluation_tests": false,
+    "circleci_rerun_workflow": false,
+    "circleci_download_usage_api_data": false,
+    "circleci_find_underused_resource_classes": false,
+    "circleci_analyze_diff": false,
+    "circleci_run_rollback_pipeline": false,
+    "circleci_list_component_versions": false,
+    "circleci_list_artifacts": false,
+    "datadog_aggregate_events": false,
+    "datadog_aggregate_rum_events": false,
+    "datadog_aggregate_spans": false,
+    "datadog_check_datadog_mcp_setup": false,
+    "datadog_get_datadog_incident": false,
+    "datadog_get_datadog_metric_context": false,
+    "datadog_get_datadog_metric": false,
+    "datadog_get_datadog_notebook": false,
+    "datadog_get_datadog_dashboard": false,
+    "datadog_search_datadog_dashboards": false,
+    "datadog_search_datadog_events": false,
+    "datadog_search_datadog_hosts": false,
+    "datadog_search_datadog_incidents": false,
+    "datadog_search_datadog_metrics": false,
+    "datadog_search_datadog_monitors": false,
+    "datadog_search_datadog_notebooks": false,
+    "datadog_search_datadog_rum_events": false,
+    "datadog_search_datadog_service_dependencies": false,
+    "devrev_fetch_object_context": false,
+    "devrev_get_enhancement": false,
+    "devrev_get_incident": false,
+    "devrev_get_mobile_session_data": false,
+    "devrev_get_org_user": false,
+    "devrev_get_part": false,
+    "devrev_get_session_details": false,
+    "devrev_get_sprint_board": false,
+    "devrev_get_valid_stage_transitions": false,
+    "devrev_link_conversation_with_ticket": false,
+    "devrev_link_incident_with_issue": false,
+    "devrev_link_incident_with_ticket": false,
+    "devrev_link_issue_with_issue": false,
+    "devrev_link_meeting_with_ticket": false,
+    "devrev_link_ticket_with_issue": false,
+    "devrev_recall_chats": false,
+    "notion_notion-create-comment": false,
+    "notion_notion-create-database": false,
+    "notion_notion-create-pages": false,
+    "notion_notion-create-view": false,
+    "notion_notion-duplicate-page": false,
+    "notion_notion-get-teams": false,
+    "notion_notion-get-users": false,
+    "notion_notion-move-pages": false,
+    "notion_notion-update-data-source": false,
+    "notion_notion-update-view": false,
+    "slack_slack_create_canvas": false,
+    "slack_slack_read_canvas": false,
+    "slack_slack_schedule_message": false,
+    "slack_slack_search_public": false,
+    "slack_slack_update_canvas": false
+  }
+}

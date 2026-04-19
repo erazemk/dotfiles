@@ -4,6 +4,9 @@
 
 set -gx EDITOR hx
 set -gx GOKRAZY_PARENT_DIR ~/Personal
+set -gx SSH_AUTH_SOCK ~/.bitwarden-ssh-agent.sock
+
+abbr getaws 'aws sso login && aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 173672169127.dkr.ecr.us-east-1.amazonaws.com'
 
 if test -d /opt/homebrew
     set --global --export HOMEBREW_PREFIX /opt/homebrew
@@ -33,6 +36,26 @@ if status is-interactive
 
         npm i -g @mariozechner/pi-coding-agent
     end
+
+    function opencode --description "OpenCode AI harness"
+        if not set -q OPENAI_API_KEY
+            set -gx OPENAI_API_KEY (security find-generic-password -w -s openai -a openai)
+        end
+        if not set -q AWS_BEARER_TOKEN_BEDROCK
+            set -gx AWS_BEARER_TOKEN_BEDROCK (security find-generic-password -w -s aws-bedrock -a aws-bedrock)
+        end
+        if not set -q DEVREV_API_KEY
+            set -gx DEVREV_API_KEY (security find-generic-password -w -s devrev -a devrev)
+        end
+        if not set -q CIRCLECI_TOKEN
+            set -gx CIRCLECI_TOKEN (security find-generic-password -w -s circleci -a circleci)
+        end
+
+        set -gx OPENCODE_ENABLE_EXA true
+
+        command opencode $argv
+    end
+    abbr oc opencode
 
     function claude --description "Claude Code"
         if not set -q AWS_BEARER_TOKEN_BEDROCK
