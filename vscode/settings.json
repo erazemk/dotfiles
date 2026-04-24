@@ -2,29 +2,8 @@
     "[markdown]": {
         "editor.wordWrap": "on"
     },
-    "[scminput]": {
-        "editor.rulers": [
-            50,
-            72
-        ]
-    },
     "accessibility.underlineLinks": true,
-    "augment.disableFocusOnAugmentPanel": true,
-    "augment.enableEmptyFileHint": false,
-    "augment.experimental.terminal.vscodeTerminalStrategy": "VSCode",
-    "augment.nextEdit.enableGlobalBackgroundSuggestions": true,
-    "augment.nextEdit.highlightSuggestionsInTheEditor": true,
     "chat.disableAIFeatures": true,
-    "claudeCode.allowDangerouslySkipPermissions": true,
-    "claudeCode.disableLoginPrompt": true,
-    "claudeCode.enableNewConversationShortcut": true,
-    "claudeCode.initialPermissionMode": "bypassPermissions",
-    "claudeCode.preferredLocation": "sidebar",
-    "claudeCode.useCtrlEnterToSend": true,
-    "codeium.enableConfig": {
-        "*": true,
-        "markdown": true
-    },
     "comments.openView": "never",
     "debug.console.fontSize": 14,
     "debug.onTaskErrors": "abort",
@@ -57,7 +36,8 @@
     "explorer.confirmDragAndDrop": false,
     "files.associations": {
         "*.jsonl": "json",
-        "Makefile.*": "makefile"
+        "Makefile.*": "makefile",
+        "*.plist": "xml"
     },
     "files.autoSave": "onFocusChange",
     "files.autoSaveWhenNoErrors": true,
