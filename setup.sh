@@ -27,6 +27,7 @@ launchctl load ~/Library/LaunchAgents/com.erazemk.colima.plist
 echo "Setting up Fish dotfiles"
 mkdir -p ~/.config/fish†
 ln -sf $DOTFILES/fish/* ~/.config/fish/
+echo "SETUVAR --export fish_greeting:\x1d" >> ~/.config/fish/fish_variables
 
 # Git
 echo "Setting up Git dotfiles"
