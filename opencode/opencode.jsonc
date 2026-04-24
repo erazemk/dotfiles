@@ -4,7 +4,29 @@
   "permission": {
     "external_directory": {
       "~/DevRev/**": "allow",
-      "~/Personal/**": "allow"
+      "~/Personal/**": "allow",
+      "~/.config/dotfiles/**": "allow",
+      "~/.config/opencode/**": "allow",
+      "~/.local/share/go/pkg/mod/**": "allow",
+      "~/.cache/sidekick/cache/go/**": "allow",
+      "~/Library/Mobile Documents/iCloud~md~obsidian/Documents/**": "allow"
+    }
+  },
+  "experimental": {
+    "disable_paste_summary": true,
+  },
+  "agent": {
+    "build": {
+      "model": "openai/gpt-5.4-mini",
+      "reasoningEffort": "high",
+    },
+    "plan": {
+      "model": "openai/gpt-5.4",
+      "reasoningEffort": "high",
+    },
+    "explore": {
+      "model": "openai/gpt-5.4-nano",
+      "reasoningEffort": "high"
     }
   },
   "mcp": {
@@ -43,7 +65,7 @@
         "npx",
         "-y",
         "@circleci/mcp-server-circleci@latest"
-      ],
+      ]
     },
     "slack": {
       "type": "remote",
