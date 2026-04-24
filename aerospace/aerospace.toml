@@ -241,6 +241,10 @@ run = 'layout floating'
 if.app-id = 'com.granola.app'
 run = 'layout floating'
 
+[[on-window-detected]]
+if.app-id = 'net.whatsapp.WhatsApp'
+run = 'layout floating'
+
 #
 # Other actions
 #
@@ -248,4 +252,4 @@ run = 'layout floating'
 # Ghostty (resize)
 [[on-window-detected]]
 if.app-id = 'com.mitchellh.ghostty'
-run = 'resize smart -200'
+run = 'resize smart -250'
