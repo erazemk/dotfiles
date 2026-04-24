@@ -2,89 +2,68 @@
 # ~/.config/fish/config.fish
 #
 
-set -gx EDITOR hx
-set -gx GOKRAZY_PARENT_DIR ~/Personal
-set -gx SSH_AUTH_SOCK ~/.bitwarden-ssh-agent.sock
+# XDG paths
+set -gx XDG_CACHE_HOME $HOME/.cache
+set -gx XDG_CONFIG_HOME $HOME/.config
+set -gx XDG_DATA_HOME $HOME/.local/share
+fish_add_path -gP $HOME/.local/bin
 
-abbr getaws 'aws sso login && aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 173672169127.dkr.ecr.us-east-1.amazonaws.com'
+# Other exports
+set -gx EDITOR hx
+set -gx SSH_AUTH_SOCK ~/.bitwarden-ssh-agent.sock
+set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
+
+# Golang
+set -gx GIT_TERMINAL_PROMPT 1
+set -gx GOPATH $XDG_DATA_HOME/go
+fish_add_path -gP $GOPATH/bin
+
+abbr mv 'mv -iv'
+abbr rm 'rm -Iv'
+abbr cp 'cp -Riv'
+abbr mkdir 'mkdir -p'
+abbr cdtmp 'cd (mktemp -d)'
 
 if test -d /opt/homebrew
-    set --global --export HOMEBREW_PREFIX /opt/homebrew
-    set --global --export HOMEBREW_CELLAR /opt/homebrew/Cellar
-    set --global --export HOMEBREW_REPOSITORY /opt/homebrew
+    set -gx HOMEBREW_PREFIX /opt/homebrew
+    set -gx HOMEBREW_CELLAR /opt/homebrew/Cellar
+    set -gx HOMEBREW_REPOSITORY /opt/homebrew
 
-    fish_add_path --global --move --path /opt/homebrew/bin /opt/homebrew/sbin
+    fish_add_path -g --move --path /opt/homebrew/bin /opt/homebrew/sbin
     fish_add_path $HOMEBREW_PREFIX/opt/curl/bin
 
     if test -n "$MANPATH[1]"
-        set --global --export MANPATH '' $MANPATH
+        set -gx MANPATH '' $MANPATH
     end
 
     if not contains /opt/homebrew/share/info $INFOPATH
-        set --global --export INFOPATH /opt/homebrew/share/info $INFOPATH
+        set -gx INFOPATH /opt/homebrew/share/info $INFOPATH
     end
 end
 
 if status is-interactive
     function update --description "Update system packages"
-        switch (uname)
-            case Linux
-                sudo dnf upgrade --refresh
-            case Darwin
-                brew update && brew upgrade && brew autoremove && brew cleanup
-        end
-
-        npm i -g @mariozechner/pi-coding-agent
+        brew update && brew upgrade && brew autoremove && brew cleanup
     end
 
     function opencode --description "OpenCode AI harness"
         if not set -q OPENAI_API_KEY
-            set -gx OPENAI_API_KEY (security find-generic-password -w -s openai -a openai)
+            set -gx OPENAI_API_KEY (security find-generic-password -w -s "OpenAI API Key" -a "API Keys")
         end
         if not set -q AWS_BEARER_TOKEN_BEDROCK
-            set -gx AWS_BEARER_TOKEN_BEDROCK (security find-generic-password -w -s aws-bedrock -a aws-bedrock)
+            set -gx AWS_BEARER_TOKEN_BEDROCK (security find-generic-password -w -s "AWS Bedrock Bearer Token" -a "API Keys")
         end
         if not set -q DEVREV_API_KEY
-            set -gx DEVREV_API_KEY (security find-generic-password -w -s devrev -a devrev)
+            set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
         end
         if not set -q CIRCLECI_TOKEN
-            set -gx CIRCLECI_TOKEN (security find-generic-password -w -s circleci -a circleci)
+            set -gx CIRCLECI_TOKEN (security find-generic-password -w -s "CircleCI Token" -a "API Keys")
         end
 
         set -gx OPENCODE_ENABLE_EXA true
 
         command opencode $argv
     end
+
     abbr oc opencode
-
-    function claude --description "Claude Code"
-        if not set -q AWS_BEARER_TOKEN_BEDROCK
-            set -gx AWS_BEARER_TOKEN_BEDROCK (security find-generic-password -w -s aws-bedrock -a aws-bedrock)
-        end
-        if not set -q DEVREV_API_KEY
-            set -gx DEVREV_API_KEY (security find-generic-password -w -s devrev -a devrev)
-        end
-        if not set -q CIRCLECI_TOKEN
-            set -gx CIRCLECI_TOKEN (security find-generic-password -w -s circleci -a circleci)
-        end
-
-        command claude $argv
-    end
-
-    abbr upi 'npm i -g @mariozechner/pi-coding-agent'
-    function pi --description "Pi coding agent"
-        if not set -q AWS_BEARER_TOKEN_BEDROCK
-            set -gx AWS_BEARER_TOKEN_BEDROCK (security find-generic-password -w -s aws-bedrock -a aws-bedrock)
-        end
-        if not set -q OPENAI_API_KEY
-            set -gx OPENAI_API_KEY (security find-generic-password -w -s openai -a openai)
-        end
-        if not set -q OLLAMA_API_KEY
-            set -gx OLLAMA_API_KEY (security find-generic-password -w -s ollama -a ollama)
-        end
-
-        set -x AWS_REGION eu-central-1
-
-        command pi $argv
-    end
 end
