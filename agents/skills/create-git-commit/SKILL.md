@@ -1,9 +1,7 @@
 ---
-name: git-commit
-description: Create a git commit following DevRev commit conventions
+name: create-git-commit
+description: Create a git commit following DevRev commit conventions. Use when asked to create a git commit.
 ---
-
-### Input
 
 The user may provide:
 - A DevRev issue ID (e.g. `ISS-289180`) - required; if it is missing, ask before committing
@@ -14,9 +12,9 @@ The user may provide:
 1. Run `git status --short` (never use `-uall`) and `git diff --staged` in parallel to inspect what is already staged.
 2. If nothing is staged, run `git diff` as well so you understand what would be added before staging it.
 3. If there are no staged or unstaged changes, tell the user and stop.
-4. If nothing is staged, stage everything with `git add -A`, except files that likely contain secrets such as `.env`, `*.pem`, or `credentials*.json`. If some files are staged and others are not, commit only the staged files and do not stage the unstaged ones.
+4. If nothing is staged, stage everything with `git add -A`, except files that likely contain secrets. If some files are staged and others are not, commit only the staged files and do not stage the unstaged ones.
 5. Draft the commit message following the format below. Infer the change summary from the diff if the user did not provide one, but never invent the DevRev issue ID.
-6. Show the full commit message to the user and wait for approval before committing. If a question tool is available, offer three outcomes: approve the commit, edit the message, or cancel. If the user asks for changes, apply them and ask again until approved.
+6. Show the full commit message to the user and wait for approval before committing. If a question tool is available, offer to either approve the commit or cancel. If the user asks for changes, apply them and ask again until approved.
 7. Create the commit using a HEREDOC for the message.
 8. If `git commit` fails because a hook reformats or updates files, inspect the new diff, stage the hook-generated changes, and create a new commit with the approved message. If the commit fails for any other reason, surface the error and stop.
 9. After a successful commit, show the new commit hash and a short `git status` summary.
