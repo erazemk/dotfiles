@@ -16,6 +16,7 @@ set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
 # Golang
 set -gx GIT_TERMINAL_PROMPT 1
 set -gx GOPATH $XDG_DATA_HOME/go
+set -gx GOPRIVATE github.com/devrev
 fish_add_path -gP $GOPATH/bin
 
 abbr mv 'mv -iv'
