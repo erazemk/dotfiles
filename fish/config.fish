@@ -9,7 +9,7 @@ set -gx XDG_DATA_HOME $HOME/.local/share
 fish_add_path -gP $HOME/.local/bin
 
 # Other exports
-set -gx EDITOR hx
+set -gx EDITOR code --wait
 set -gx SSH_AUTH_SOCK ~/.bitwarden-ssh-agent.sock
 set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
 
