@@ -2,7 +2,6 @@
 name: prod-commits
 description: Compose a Slack promotion message listing commits to promote to prod for an AirSync lambda service. Use when the user wants to promote a service, post a promotion list, or prepare a prod deployment announcement.
 disable-model-invocation: true
-context: fork
 argument-hint: "[service name]"
 ---
 

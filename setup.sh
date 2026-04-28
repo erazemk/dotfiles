@@ -7,9 +7,9 @@ DOTFILES="$HOME/.config/dotfiles"
 #
 
 # Aerospace
-echo "Setting up Aerospace dotfiles"
-mkdir -p ~/.config/aerospace
-ln -sf $DOTFILES/aerospace/* ~/.config/aerospace/
+# echo "Setting up Aerospace dotfiles"
+# mkdir -p ~/.config/aerospace
+# ln -sf $DOTFILES/aerospace/* ~/.config/aerospace/
 
 # AWS
 echo "Setting up AWS dotfiles"
@@ -38,7 +38,6 @@ ln -sf $DOTFILES/git/* ~/.config/git/
 echo "Setting up OpenCode dotfiles"
 mkdir -p ~/.config/opencode
 ln -sf $DOTFILES/opencode/* ~/.config/opencode/
-ln -sf $DOTFILES/agents/* ~/.config/opencode/
 
 # VSCode
 echo "Setting up VSCode dotfiles"
@@ -57,8 +56,8 @@ mkdir -p ~/.local/bin
 echo "Installing Homebrew"
 sudo -v
 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-brew install awscli colima docker docker-buildx docker-compose docker-credential-helper fish gh git git-lfs go helix jq anomalyco/tap/opencode
-brew install --cask aws-vpn-client bitwarden brave-browser ghostty granola handy lookaway obsidian pearcleaner slack visual-studio-code nikitabobko/tap/aerospace
+brew install awscli colima curl docker docker-buildx docker-compose docker-credential-helper fish gh git git-lfs go jq anomalyco/tap/opencode
+brew install --cask aws-vpn-client bitwarden brave-browser charmstone ghostty granola handy lookaway monitorcontrol obsidian pearcleaner rectangle slack visual-studio-code
 
 # Switch to fish shell
 echo "Switching to fish shell"
