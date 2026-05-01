@@ -29,47 +29,31 @@ Create a DevRev-backed commit and pull request for the current changes. Follow t
 - If there are no staged or unstaged changes, stop and tell the user there is nothing to commit.
 - Do not include files that likely contain secrets, such as `.env`, credentials, private keys, or token files. If such files appear in the changes, warn the user and exclude them unless the user explicitly confirms.
 
-## DevRev Issue Creation
+## DevRev Issue Delegation
 
 Only create a DevRev issue when no issue reference was provided.
 
-Use these known DevRev values without schema discovery unless a DevRev MCP call fails because the schema or IDs are stale:
+Delegate issue creation to the `devrev` sub-agent instead of calling DevRev tools directly here.
 
-- Owner: `don:identity:dvrv-us-1:devo/0:devu/442`
-- AirSync Platform sprint board: `don:core:dvrv-us-1:devo/0:vista/2113`
-- Effort level: `Pebble`
-- Initial stage name: `in_review`
+Ask the sub-agent to create a current-work PR tracking issue for the changes that will actually be committed.
 
-When creating an issue:
+Pass the sub-agent the following context:
 
-- Infer a sensible title and body from the diff and extra instructions.
-- Do not mention exact file paths or git-specific terms in the issue title or body.
-- Describe what changes did and why, if the reason is visible from context.
-- Choose `tnt__category_ai_predicted` as one of `Bug`, `Incident`, `New Work`, or `Tech Debt` based on the type of change.
-- Find the most relevant part with DevRev hybrid search over `feature`, `capability`, and `product`, using a concise query based on the behavior being changed. For obvious AirSync/Airdrop DevRev core-service work, prefer `don:core:dvrv-us-1:devo/0:feature/834` (`Integration with core DevRev`) if it matches the change.
-- Fetch the active AirSync Platform sprint with DevRev `list_objects(action_name="list_sprint", values=...)` using:
-  - `parent_id`: [`don:core:dvrv-us-1:devo/0:vista/2113`]
-  - `state`: [`active`]
-  - `sort_by`: [`start_date:desc`]
-  - `limit`: `1`
-- Use the active sprint ID as `sprint`.
-- Use `Current date (UTC)` as `target_start_date` in the form `YYYY-MM-DDT00:00:00Z`.
-- Use the active sprint `end_date` as `target_close_date`.
+- `Current date (UTC)` from the injected command context.
+- The current branch name.
+- The staged and unstaged diff stats, plus the actual patch that will be committed.
+- A concise summary of the behavior changed.
+- The reason for the change, if it is visible from the diff or user instructions.
+- Any extra instructions left in `$ARGUMENTS` after removing `draft` and any provided DevRev issue reference.
+- Whether the work looks like a bug fix, feature, chore, docs, or CI change.
+- Relevant product or domain hints such as AirSync, Airdrop, DevRev loader, core DevRev integration, sync behavior, dependency maintenance, or repo-wide maintenance.
+- A reminder to infer a sensible title and body, and to avoid exact file paths or git-specific terms in the issue title or body.
+- A reminder to use the current-work PR issue defaults, including the standard owner, sprint lookup, effort level, and stage progression.
+- A reminder to return the display ID, title, stage, issue link, and any warning from the stage update.
 
-Create the issue with DevRev `create_object(action_name="create_issue", values=...)` and these fields:
+Use the issue link returned by the sub-agent as the DevRev link in the commit message and PR body.
 
-- `title`: inferred issue title
-- `body`: inferred issue description
-- `applies_to_part`: selected part ID
-- `owned_by`: [`don:identity:dvrv-us-1:devo/0:devu/442`]
-- `sprint`: active AirSync Platform sprint ID
-- `stage`: `{ "name": "in_review" }`
-- `target_start_date`: today at `00:00:00Z`
-- `target_close_date`: active sprint end date
-- `tnt__category_ai_predicted`: inferred category
-- `tnt__effort_level`: `Pebble`
-
-After creation, use the returned display ID to build the issue link: `https://app.devrev.ai/devrev/works/ISS-123456`.
+If the user already provided an issue reference, skip delegation and use that link directly.
 
 ## Branch Handling
 

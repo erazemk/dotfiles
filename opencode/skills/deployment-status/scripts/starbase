@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+service=${1:-}
+
+usage() {
+  printf 'Usage: %s <service-name>\n' "${0##*/}" >&2
+}
+
+if [ -z "$service" ]; then
+  usage
+  exit 64
+fi
+
+case "$service" in
+  *[!A-Za-z0-9._-]*)
+    printf 'Invalid service name: %s\n' "$service" >&2
+    exit 64
+    ;;
+esac
+
+if ! command -v gh >/dev/null 2>&1; then
+  printf 'gh is required. Run gh auth login, then retry.\n' >&2
+  exit 1
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+  printf 'jq is required. Install jq, then retry.\n' >&2
+  exit 1
+fi
+
+if ! gh auth status >/dev/null 2>&1; then
+  printf 'gh is not authenticated. Run gh auth login, then retry.\n' >&2
+  exit 1
+fi
+
+if ! gh api "repos/devrev/${service}" >/dev/null 2>&1; then
+  printf 'Repository devrev/%s was not found or is not accessible.\n' "$service" >&2
+  exit 1
+fi
+
+input_files=$(gh api 'repos/devrev/starbase/git/trees/main?recursive=1' \
+  --jq '.tree[].path | select(test("^devrev/airdrop/[^/]+(/[^/]+)?/input\\.tf\\.json$"))' \
+  | sort)
+
+printf 'Deployment status for `%s`\n\n' "$service"
+printf '| Env | Region | Deployed | Main ahead | Commit title |\n'
+printf '| --- | --- | --- | ---: | --- |\n'
+
+while IFS= read -r file_path; do
+  [ -n "$file_path" ] || continue
+
+  IFS=/ read -r _ _ env_name region_or_file _ <<< "$file_path"
+  if [ "$region_or_file" = 'input.tf.json' ]; then
+    region='us-east-1'
+  else
+    region="$region_or_file"
+  fi
+
+  image=$(gh api "repos/devrev/starbase/contents/${file_path}?ref=main" \
+    --jq '.content | @base64d | fromjson | .locals' \
+    | jq -r --arg service "$service" '
+      [to_entries[]
+        | .value
+        | select(type == "string")
+        | select((split("/")[-1] | split(":")[0]) == $service)
+        | select((split(":")[-1]) | test("^v?[0-9a-f]{7,40}$"))]
+      | first // empty
+    ')
+
+  if [ -z "${image:-}" ]; then
+    printf '| %s | %s | not configured | - | - |\n' "$env_name" "$region"
+    continue
+  fi
+
+  image_tag=${image##*:}
+  deployed=${image_tag#v}
+
+  commit_json=$(gh api "repos/devrev/${service}/commits/${deployed}" 2>/dev/null || true)
+  if [ -z "$commit_json" ]; then
+    printf '| %s | %s | `%s` | unavailable | commit not found in devrev/%s |\n' "$env_name" "$region" "$deployed" "$service"
+    continue
+  fi
+
+  full_sha=$(printf '%s\n' "$commit_json" | jq -r '.sha')
+  short_sha=${full_sha:0:7}
+  title=$(printf '%s\n' "$commit_json" | jq -r '.commit.message | split("\n")[0]')
+  title=${title//|/\\|}
+
+  compare_json=$(gh api "repos/devrev/${service}/compare/${full_sha}...main" 2>/dev/null || true)
+  if [ -z "$compare_json" ]; then
+    ahead='unavailable'
+  else
+    ahead=$(printf '%s\n' "$compare_json" | jq -r '
+      if .status == "ahead" or .status == "identical" then
+        .ahead_by | tostring
+      else
+        (.ahead_by | tostring) + " (" + .status + ")"
+      end
+    ')
+  fi
+
+  printf '| %s | %s | `%s` | %s | %s |\n' "$env_name" "$region" "$short_sha" "$ahead" "$title"
+done <<EOF
+$input_files
+EOF

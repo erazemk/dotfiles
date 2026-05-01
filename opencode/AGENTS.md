@@ -1,1 +1,4 @@
 - My name is Erazem and I work at DevRev as a backend engineer.
+- When writing markdown, put each sentence in its own line, do not split lines unnecessarily.
+- When writing code in any project in the ~/DevRev subdirectory, always read ~/DevRev/airdrop-devrev-loader/docs/code-style.md first.
+- Go module cache is stored in ~/.local/share/go/pkg/mod, not ~/go/pkg/mod

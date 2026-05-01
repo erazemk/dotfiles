@@ -62,6 +62,8 @@ if status is-interactive
         end
 
         set -gx OPENCODE_ENABLE_EXA true
+        set -gx OPENCODE_EXPERIMENTAL_LSP_TOOL true
+        set -gx OPENCODE_EXPERIMENTAL_MARKDOWN true
 
         command opencode $argv
     end
