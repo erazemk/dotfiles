@@ -6,8 +6,8 @@
   "lsp": {},
   "formatter": {},
   "permission": {
-    "devrev_*": "deny",
     "datadog_*": "deny",
+    "devrev_*": "deny",
     "slack_*": "deny",
     "notion_*": "deny",
     "external_directory": {
@@ -56,38 +56,33 @@
   "agent": {
     "plan": {
       "model": "openai/gpt-5.5",
-      "reasoningEffort": "high",
-      "textVerbosity": "medium",
+      "permission": {
+        "devrev_*": "allow",
+        "notion_notion-search": "allow",
+        "notion_notion-fetch": "allow",
+        "notion_notion-get-comments": "allow",
+        "notion_notion-get-users": "allow",
+        "notion_notion-create-pages": "allow",
+        "notion_notion-update-page": "allow",
+      }
     },
     "build": {
       "model": "openai/gpt-5.4",
-      "reasoningEffort": "medium",
-      "textVerbosity": "low",
+      "permission": {
+        "devrev_*": "allow",
+        "notion_notion-search": "allow",
+        "notion_notion-fetch": "allow",
+        "notion_notion-get-comments": "allow",
+        "notion_notion-get-users": "allow",
+        "notion_notion-create-pages": "allow",
+        "notion_notion-update-page": "allow",
+      }
     },
     "general": {
       "model": "openai/gpt-5.4-mini",
-      "reasoningEffort": "medium",
-      "textVerbosity": "low",
     },
     "explore": {
-      "model": "openai/gpt-5.4-nano",
-      "reasoningEffort": "low",
-      "textVerbosity": "low",
-    },
-    "compaction": {
       "model": "openai/gpt-5.4-mini",
-      "reasoningEffort": "low",
-      "textVerbosity": "low",
-    },
-    "title": {
-      "model": "openai/gpt-5.4-nano",
-      "reasoningEffort": "none",
-      "textVerbosity": "low",
-    },
-    "summary": {
-      "model": "openai/gpt-5.4-nano",
-      "reasoningEffort": "low",
-      "textVerbosity": "low",
     },
   },
 }

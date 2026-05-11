@@ -5,7 +5,10 @@ model: openai/gpt-5.4-mini
 reasoningEffort: medium
 textVerbosity: low
 permission:
-  "*": deny
+  edit: deny
+  bash: deny
+  read: deny
+  task: deny
   slack_slack_send_message: allow
   slack_slack_search_public_and_private: allow
   slack_slack_search_channels: allow
