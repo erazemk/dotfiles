@@ -3,6 +3,12 @@
         "editor.wordWrap": "on"
     },
     "accessibility.underlineLinks": true,
+    "augment.completions.enableChatInputCompletions": false,
+    "augment.conflictingCodingAssistantCheck": false,
+    "augment.disableFocusOnAugmentPanel": true,
+    "augment.enableEmptyFileHint": false,
+    "augment.experimental.terminal.vscodeTerminalStrategy": "VSCode",
+    "augment.nextEdit.enableGlobalBackgroundSuggestions": true,
     "chat.disableAIFeatures": true,
     "comments.openView": "never",
     "debug.console.fontSize": 14,
@@ -14,7 +20,7 @@
     "diffEditor.experimental.showMoves": true,
     "diffEditor.hideUnchangedRegions.contextLineCount": 10,
     "diffEditor.ignoreTrimWhitespace": true,
-    "diffEditor.renderSideBySide": false,
+    "diffEditor.renderSideBySide": true,
     "dotfiles.repository": "erazemk/dotfiles",
     "dotfiles.targetPath": "~/.config/dotfiles",
     "editor.fontSize": 14,
@@ -35,9 +41,10 @@
     "explorer.confirmDelete": false,
     "explorer.confirmDragAndDrop": false,
     "files.associations": {
+        "*.j2": "jinja",
         "*.jsonl": "json",
-        "Makefile.*": "makefile",
-        "*.plist": "xml"
+        "*.plist": "xml",
+        "Makefile.*": "makefile"
     },
     "files.autoSave": "onFocusChange",
     "files.autoSaveWhenNoErrors": true,
