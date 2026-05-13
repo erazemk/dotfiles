@@ -7,7 +7,7 @@ description: Show which AirSync lambda commits are deployed across Starbase envi
 
 Report which commit of an AirSync lambda service is deployed in each Starbase environment and region.
 
-The bundled script does all remote Starbase and GitHub lookups. Your job is only to determine the service name before running it.
+The bundled script uses AWS Lambda as the source of truth for the deployed image tag, then GitHub for commit metadata. Your job is only to determine the service name before running it.
 
 ### Step 1: Determine The Service
 
@@ -28,28 +28,44 @@ Only run the script after a concrete service name is known.
 Run the bundled script with the resolved service name:
 
 ```bash
-~/.config/opencode/skills/deployment-status/scripts/starbase <service-name>
+~/.config/opencode/skills/deployment-status/scripts/deployment-status <service-name>
 ```
 
 Example:
 
 ```bash
-~/.config/opencode/skills/deployment-status/scripts/starbase airdrop-devrev-loader
+~/.config/opencode/skills/deployment-status/scripts/deployment-status airdrop-devrev-loader
+```
+
+Optional flags:
+
+```bash
+~/.config/opencode/skills/deployment-status/scripts/deployment-status --profile qa --region us-east-1 airdrop-devrev-loader
+~/.config/opencode/skills/deployment-status/scripts/deployment-status --debug airdrop-devrev-loader
 ```
 
 ### Script Behavior
 
 The script:
 
-- Uses `gh api` for all GitHub data.
-- Does not read local `starbase` files.
-- Does not use local git branches, local refs, local commit history, `git fetch`, or `git log`.
-- Discovers `devrev/airdrop/**/input.tf.json` files from remote `devrev/starbase` `main`.
-- Treats `devrev/airdrop/<env>/input.tf.json` as region `us-east-1`.
-- Treats `devrev/airdrop/<env>/<region>/input.tf.json` as that explicit region.
-- Extracts the deployed commit from the lambda image tag, stripping a leading `v` if present.
-- Resolves the deployed commit title from remote `devrev/<service>`.
+- Requires `aws`, `gh`, and `jq`.
+- Uses `aws lambda get-function` as the source of truth for the deployed image tag.
+- Parses the AWS Lambda JSON response with `jq`.
+- Uses `gh api` for commit metadata from `devrev/<service>`.
+- Extracts the deployed commit from `Code.ImageUri`, stripping a leading `v` if present.
+- Includes the Lambda `Configuration.LastModified` timestamp in the output.
 - Compares the deployed commit to remote `main` with the GitHub compare API.
+- Supports `--profile`, `--region`, and `--debug`.
+- If `--region ap-northeast-1` is passed without `--profile`, uses AWS profile `prodjp`.
+- If `--profile prodjp` is passed without `--region`, uses `ap-northeast-1`.
+- Defaults to an overview across these environment and region combinations when no profile or region is provided:
+- `dev`: `us-east-1`, trying AWS profiles `dev` then `default`
+- `qa`: `us-east-1`, `ap-south-1`
+- `pre-prod`: `ap-southeast-1` using AWS profile `prod`
+- `prod`: `us-east-1`, `ap-south-1`, `ap-southeast-2`, `eu-central-1` using AWS profile `prod`, and `ap-northeast-1` using AWS profile `prodjp`
+- Silently skips missing AWS profiles during normal execution.
+- In `--debug`, logs AWS errors and fails if neither `dev` nor `default` exists for the `dev` overview lookup.
+- If AWS returns `Error when retrieving token from sso: Token has expired and refresh failed`, runs `aws sso login --profile <profile>` and retries.
 
 ### Response
 

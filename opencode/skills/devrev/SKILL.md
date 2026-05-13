@@ -16,6 +16,7 @@ Only inspect git state when conversation context is missing, incomplete, stale, 
 ## Existing References
 
 If given `ISS-123456`, `TKT-123456`, or a DevRev work URL, normalize the display ID to uppercase and return the Markdown work link.
+Use the standard issue URL pattern `https://app.devrev.ai/devrev/works/ISS-299327`, replacing the display ID suffix with the actual work ID.
 Fetch object details only if needed for the requested operation.
 
 ## Approval

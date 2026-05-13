@@ -14,7 +14,7 @@ The user or caller may provide:
 - Add `--draft` only when the caller explicitly requested a draft PR.
 - PR title must exactly match the commit title being used.
 - PR body must exactly match the commit body being used.
-- Print the PR URL at the end in Markdown link form so it is clickable.
+- After the PR is created, print the PR URL in Markdown format so it is clickable.
 
 - If `gh` is not authenticated, stop after the branch is pushed.
 - Tell the user to authenticate with `gh auth login`.

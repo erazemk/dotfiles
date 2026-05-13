@@ -51,8 +51,8 @@ Title line:
 - do not end the title with a period
 
 Body:
-- always end with the DevRev issue link
-- for simple commits, the body can be only the issue link
+- always end with the DevRev issue link as a raw URL, not Markdown-formatted
+- for simple commits, the body can be only the raw issue URL
 - for complex commits, include one or more short explanatory paragraphs before the issue link
 - do not wrap paragraphs manually; keep each paragraph as a single line
 - backtick-wrap code identifiers, field names, function names, type names, commands, and paths
