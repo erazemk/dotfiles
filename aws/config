@@ -23,7 +23,25 @@ s3 =
 [profile prod]
 sso_session = DevRev
 sso_account_id = 087878894592
+sso_role_name = EngineeringProdAccess
+region = us-east-1
+output = json
+s3 =
+  max_concurrent_requests = 64
+
+[profile prodad]
+sso_session = DevRev
+sso_account_id = 087878894592
 sso_role_name = ProdAirdropIncidents
+region = us-east-1
+output = json
+s3 =
+  max_concurrent_requests = 64
+
+[profile prodjp]
+sso_session = DevRev
+sso_account_id = 723718225049
+sso_role_name = ReadOnlyAccess
 region = us-east-1
 output = json
 s3 =
