@@ -1,14 +1,12 @@
 ---
-description: Handles Slack-only tasks such as finding channels, reading context, drafting messages, and posting updates when delegated.
+description: >
+  Use for Slack-only tasks such as finding channels, reading Slack context, or drafting messages.
+  The caller should pass the exact message if creating a post, whether to send immediately or create a draft, and any users or channels that should be mentioned.
+  If searching, the caller should pass the channel ID or a Slack link or any other relevant info that would aid in the search.
 mode: subagent
 model: openai/gpt-5.4-mini
-reasoningEffort: medium
-textVerbosity: low
 permission:
-  edit: deny
-  bash: deny
-  read: deny
-  task: deny
+  '*': deny
   slack_slack_send_message: allow
   slack_slack_search_public_and_private: allow
   slack_slack_search_channels: allow

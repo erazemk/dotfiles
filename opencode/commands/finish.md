@@ -3,36 +3,22 @@ description: Finish the current code changes by verifying, creating or resolving
 ---
 
 Arguments: $ARGUMENTS
-Current date (UTC): !`date -u +%Y-%m-%d`
-Current branch: !`git branch --show-current`
-Git status: !`git status --short`
-Staged diff stat: !`git diff --staged --stat`
-Unstaged diff stat: !`git diff --stat`
 
 Finish the current code changes.
 Follow this workflow exactly.
 
-## Verification
-
-- If you have not already run `make FIX=true FORCE=true` in this conversation after the latest code changes, run it now before any other step.
-- Run it from the repository root.
-- If it fails, stop and surface the failure.
-- Do not create or update the DevRev issue, commit, push, or open a PR until it passes.
-- If you already ran it after the latest code changes in this conversation, do not run it again.
-
-## Workflow
-
-- Use the `devrev` skill first.
-- Pass `$ARGUMENTS`, the current date, branch, git status, and diff stats as context.
-- Resolve any existing DevRev issue reference from `$ARGUMENTS`, or create a current-work tracking issue if none was provided.
-- Prefer the existing conversation context for the current work, and only inspect git state if more context is needed.
+- If you have not already run `make` in this conversation after the latest code changes, run it now from the repository root.
+- If `make` fails, stop and surface the failure.
+- If `make` already passed after the latest code changes in this conversation, do not run it again.
+- Determine whether `$ARGUMENTS` contains an existing DevRev issue, ticket, work ID, or work URL.
+- If an existing DevRev reference was provided, skip the `devrev` subagent and use that reference as the issue link for `git-commit`.
+- If no DevRev reference was provided, draft an exact current-work issue title and description from the conversation context and verified changes.
+- Use the `devrev` subagent only to create the issue.
+- Pass only the operation, exact title, and exact description to the subagent.
 - If no DevRev issue link is produced, stop.
-
 - Use the `git-commit` skill second.
 - Pass the DevRev issue link and `$ARGUMENTS` as context.
-- Prefer the existing conversation context for the commit message, and only inspect git state if more context is needed.
-- If the user declines the `git-commit` skill approval or no commit is created, stop.
-
+- If the user declines the `git-commit` approval or no commit is created, stop.
 - Use the `open-pull-request` skill third.
 - Pass `$ARGUMENTS` as context so the skill can decide whether the PR should be draft.
 - Do not ask for separate PR confirmation.
