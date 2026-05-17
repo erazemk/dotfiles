@@ -35,6 +35,7 @@ Commit format:
 - use present tense and `we`
 
 Before committing:
+- print the proposed commit title and body before asking for approval
 - show the proposed commit title and body
 - use the `question` tool for approval
 - ask whether the commit title and description are okay

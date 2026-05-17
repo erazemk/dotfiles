@@ -57,9 +57,6 @@ if status is-interactive
         if not set -q DEVREV_API_KEY
             set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
         end
-        if not set -q CIRCLECI_TOKEN
-            set -gx CIRCLECI_TOKEN (security find-generic-password -w -s "CircleCI Token" -a "API Keys")
-        end
 
         set -gx OPENCODE_ENABLE_EXA true
         set -gx OPENCODE_EXPERIMENTAL_LSP_TOOL true
