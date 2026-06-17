@@ -5,7 +5,7 @@ docker
 docker-buildx
 docker-compose
 docker-credential-helper
-engram
+gentleman-programming/tap/engram
 fish
 gh
 git

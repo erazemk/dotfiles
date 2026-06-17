@@ -6,8 +6,12 @@ description: >
 mode: subagent
 model: openai/gpt-5.4-mini
 permission:
-  edit: deny
-  bash: deny
+  '*': deny
+  read: allow
+  glob: allow
+  grep: allow
+  bash: allow
+  question: allow
   datadog_analyze_datadog_logs: allow
   datadog_get_datadog_trace: allow
   datadog_search_datadog_logs: allow
@@ -32,6 +36,9 @@ For example, if the caller asks why a sync failed, search until you find the mos
 
 Keep the work bounded.
 If the evidence is still ambiguous after a reasonable amount of focused searching, say what you checked, what looks most likely, and what the parent agent should investigate next.
+
+Extra tips:
+- For Datadog or Lambda debugging, `input_filename` is relative to the sync-unit S3 prefix. When `sync_options.v3_path_format=true`, the prefix shape is `<dev_oid>/<external_system_name>/<external_system_id>/<external_sync_unit_id>/<sync_unit_id>/`, and the bucket comes from the loader's `S3_BUCKET_NAME`.
 
 Return:
 - concise answer to the caller's goal

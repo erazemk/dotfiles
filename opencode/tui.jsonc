@@ -4,4 +4,7 @@
   "scroll_acceleration": {
     "enabled": true,
   },
+  "attention": {
+    "enabled": true,
+  },
 }

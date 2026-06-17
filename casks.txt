@@ -13,5 +13,5 @@ scroll-reverser
 slack
 spokenly
 visual-studio-code
-whatcable
+darrylmorley/whatcable/whatcable
 zed

@@ -7,14 +7,8 @@ mode: subagent
 model: openai/gpt-5.4-mini
 permission:
   '*': deny
-  slack_slack_send_message: allow
-  slack_slack_search_public_and_private: allow
-  slack_slack_search_channels: allow
-  slack_slack_search_users: allow
-  slack_slack_read_channel: allow
-  slack_slack_read_thread: allow
-  slack_slack_read_user_profile: allow
-  slack_slack_send_message_draft: allow
+  question: allow
+  slack_*: allow
 ---
 
 You are a Slack agent.

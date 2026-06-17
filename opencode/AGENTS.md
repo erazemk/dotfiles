@@ -2,16 +2,15 @@
 - My name is Erazem and I work at DevRev as a backend engineer.
 - Keep your responses to me (the user) as concise as possible.
 - When writing markdown, put each sentence in its own line, do not split lines unnecessarily.
+- When updating documentation, describe only the current state.
+- Do not explain documentation in terms of how it changed from previous states unless I explicitly ask for history or a comparison.
+- For plan docs, keep the plan aligned with the implementation, but write it as a spec that states the goal and the current state.
+- Do not write plan docs as status updates like "this is implemented"; describe the intended behavior, the current concrete shape, and any remaining scope.
 - When writing code in any project in the `~/DevRev` subdirectory, always read `~/DevRev/airdrop-devrev-loader/docs/code-style.md` first.
-- Go module cache is stored in `~/.local/share/go/pkg/mod`, not `~/go/pkg/mod`.
+- After editing any Go file, run `gopls check --severity=hint <filename>` for each edited Go file and fix any issues it reports (run these only after making changes, and at most 1 at a time).
+- Go module cache is stored in `$GOPATH/pkg/mod`, not `~/go/pkg/mod`.
 - List directories always relative to the current working directory or `/Users/erazemk`, never just `/`.
-- When running individual Go tests, always use at most a 30 second timeout.
-
-# Agents
-- Use the built-in `explore` subagent for codebase exploration, broad file searches, symbol searches, and questions about where or how something works.
-- Use the built-in `general` subagent for text-intensive work, especially commands expected to produce long output (`make` commands), noisy test runs, build logs, or large pasted output.
-- Always use a subagent to run individual Go tests or `make` commands.
-- When delegating command execution to `general`, pass the exact command, working directory, success criteria, and the format of the summary you want back.
-- Prefer reading the compact summary returned by `general` instead of pulling long raw command output into the parent context.
-- Prefer doing coding tasks yourself, not delegating them to subagents.
+- When running individual Go tests, prefer bounded focused tests in the primary agent.
+- When running an individual Go test via `bash`, set the tool timeout to at most 10 seconds unless I ask otherwise.
+- If an `aws` CLI command fails because SSO credentials are expired, refresh them automatically in the same turn with `aws sso login` and retry the command before reporting a blocker. If the command uses a specific profile, run `aws sso login --profile <profile>` for that profile and retry with the same profile.
 - When calling subagents, pass paths to any relevant documentation to them so that they read it (e.g. `code-style.md`).

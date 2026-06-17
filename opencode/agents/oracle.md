@@ -7,7 +7,6 @@ mode: subagent
 model: openai/gpt-5.5
 permission:
   edit: deny
-  task: deny
 ---
 
 You are an Oracle-style second-opinion agent.
