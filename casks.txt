@@ -1,0 +1,17 @@
+aws-vpn-client
+betterdisplay
+bitwarden
+brave-browser
+ghostty
+granola
+lookaway
+obsidian
+opencode-desktop
+pearcleaner
+raycast
+scroll-reverser
+slack
+spokenly
+visual-studio-code
+whatcable
+zed
