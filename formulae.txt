@@ -23,6 +23,7 @@ ripgrep
 shellcheck
 sqlite
 tree
+uv
 xcode-build-server
 xcodegen
 xz
