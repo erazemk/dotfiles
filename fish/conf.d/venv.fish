@@ -1,7 +1,5 @@
 # Source: https://alexwlchan.net/2023/fish-venv/
 
-#set -g -x PIP_REQUIRE_VIRTUALENV true
-
 function venv --description "Create and activate a new virtual environment"
     python3 -m venv .venv --upgrade-deps
     source .venv/bin/activate.fish
