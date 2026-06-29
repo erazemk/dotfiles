@@ -10,13 +10,12 @@ fish_add_path -gP $HOME/.local/bin
 
 # Other exports
 set -gx EDITOR code --wait
-set -gx SSH_AUTH_SOCK ~/.bitwarden-ssh-agent.sock
 set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
+set -gx SSH_AUTH_SOCK ~/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock
 
 # Golang
 set -gx GIT_TERMINAL_PROMPT 1
 set -gx GOPATH $XDG_DATA_HOME/go
-set -gx GOPRIVATE github.com/devrev
 fish_add_path -gP $GOPATH/bin
 
 abbr mv 'mv -iv'
@@ -48,16 +47,6 @@ if status is-interactive
     end
 
     function opencode --description "OpenCode AI harness"
-        if not set -q OPENAI_API_KEY
-            set -gx OPENAI_API_KEY (security find-generic-password -w -s "OpenAI API Key" -a "API Keys")
-        end
-        if not set -q AWS_BEARER_TOKEN_BEDROCK
-            set -gx AWS_BEARER_TOKEN_BEDROCK (security find-generic-password -w -s "AWS Bedrock Bearer Token" -a "API Keys")
-        end
-        if not set -q DEVREV_API_KEY
-            set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
-        end
-
         set -gx OPENCODE_ENABLE_EXA true
         set -gx OPENCODE_EXPERIMENTAL_LSP_TOOL true
         set -gx OPENCODE_EXPERIMENTAL_MARKDOWN true
