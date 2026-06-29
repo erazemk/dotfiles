@@ -6,63 +6,14 @@
   "lsp": {},
   "formatter": {},
   "permission": {
-    "datadog_*": "deny",
-    "devrev_*": "deny",
-    "slack_*": "deny",
-    "notion_*": "deny",
     "external_directory": {
-      "~/DevRev/**": "allow",
-      "~/Personal/**": "allow",
-      "/var/folders/kl/**": "allow",
-      "~/.cache/sidekick/**": "allow",
       "~/.config/opencode/**": "allow",
       "~/.local/share/go/pkg/mod/**": "allow",
       "~/.config/dotfiles/opencode/**": "allow",
       "~/.local/share/opencode/worktree/**": "allow",
     }
   },
-  "mcp": {
-    "auggie": {
-      "type": "local",
-      "enabled": true,
-      "command": [
-        "auggie",
-        "--mcp",
-        "--mcp-auto-workspace",
-      ]
-    },
-    "datadog": {
-      "type": "remote",
-      "enabled": true,
-      "url": "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp"
-    },
-    "devrev": {
-      "type": "remote",
-      "enabled": true,
-      "url": "https://api.devrev.ai/mcp/v1",
-      "headers": {
-        "Authorization": "Bearer {env:DEVREV_API_KEY}"
-      }
-    },
-    "engram": {
-      "type": "local",
-      "command": [
-        "/opt/homebrew/bin/engram",
-        "mcp",
-        "--tools=agent"
-      ],
-      "enabled": true
-    },
-    "slack": {
-      "type": "remote",
-      "enabled": true,
-      "url": "https://mcp.slack.com/mcp",
-      "oauth": {
-        "clientId": "1601185624273.8899143856786",
-        "redirectUri": "http://localhost:3118/callback"
-      }
-    },
-  },
+  "mcp": {},
   "agent": {
     "plan": {
       "model": "openai/gpt-5.4"
@@ -76,40 +27,5 @@
     "explore": {
       "model": "openai/gpt-5.4-mini"
     }
-  },
-  // "provider": {
-  //   "bedrock-mantle": {
-  //     "npm": "@ai-sdk/openai",
-  //     "name": "Amazon Bedrock Mantle",
-  //     "options": {
-  //       "baseURL": "https://bedrock-mantle.us-east-2.api.aws/openai/v1"
-  //     },
-  //     "models": {
-  //       "openai.gpt-5.4": {
-  //         "name": "GPT 5.4",
-  //         "modalities": {
-  //           "input": [
-  //             "image",
-  //             "text"
-  //           ],
-  //           "output": [
-  //             "text"
-  //           ]
-  //         }
-  //       },
-  //       "openai.gpt-5.5": {
-  //         "name": "GPT 5.5",
-  //         "modalities": {
-  //           "input": [
-  //             "image",
-  //             "text"
-  //           ],
-  //           "output": [
-  //             "text"
-  //           ]
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+  }
 }
