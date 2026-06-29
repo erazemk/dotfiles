@@ -1,0 +1,3 @@
+- My name is Erazem and I work for a company called DevRev as a backend engineer in the AirSync (previously Airdrop) team.
+- My projects are all in ~/DevRev as cloned git repos.
+- When writing markdown, put each sentence in its own line, do not split lines unnecessarily.
