@@ -1,6 +1,6 @@
 cpu: 12
 disk: 256
-memory: 24
+memory: 12
 forwardAgent: true
 vmType: vz
 mountType: virtiofs
