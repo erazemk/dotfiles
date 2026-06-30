@@ -48,23 +48,21 @@ Prioritize these signals:
 - Repeated searches, failed attempts, retries, or debugging paths that should not be rediscovered.
 - Recurring local-environment or test setup quirks (service dependencies, build steps).
 - Instructions the agent missed, misunderstood, or had to be reminded about.
-- Durable project facts, architecture conventions, and troubleshooting recipes that took more than
-  about a minute to discover.
+- Durable project facts, architecture conventions, and troubleshooting recipes that were non-obvious
+  to discover.
 - LSP/`gopls`/type-checker feedback after edits that reveals a reusable code-style rule.
 - Opportunities to move bulky always-loaded content out of `CLAUDE.md`/`AGENTS.md` into a referenced
   doc, or to turn a repeated multi-step procedure into a skill.
 
-### 3. Rank and filter
+### 3. Filter
 
-Score each candidate internally on three axes and keep only the strongest; this ranking is internal
-and never surfaced as a question to the user:
+Keep only candidates that are durable, reusable, and actionable. Discard:
 
-- **Durability** — will this still be true and useful many sessions from now?
-- **Recurrence** — how often will a future agent hit this situation?
-- **Cost to rediscover** — how much time/tool-churn does capturing it save? (Drop anything
-  rediscoverable from first principles in under ~1 minute.)
+- One-off status, ticket/PR state, timestamps, and temporary debug paths.
+- Anything readily rediscoverable from first principles.
+- Ephemeral facts that a live API or fresh inspection should provide.
 
-Discard low-scoring, one-off, or ephemeral candidates. Prefer a few high-value edits over many.
+Prefer a few high-value edits over many.
 
 ### 4. Reconcile against existing guidance and auto-memory
 
@@ -108,7 +106,7 @@ migrate-out-of-auto-memory / trim-auto-memory-duplicate / fix-inaccuracy), and t
 before/after snippet with enough surrounding context to be unambiguous. Do not describe edits only in
 prose. Show auto-memory trims/migrations as concrete deletions with the `MEMORY.md` pointer update.
 
-**## Skipped Candidates** — each dropped candidate and the one-line reason (one-off, low score,
+**## Skipped Candidates** — each dropped candidate and the one-line reason (one-off, not durable,
 already covered, ephemeral).
 
 Then, in the same turn, call `AskUserQuestion` for approval. Offer at least:

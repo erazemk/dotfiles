@@ -1,0 +1,9 @@
+{
+    "name": "airsync",
+    "displayName": "AirSync",
+    "description": "Erazem's opinionated Claude Code plugin for the AirSync team",
+    "author": {
+        "name": "Erazem Kokot",
+        "email": "erazem.kokot@devrev.ai"
+    }
+}

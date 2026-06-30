@@ -25,6 +25,23 @@ If the target object or the requested operation is unclear, ask one concise clar
 
 These `mcp__devrev__*` tools are already available whenever this skill is loaded — call them directly. Do not run `ToolSearch` to rediscover them. `get_tool_metadata` and `discover_schema` results are stable for the session; fetch each at most once and reuse the result rather than re-querying before every call.
 
+## Resolving an org slug → dev org ID
+
+When the user gives you an **org slug** and you need the **dev org ID** (dev_oid), resolve it via the internal `rev-orgs.list` API, filtering by `display_name` (the slug is the org's display name). The slug is the first path segment of an org URL — `https://app.devrev.ai/<slug>` (e.g. `app.devrev.ai/devrev` → slug `devrev`, `app.devrev.ai/maplestudio-playground-30-134320` → slug `maplestudio-playground-30-134320`).
+
+```bash
+curl -s -X POST "https://api.devrev.ai/internal/rev-orgs.list" \
+  -H "Authorization: $DEVREV_API_KEY" -H "Content-Type: application/json" \
+  -d '{"display_name":["<slug>"],"limit":5}'
+```
+
+Notes:
+- Auth header is the **raw `$DEVREV_API_KEY`** — NO `Bearer` prefix. Filter param is `display_name` (an array); `q`/`search` return HTTP 400.
+- From the matching rev_org, read **`external_ref`** (issuer `devrev:platform`) — that is the **dev org DON**, e.g. `don:identity:dvrv-us-1:devo/1g5jplBimm`. The bare ID is the `devo/<id>` suffix (`1g5jplBimm`), and the `DEV-` form is `DEV-1g5jplBimm`.
+- `custom_fields.tnt__dev_org_slug` confirms the slug; `id` (`don:...:revo/<id>`, `REV-*`) is the **rev_org** DON — a different object, don't confuse it with the dev org.
+- **Do not** use `id_v1` (it shows `don:DEV-0:...` for everything): `DEV-0` is the DevRev-internal owner org, not the customer's dev org.
+- If `rev-orgs.list` errors or returns nothing, fall back to `search.core` (namespace `rev_org`) to find the exact `display_name`, then retry with that value. If neither resolves it, tell the user plainly what you tried and ask for the dev org ID (`DEV-xxx`) — never guess or fabricate one.
+
 ## Work URLs
 
 Always render DevRev work URLs in canonical app form:

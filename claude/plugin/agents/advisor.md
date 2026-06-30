@@ -10,31 +10,8 @@ description: >
   on its own. It does not edit files or run mutating commands; it thinks hard about the problem and returns a
   direct recommendation, concise reasoning, concrete risks and tradeoffs, its assumptions and uncertainty, and
   the safest next step.
-
-
-  <example>
-  user: "I'm torn between adding a message queue or making the call synchronous with retries. Here are the latency and consistency constraints..."
-  assistant: "This is a design tradeoff worth a second opinion. Let me consult the advisor on queue-vs-sync given those constraints."
-  </example>
-
-
-  <example>
-  user: "This race condition keeps coming back even after two attempted fixes. Can you get a deeper look before I change more code?"
-  assistant: "I'll ask the advisor to evaluate the root-cause hypothesis and the proposed fix before we touch anything else."
-  </example>
-
-
-  <example>
-  user: "Here's my plan for refactoring the auth layer. Is there a simpler or safer way to do this?"
-  assistant: "Before we start, I'll have the advisor review the refactor plan for flaws and a safer alternative."
-  </example>
-
-
-  <example>
-  user: "Review the last commit's changes — I'm worried I missed an edge case."
-  assistant: "I'll hand the diff to the advisor for a careful review of edge cases and subtle regressions."
-  </example>
 model: opus
+effort: high
 color: purple
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 ---

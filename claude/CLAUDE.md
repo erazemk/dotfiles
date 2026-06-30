@@ -1,0 +1,5 @@
+- My name is Erazem Kokot and I work for a company called DevRev as a backend engineer in the AirSync (previously Airdrop) team.
+- My projects are all in ~/DevRev as cloned git repos.
+- When writing markdown, put each sentence in its own line, do not split lines unnecessarily.
+- When modifying skills, documentation, or similar prose, correct wrong assumptions in place — edit or remove the incorrect text rather than appending a note saying not to do the previous thing.
+- My Claude skills, agents, hooks, settings, and the global CLAUDE.md are symlinked from `~/.config/dotfiles/claude` into `~/.claude`. Edit the real files under `~/.config/dotfiles/claude` — writing through the `~/.claude` symlink fails.
