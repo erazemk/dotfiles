@@ -9,8 +9,6 @@ set -gx XDG_DATA_HOME $HOME/.local/share
 fish_add_path -gP $HOME/.local/bin
 
 # Other exports
-set -gx EDITOR code --wait
-set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
 set -gx SSH_AUTH_SOCK ~/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock
 
 # Golang

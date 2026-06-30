@@ -1,6 +1,8 @@
 # Only run on DevRev MacBook
 if test -d ~/DevRev
+    set -gx EDITOR code --wait
     set -gx GOPRIVATE github.com/devrev
+    set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
 
     if not set -q DEVREV_API_KEY
         set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
