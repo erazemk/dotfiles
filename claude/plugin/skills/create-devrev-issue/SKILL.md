@@ -14,14 +14,14 @@ The caller provides an **already-confirmed** exact title and exact description (
 
 - Use the title and description verbatim. Do not rewrite, summarize, improve, expand, or shorten them.
 - Do not put file paths or git-specific terms in the issue text unless the caller included them.
-- If the caller also named an owner, use it; otherwise use the default owner below.
+- If the caller named an owner, use it; otherwise default the owner to the active user — call `mcp__devrev__get_self` and use the returned user's ID.
 
 ## Create the issue
 
 Call `mcp__devrev__discover_schema` with `action_name='create_issue'` first to confirm field names/enums for the org, then create with:
 
 - `title` / `body`: the confirmed title and description.
-- `owned_by`: `don:identity:dvrv-us-1:devo/0:devu/442` (Erazem) — default owner unless the caller named another.
+- `owned_by`: the caller-named owner, or the active user's ID from `mcp__devrev__get_self` as the default.
 - `space` (team): `don:identity:dvrv-us-1:devo/0:group/928` — AirSync Data Plane (ASDAT).
 - `priority_v2`: `3` (P2).
 - `applies_to_part`: choose per the heuristics below.

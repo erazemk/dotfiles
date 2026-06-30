@@ -1,6 +1,6 @@
 ---
 name: worktree
-description: Create a git worktree following Erazem's VS Code-style convention and switch the session into it. Branch erazemk/<1-4-kebab-words>, worktree at <repo-root>.worktrees/<trimmed-branch>, branched fresh from the remote default branch. Use when asked to start/create/use a worktree, or via /worktree [branch] [instructions...]. The first word is the branch name; any words after it are instructions to carry out once inside the new worktree.
+description: Create a git worktree following a VS Code-style convention and switch the session into it. Branch <prefix>/<1-4-kebab-words>, worktree at <repo-root>.worktrees/<trimmed-branch>, branched fresh from the remote default branch. Use when asked to start/create/use a worktree, or via /worktree [branch] [instructions...]. The first word is the branch name; any words after it are instructions to carry out once inside the new worktree.
 argument-hint: "[branch] [instructions...]"
 arguments: [branch]
 allowed-tools: Bash(git worktree:*), Bash(git fetch:*), Bash(git branch:*), Bash(git rev-parse:*), Bash(git show-ref:*), Bash(git symbolic-ref:*), EnterWorktree, AskUserQuestion
@@ -43,11 +43,12 @@ PLAN.md".
 
 ## Conventions
 
-- **Branch**: `erazemk/<words>`, where `<words>` is 1-4 short words in lowercase
-  kebab-case derived from the change (e.g. `erazemk/fix-attachment-retry`), no DevRev
-  issue ID.
+- **Branch**: `<prefix>/<words>`, where `<prefix>` is the branch prefix and `<words>`
+  is 1-4 short words in lowercase kebab-case derived from the change (e.g.
+  `<prefix>/fix-attachment-retry`), no DevRev issue ID. The script in step 2 resolves
+  `<prefix>` in-shell — you never substitute it by hand.
 - **Worktree path**: `<repo-root>.worktrees/<words>` — the current repo root path with
-  `.worktrees/<words>` appended (the `erazemk/` prefix is omitted from the path).
+  `.worktrees/<words>` appended (the `<prefix>/` prefix is omitted from the path).
 - **Base ref**: branch fresh from the remote default branch (e.g. `origin/main`),
   resolved dynamically so it works in any repo.
 
@@ -69,7 +70,8 @@ the worktree path on the last line.
 
 ```sh
 WORDS="fix-attachment-retry"  # <-- substitute the chosen words; this is the ONLY edit
-BRANCH="erazemk/$WORDS"
+PREFIX="$(id -un)"
+BRANCH="$PREFIX/$WORDS"
 WT_PATH="$(git rev-parse --show-toplevel).worktrees/$WORDS"
 if git worktree list --porcelain | grep -qxF "worktree $WT_PATH"; then
   :  # already a registered worktree — just enter it
@@ -114,5 +116,5 @@ This session enters the worktree via `path`, so `EnterWorktree` does **not** own
 - **Leave, keep the worktree**: `ExitWorktree({action:"keep"})`.
 - **Delete it**: `ExitWorktree({action:"keep"})` first (returns to the repo root), then
   remove manually — `git worktree remove "<path>"` (add `--force` if it has changes) and
-  optionally `git branch -D "erazemk/<words>"`. Do not call `ExitWorktree` with
+  optionally `git branch -D "<prefix>/<words>"`. Do not call `ExitWorktree` with
   `remove` — it cannot remove a path-entered worktree.

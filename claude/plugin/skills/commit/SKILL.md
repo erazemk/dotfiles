@@ -13,6 +13,9 @@ The current git state is captured below; use it as the primary input and only re
 
 ## Current git state
 
+Branch prefix:
+!`id -un`
+
 Branch:
 !`git branch --show-current`
 
@@ -37,7 +40,7 @@ Unstaged diff:
 ## Branch rules
 
 - check the current branch
-- if it is `main`, create and switch to `erazemk/<1-4-words-about-the-change>`
+- if it is `main`, create and switch to `<prefix>/<1-4-words-about-the-change>`, where `<prefix>` is the branch prefix captured above
 - use lowercase kebab-case derived from the behavioral change
 - do not include the DevRev issue ID
 - if the branch is not `main`, stay on it
