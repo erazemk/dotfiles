@@ -46,13 +46,5 @@ if status is-interactive
         brew update && brew upgrade && brew autoremove && brew cleanup
     end
 
-    function opencode --description "OpenCode AI harness"
-        set -gx OPENCODE_ENABLE_EXA true
-        set -gx OPENCODE_EXPERIMENTAL_LSP_TOOL true
-        set -gx OPENCODE_EXPERIMENTAL_MARKDOWN true
-
-        command opencode $argv
-    end
-
     abbr oc opencode
 end
