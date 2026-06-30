@@ -13,7 +13,8 @@
     "gopls-lsp@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true
+    "skill-creator@claude-plugins-official": true,
+    "airsync@erazemk": true
   },
   "env": {
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
@@ -35,6 +36,13 @@
         "repo": "anthropics/claude-plugins-official",
         "source": "github"
       }
+    },
+    "erazemk": {
+      "source": {
+        "source": "github",
+        "repo": "erazemk/dotfiles"
+      },
+      "autoUpdate": true
     }
   },
   "includeGitInstructions": false,
