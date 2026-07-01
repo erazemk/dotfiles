@@ -2,7 +2,7 @@
 name: devrev
 description: Interact with the DevRev platform — fetch, read, create, link, and update issues (ISS-*), tickets (TKT-*), enhancements (ENH-*), articles (ART-*), and other work items. Use when the user references a DevRev work ID, display ID, or app.devrev.ai URL, asks to create or update DevRev work, or frames a request as filing the current task/PR/branch as an issue.
 user-invocable: false
-allowed-tools: mcp__devrev__*, Bash(devrev:*), WebFetch
+allowed-tools: mcp__devrev__*, Bash(devrev:*), Bash(curl:*), Bash(jq:*), Bash(*article-body.sh:*), WebFetch
 ---
 
 DevRev unifies product development (Build), support (Support), and CRM (Grow) around one knowledge graph. Use the `mcp__devrev__*` tools to operate on it; fall back to the `devrev` CLI (via bash) only where noted below.
@@ -56,18 +56,76 @@ When you fetch an object, keep the response lean to preserve context. Unless the
 
 Include comments only when the user explicitly asks for them or when they're clearly needed to answer the request.
 
-## Article fetches (ART-*)
+## Articles (ART-*)
 
-Articles need a CLI + webfetch round-trip — the MCP fetch alone won't give you the body:
+Article **bodies cannot be handled through the MCP.** The body lives in a separate
+`devrev/rt` artifact (ProseMirror JSON), not inline on the article object:
+- `create_article`'s `content` field is broken server-side (fails with
+  `missing_required_field: file_name`).
+- `update_article` has **no** body/content field at all — only title, status,
+  owner, parts, tags, attachments.
 
-1. Derive the numeric ID: the suffix after `ART-`, or the last numeric path segment if given a DON.
-2. Run via bash: `devrev -o devrev -e prod articles show don:core:dvrv-us-1:devo/0:article/<id> | jq` — treat this CLI JSON as the source of truth.
-3. In the CLI JSON, inspect `article.resource.artifacts`; find the artifact whose `file.name` is `Article`. (`file.type` is informational — it may be `text/markdown`, `devrev/rt`, etc.; don't require a specific value.)
-4. `webfetch` that artifact's `original_url` and parse the response as JSON.
-5. Apply the normal field-stripping rules to the article object, then add a `body` field set to the fetched body's `article` field.
-6. If no matching artifact with `original_url` exists, the fetched response isn't valid JSON, or it lacks an `article` field, report the error — do not fall back silently.
+So all body reads/writes go through the DevRev **REST API** (`curl` + `$DEVREV_API_KEY`,
+raw token, NO `Bearer` prefix). A helper script wraps the fiddly artifact-upload
+dance — use it rather than hand-rolling curl for writes:
 
-When the user asks only for an article's body/content, return the article identifiers plus the `body` field.
+```
+${SKILL_PATH}/scripts/article-body.sh {get|set|create|upload} …
+```
+
+### The devrev/rt body format
+
+The body artifact is JSON with two top-level keys — preserve this shape:
+```json
+{ "article": { "type": "doc", "content": [ …ProseMirror nodes… ] }, "artifactIds": [] }
+```
+`article` is a ProseMirror doc: nodes like `heading` (with `attrs.level`),
+`paragraph`, `bulletList`/`orderedList` → `listItem` → `paragraph`, and leaf `text`
+nodes holding the string (bold/italic via `marks`). `artifactIds` lists artifacts
+embedded in the body (images, etc.) — usually `[]`. **When editing, fetch the
+existing body first and mutate its `content` tree** so the structure is retained.
+
+### Reading a body
+
+Never use `extracted_content` — that `text/plain` artifact is AI-facing plaintext,
+not the real body. The real body is the `resource.artifacts[]` entry whose
+`file.name` is `Article` (its `file.type` is `devrev/rt`).
+
+```bash
+${SKILL_PATH}/scripts/article-body.sh get ART-84444    # or a full DON / bare numeric id
+```
+Prints the raw `devrev/rt` JSON. Under the hood: `articles.get` → pick the `Article`
+artifact → `artifacts.locate` for a signed URL → download. When the user wants the
+body, return the article identifiers plus this body (or a Markdown rendering of it).
+
+If no `Article` artifact exists, the download isn't valid JSON, or it lacks an
+`article` key, report the error — do not fall back to `extracted_content` silently.
+
+### Creating an article with a body
+
+```bash
+${SKILL_PATH}/scripts/article-body.sh create <rt-json-file> "<title>" \
+  <owner-devu-id> <applies-to-part-id> [status]     # status defaults to draft
+```
+`owner` is a `devu` id (`get_self` for yourself); the part id comes from
+`hybrid_search`. This uploads the rt file as an artifact and sets the article's
+`resource:{artifacts:[…]}`. (Title/owner/part/status alone can also go through the
+MCP `create_article` — but only the REST path attaches a body.)
+
+### Updating a body
+
+```bash
+# 1. fetch current body, 2. mutate its content tree (jq/editor), 3. push it back
+${SKILL_PATH}/scripts/article-body.sh get ART-123 > /tmp/body.json
+jq '.article.content += [ …new node… ]' /tmp/body.json > /tmp/new.json
+${SKILL_PATH}/scripts/article-body.sh set ART-123 /tmp/new.json
+```
+`set` uploads a new `devrev/rt` artifact and repoints the article at it. Note the
+API asymmetry the script handles for you: **create** uses `resource:{artifacts:[…]}`,
+but **update** rejects `resource` and requires top-level `artifacts:{set:[…]}`.
+
+Non-body article fields (title, status, owner, parts) still use the MCP
+`update_object` with `action_name='update_article'` as usual.
 
 ## Creating objects
 
