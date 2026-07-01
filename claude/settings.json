@@ -7,19 +7,20 @@
   },
   "awsAuthRefresh": "aws sso login",
   "enabledPlugins": {
+    "airsync@erazemk": true,
     "claude-code-setup@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true,
-    "airsync@erazemk": true
+    "skill-creator@claude-plugins-official": true
   },
   "env": {
+    "ANTHROPIC_DEFAULT_FABLE_MODEL": "eu.anthropic.claude-fable-5",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "eu.anthropic.claude-opus-4-8[1m]",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "eu.anthropic.claude-sonnet-4-6[1m]",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "eu.anthropic.claude-sonnet-5[1m]",
     "AWS_PROFILE": "default",
     "AWS_REGION": "eu-central-1",
     "CLAUDE_CODE_ENABLE_AUTO_MODE": "1",
@@ -38,15 +39,15 @@
       }
     },
     "erazemk": {
+      "autoUpdate": true,
       "source": {
-        "source": "github",
-        "repo": "erazemk/dotfiles"
-      },
-      "autoUpdate": true
+        "repo": "erazemk/dotfiles",
+        "source": "github"
+      }
     }
   },
   "includeGitInstructions": false,
-  "model": "eu.anthropic.claude-opus-4-8[1m]",
+  "model": "opus",
   "outputStyle": "Explanatory",
   "permissions": {
     "additionalDirectories": [
