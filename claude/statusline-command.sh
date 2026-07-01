@@ -33,8 +33,16 @@ else
   ctx_str=""
 fi
 
-if [ -n "$branch" ]; then
-  printf "%b%s%b %b%s%b%b" "$blue" "$short" "$reset" "$pink" "$branch" "$reset" "$ctx_str"
+model_info=$(echo "$input" | jq -r '(.model.id // "") + " " + (.model.display_name // "")')
+model_short=$(printf '%s' "$model_info" | grep -oiE 'sonnet|opus|haiku|fable' | head -n1 | tr '[:upper:]' '[:lower:]')
+if [ -n "$model_short" ]; then
+  model_str=" ${blue}[${model_short}]${reset}"
 else
-  printf "%b%s%b%b" "$blue" "$short" "$reset" "$ctx_str"
+  model_str=""
+fi
+
+if [ -n "$branch" ]; then
+  printf "%b%s%b %b%s%b%b%b" "$blue" "$short" "$reset" "$pink" "$branch" "$reset" "$model_str" "$ctx_str"
+else
+  printf "%b%s%b%b%b" "$blue" "$short" "$reset" "$model_str" "$ctx_str"
 fi
