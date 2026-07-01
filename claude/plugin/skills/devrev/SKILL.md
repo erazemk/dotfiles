@@ -2,7 +2,7 @@
 name: devrev
 description: Interact with the DevRev platform — fetch, read, create, link, and update issues (ISS-*), tickets (TKT-*), enhancements (ENH-*), articles (ART-*), and other work items. Use when the user references a DevRev work ID, display ID, or app.devrev.ai URL, asks to create or update DevRev work, or frames a request as filing the current task/PR/branch as an issue.
 user-invocable: false
-allowed-tools: mcp__devrev__*, Bash(devrev:*), Bash(curl:*), Bash(jq:*), Bash(*article-body.sh:*), WebFetch
+allowed-tools: mcp__devrev__*, Bash(devrev:*), Bash(curl:*), Bash(jq:*), Bash(*article-body.sh:*)
 ---
 
 DevRev unifies product development (Build), support (Support), and CRM (Grow) around one knowledge graph. Use the `mcp__devrev__*` tools to operate on it; fall back to the `devrev` CLI (via bash) only where noted below.
@@ -65,9 +65,10 @@ Article **bodies cannot be handled through the MCP.** The body lives in a separa
 - `update_article` has **no** body/content field at all — only title, status,
   owner, parts, tags, attachments.
 
-So all body reads/writes go through the DevRev **REST API** (`curl` + `$DEVREV_API_KEY`,
-raw token, NO `Bearer` prefix). A helper script wraps the fiddly artifact-upload
-dance — use it rather than hand-rolling curl for writes:
+So all body reads/writes go through the DevRev **REST API** with `curl` + `$DEVREV_API_KEY`
+(raw token, NO `Bearer` prefix). Always `curl` the signed URL directly (or via the
+helper below) and parse the raw JSON with `jq`. A helper script wraps the fiddly
+artifact-upload dance — use it rather than hand-rolling curl for writes:
 
 ```
 ${SKILL_PATH}/scripts/article-body.sh {get|set|create|upload} …
