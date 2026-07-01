@@ -17,17 +17,17 @@
     "skill-creator@claude-plugins-official": true
   },
   "env": {
-    "ANTHROPIC_DEFAULT_FABLE_MODEL": "eu.anthropic.claude-fable-5",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "eu.anthropic.claude-opus-4-8[1m]",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "eu.anthropic.claude-sonnet-5[1m]",
+    "ANTHROPIC_DEFAULT_FABLE_MODEL": "anthropic.claude-fable-5",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "anthropic.claude-haiku-4-5",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "anthropic.claude-opus-4-8",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "anthropic.claude-sonnet-5",
     "AWS_PROFILE": "default",
-    "AWS_REGION": "eu-central-1",
+    "AWS_REGION": "us-east-1",
     "CLAUDE_CODE_ENABLE_AUTO_MODE": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_NEW_INIT": "1",
     "CLAUDE_CODE_NO_FLICKER": "1",
-    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "CLAUDE_CODE_USE_MANTLE": "1",
     "DISABLE_ERROR_REPORTING": "1",
     "DISABLE_TELEMETRY": "1"
   },
@@ -47,7 +47,7 @@
     }
   },
   "includeGitInstructions": false,
-  "model": "opus",
+  "model": "sonnet",
   "outputStyle": "Explanatory",
   "permissions": {
     "additionalDirectories": [
