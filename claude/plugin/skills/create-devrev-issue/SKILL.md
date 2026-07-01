@@ -22,7 +22,7 @@ Call `mcp__devrev__discover_schema` with `action_name='create_issue'` first to c
 
 - `title` / `body`: the confirmed title and description.
 - `owned_by`: the caller-named owner, or the active user's ID from `mcp__devrev__get_self` as the default.
-- `space` (team): `don:identity:dvrv-us-1:devo/0:group/928` — AirSync Data Plane (ASDAT).
+- `space` (team): `don:identity:dvrv-us-1:devo/0:space/kI5OWQqm` — AirSync Data Plane (ASDAT). The `space` field requires a space ID; a `group/...` DON is rejected as the wrong ID type.
 - `priority_v2`: `3` (P2).
 - `applies_to_part`: choose per the heuristics below.
 - `sprint`: the latest active sprint (see below).

@@ -57,6 +57,8 @@ Unstaged diff:
 - complex commits may include short paragraphs before the issue URL only when the extra context is genuinely needed
 - the opening sentence must start with `This commit ...`
 - use present tense and `we`
+- NEVER hard-wrap the body at a fixed column width: a line break must only ever fall at the end of a paragraph, never in the middle of one (multiple sentences in a paragraph should all be on the same line).
+- Separate paragraphs with a blank line. The PR body must match the amended commit body verbatim, so if the commit body was re-wrapped, re-read it before creating the PR.
 
 ## Before committing
 

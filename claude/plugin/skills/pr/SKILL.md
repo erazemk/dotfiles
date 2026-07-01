@@ -7,6 +7,8 @@ allowed-tools: Bash(git push:*), Bash(git log:*), Bash(git branch:*), Bash(gh pr
 The user or caller may provide:
 - whether the PR should be draft
 
+- NEVER hard-wrap the body at a fixed column width: a line break must only ever fall at the end of a paragraph, never in the middle of one (multiple sentences in a paragraph should all be on the same line).
+- Separate paragraphs with a blank line. The PR body must match the amended commit body verbatim, so if the commit body was re-wrapped, re-read it before creating the PR.
 - Always inspect the relevant commit on the current branch. When the branch has more than one new commit ahead of `main`, use the **first** new commit (the one carrying the structured title and the DevRev issue URL in its body); otherwise use the latest commit.
 - Always use that commit's title as the PR title and that commit's body-only text as the PR body, even if the caller already knows or provides them beforehand.
 - When reading the commit, extract the title and body separately so the PR body never includes the commit title line.
