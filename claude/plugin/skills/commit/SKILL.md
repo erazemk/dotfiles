@@ -48,6 +48,12 @@ Unstaged diff:
 
 ## Commit format
 
+The required format depends on whether this is the first commit on the branch (i.e. nothing has been pushed yet) or a follow-up commit on an already-pushed branch.
+
+### First commit (branch not yet pushed to origin)
+
+This commit's title and body become the basis for the PR title and description, so they must follow the full convention:
+
 - title: `<prefix>: <Short sentence, first letter capitalized>`
 - allowed prefixes: `fix`, `feat`, `chore`, `docs`, `ci`
 - use imperative voice and do not end the title with a period
@@ -60,7 +66,15 @@ Unstaged diff:
 - NEVER hard-wrap the body at a fixed column width: a line break must only ever fall at the end of a paragraph, never in the middle of one (multiple sentences in a paragraph should all be on the same line).
 - Separate paragraphs with a blank line. The PR body must match the amended commit body verbatim, so if the commit body was re-wrapped, re-read it before creating the PR.
 
-## Before committing
+### Follow-up commits (branch already pushed to origin)
+
+The PR title and description are already set; these commits are squashed on merge, so only a short summary title is needed:
+
+- title only, no body required
+- still use a valid prefix and imperative voice
+- skip the `AskUserQuestion` approval step — commit immediately
+
+## Before committing (first commit only)
 
 - print the proposed commit title and body before asking for approval
 - show the proposed commit title and body
