@@ -17,8 +17,14 @@ yellow='\033[33m'
 red='\033[31m'
 reset='\033[0m'
 
-used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
+model_name=$(echo "$input" | jq -r '.model.display_name // empty' | sed 's/ (1M context)//')
+if [ -n "$model_name" ]; then
+  model_str=" ${blue}[${model_name}]${reset}"
+else
+  model_str=""
+fi
 
+used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
 if [ -n "$used" ]; then
   used_int=$(printf '%.0f' "$used")
   if [ "$used_int" -lt 50 ]; then
@@ -31,14 +37,6 @@ if [ -n "$used" ]; then
   ctx_str=" ${ctx_color}(${used_int}%)${reset}"
 else
   ctx_str=""
-fi
-
-model_info=$(echo "$input" | jq -r '(.model.id // "") + " " + (.model.display_name // "")')
-model_short=$(printf '%s' "$model_info" | grep -oiE 'sonnet|opus|haiku|fable' | head -n1 | tr '[:upper:]' '[:lower:]')
-if [ -n "$model_short" ]; then
-  model_str=" ${blue}[${model_short}]${reset}"
-else
-  model_str=""
 fi
 
 if [ -n "$branch" ]; then
