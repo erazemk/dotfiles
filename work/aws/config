@@ -51,5 +51,5 @@ s3 =
 sso_session = DevRev
 sso_account_id = 020040093233
 sso_role_name = BedrockLongLivedTokenAccess
-region = eu-central-1
+region = us-east-1
 output = json

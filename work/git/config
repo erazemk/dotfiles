@@ -1,0 +1,34 @@
+[alias]
+a = add
+d = diff
+l = log
+lo = log --oneline
+ch = checkout
+c = commit
+cm = commit -m
+b = branch
+cl = clone
+ps = push
+pl = pull
+rb = rebase -i
+r = remote
+s = status
+
+[clone]
+recurseSubmodules = true
+
+[init]
+defaultBranch = main
+
+[rebase]
+autoStash = true
+
+[submodule]
+recurse = true
+
+[url "git@github.com:"]
+insteadOf = https://github.com/
+
+[user]
+email = erazem.kokot@devrev.ai
+name = Erazem Kokot

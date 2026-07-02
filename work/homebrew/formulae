@@ -14,8 +14,6 @@ go
 jq
 node
 opa
-anomalyco/tap/opencode
-openspec
 openssl
 python
 regal
@@ -24,7 +22,5 @@ shellcheck
 sqlite
 tree
 uv
-xcode-build-server
-xcodegen
 xz
 zstd

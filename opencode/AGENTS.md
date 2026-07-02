@@ -1,1 +1,0 @@
-- When writing markdown, put each sentence in its own line, do not split lines unnecessarily.
