@@ -1,0 +1,10 @@
+{
+  "session": {
+    "trust_all_worktrees": true,
+  },
+  "theme": {
+    "mode": "system",
+    "light": "One Light",
+    "dark": "One Dark",
+  },
+}

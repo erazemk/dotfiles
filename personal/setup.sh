@@ -11,6 +11,9 @@ ln -sf $DOTFILES_HOME/git/* ~/.config/git/
 mkdir -p ~/.config/opencode
 ln -sf $DOTFILES_HOME/opencode/* ~/.config/opencode/
 
+mkdir -p ~/.config/zed
+ln -sf $DOTFILES_HOME/zed/* ~/.config/zed/
+
 if ! command -v brew &> /dev/null; then
     sudo -v
     NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
