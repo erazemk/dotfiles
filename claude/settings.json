@@ -17,17 +17,18 @@
     "skill-creator@claude-plugins-official": true
   },
   "env": {
-    "ANTHROPIC_DEFAULT_FABLE_MODEL": "anthropic.claude-fable-5",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "anthropic.claude-haiku-4-5",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "anthropic.claude-opus-4-8",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "anthropic.claude-sonnet-5",
+    "ANTHROPIC_DEFAULT_FABLE_MODEL": "eu.anthropic.claude-fable-5",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "eu.anthropic.claude-haiku-4-5",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "eu.anthropic.claude-opus-4-8",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "eu.anthropic.claude-sonnet-4-6",
     "AWS_PROFILE": "default",
-    "AWS_REGION": "us-east-1",
+    "AWS_REGION": "eu-central-1",
+    "CLAUDE_AFK_TIMEOUT_MS": "86400000",
     "CLAUDE_CODE_ENABLE_AUTO_MODE": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_NEW_INIT": "1",
     "CLAUDE_CODE_NO_FLICKER": "1",
-    "CLAUDE_CODE_USE_MANTLE": "1",
+    "CLAUDE_CODE_USE_BEDROCK": "1",
     "DISABLE_ERROR_REPORTING": "1",
     "DISABLE_TELEMETRY": "1"
   },
@@ -47,7 +48,7 @@
     }
   },
   "includeGitInstructions": false,
-  "model": "sonnet",
+  "model": "opus",
   "outputStyle": "Explanatory",
   "permissions": {
     "additionalDirectories": [
@@ -56,6 +57,7 @@
     "defaultMode": "auto"
   },
   "spinnerTipsEnabled": true,
+  "showThinkingSummaries": true,
   "statusLine": {
     "command": "bash ~/.claude/statusline-command.sh",
     "type": "command"
