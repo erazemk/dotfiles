@@ -79,9 +79,12 @@
     "additionalDirectories": [
       "~/DevRev"
     ],
-    "defaultMode": "auto"
+    "defaultMode": "auto",
+    "deny": [
+      "EnterPlanMode",
+      "ExitPlanMode"
+    ]
   },
-  "plansDirectory": ".claude/plans",
   "showThinkingSummaries": true,
   "spinnerTipsEnabled": true,
   "statusLine": {
