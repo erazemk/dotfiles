@@ -1,130 +1,124 @@
 ---
 name: reflect
-description: Consolidate durable learnings from the current session into git-committed guidance files, debloating and deduplicating as you go. Migrates anything durable out of Claude auto-memory into committed files, removes duplicates from auto-memory, fixes inaccuracies, and resolves contradictions at the source. Requires approval before any edit. Use when asked to reflect, consolidate memory, or capture session learnings, or when the reflection hook offers it.
-allowed-tools: Read, Edit, Write, Grep, Glob, Bash(git status:*), Bash(git diff:*), Bash(git ls-files:*), Bash(git rev-parse:*), Bash(git log:*), Bash(ls:*), Bash(cat:*), AskUserQuestion
+description: Reflect on a Claude Code conversation to improve future sessions. Use when asked to reflect, consolidate session learnings, or when the reflection hook offers it.
+allowed-tools: Read, Edit, Write, Grep, Glob, Bash, AskUserQuestion
 ---
 
-Run a memory-consolidation pass over the current session. The goal is to make future agents more
-effective with less context, while keeping durable guidance lean and accurate.
+Reflect on a Claude Code conversation and turn what went wrong into durable, correctly-placed
+fixes, so future sessions make fewer of the same mistakes.
 
-This is a consolidation pass, not a session summary. Do not record one-off status, ticket/PR state,
-timestamps, temporary debug paths, secrets, or facts a live API should provide fresh. Take no
-argument and accept no focus instruction — decide for yourself what is worth reflecting on.
+## How this skill divides responsibility
+
+The *reflection reasoning* — deciding what the mistakes and learnings were, reconciling them
+against existing guidance, and choosing destinations — is NOT done by you, the agent in the
+conversation. It is done by independent `claude -p --model haiku` processes spawned by
+`scripts/analyze`, which read the transcript from disk with fresh context. This is deliberate: an
+agent grading its own conversation shares the blind spots that caused the mistakes and works from a
+possibly-compacted, lossy context. The on-disk transcript is the lossless source of truth.
+
+**Your role is mechanical only.** You run the analysis script, present its finished proposals,
+gate on approval, apply the approved edits verbatim, and append applied learnings to the ledger.
+You do not judge the conversation, invent new learnings, or re-reconcile — if the proposals look
+wrong, surface that to the user rather than substituting your own analysis.
 
 ## Hard rules
 
-- **Destinations are git-tracked files only.** Every edit must land in a file tracked by git in the
-  current project (verify with `git ls-files --error-unmatch <path>`). Valid destinations: the
-  project `CLAUDE.md` / `AGENTS.md`, rule files under `.claude/rules/`, skills under
-  `.claude/skills/`, and docs under `docs/` or `README.md`. If a candidate's natural home is not
-  git-tracked, either find a tracked home for it or skip it.
-- **Never write new information into Claude auto-memory.** Auto-memory (`~/.claude/projects/<project>/memory/`,
-  including its `MEMORY.md` index and topic files) is never a destination for new facts.
-- **Auto-memory is only ever trimmed, never grown.** You may edit auto-memory files solely to remove
-  content that is now duplicated in (or migrated to) a git-tracked file, and to keep `MEMORY.md` in sync.
-- **Approval gate.** Make no edit until the user approves the exact change list via `AskUserQuestion`.
-- **Resolve contradictions at the source.** When a candidate contradicts existing guidance, propose a
-  replacement of the existing text — never append a second, conflicting rule.
+- **You do not perform the analysis.** Always obtain proposals by running `scripts/analyze`
+  (directly, or by consuming a proposals file it already wrote). Never hand-write proposals from
+  your own read of the conversation.
+- **Destinations are real files.** Behavioral/project guidance destinations should be git-tracked
+  in the target project (verify with `git ls-files --error-unmatch <path>`). Global destinations
+  under `~/.claude` (the global `CLAUDE.md`, `~/.claude/skills`, `~/.claude/hooks`,
+  `settings.json`) are tracked in the user's dotfiles repo and are valid. If a proposal's
+  destination is neither, skip it and say so.
+- **Approval gate.** Make no edit until the user approves the exact change list via
+  `AskUserQuestion`.
+- **Resolve contradictions at the source.** When a proposal replaces existing guidance, edit the
+  existing text in place — never append a second, conflicting rule.
+- **Ledger records applied learnings only.** Append to `~/.claude/learning/ledger.jsonl` only for
+  edits actually applied after approval — never for skipped or rejected proposals.
 - **No secrets.** Never write credentials, tokens, or private third-party data anywhere.
 
 ## Workflow
 
-### 1. Gather sources
+### 1. Obtain proposals
 
-- Confirm the project root: `git rev-parse --show-toplevel`. If not in a git repo, stop and say so —
-  this skill only edits git-tracked files.
-- Read the project guidance: nearest `CLAUDE.md` and/or `AGENTS.md` (walk up from cwd), any
-  `.claude/rules/*`, and any referenced docs that the session actually touched.
-- Read the project's Claude auto-memory: the `MEMORY.md` index under
-  `~/.claude/projects/<project-slug>/memory/`, plus topic files it points to that look relevant to
-  this session. This is read for deduplication and migration only.
-- Do not bulk-read unrelated docs hunting for a place to write something.
+Two modes:
 
-### 2. Extract candidates from the session
+- **Consume mode** (the reflection hook set `REFLECT_PROPOSALS` or told you a proposals file
+  exists): read that file directly. Do not re-run analysis.
+- **Analyze-current mode** (manual `/reflect`, or no proposals file exists): run the bundled
+  script against the current conversation:
 
-Prioritize these signals:
+  ```
+  <skill-dir>/scripts/analyze
+  ```
 
-- User corrections about code style, response style, workflow, tool choice, or what the agent forgot.
-- Repeated searches, failed attempts, retries, or debugging paths that should not be rediscovered.
-- Recurring local-environment or test setup quirks (service dependencies, build steps).
-- Instructions the agent missed, misunderstood, or had to be reminded about.
-- Durable project facts, architecture conventions, and troubleshooting recipes that were non-obvious
-  to discover.
-- LSP/`gopls`/type-checker feedback after edits that reveals a reusable code-style rule.
-- Opportunities to move bulky always-loaded content out of `CLAUDE.md`/`AGENTS.md` into a referenced
-  doc, or to turn a repeated multi-step procedure into a skill.
+  With no argument it resolves the current session's transcript for the working directory, runs the
+  preprocess → chunk → Haiku map → Haiku reduce pipeline, and prints the path of the proposals file
+  it wrote (or prints nothing and exits 0 if there was nothing worth proposing). Run it and capture
+  the printed path.
 
-### 3. Filter
+If no proposals file is produced (script printed nothing), tell the user there were no durable
+learnings this session and stop. Do not fabricate proposals.
 
-Keep only candidates that are durable, reusable, and actionable. Discard:
+### 2. Present the proposals
 
-- One-off status, ticket/PR state, timestamps, and temporary debug paths.
-- Anything readily rediscoverable from first principles.
-- Ephemeral facts that a live API or fresh inspection should provide.
+Read the proposals file and show the user its two sections verbatim, lightly formatted:
 
-Prefer a few high-value edits over many.
+- **## Proposed learnings** — each numbered item with its type, destination, recurrence status,
+  evidence, and the exact edit the analysis proposed.
+- **## Skipped** — candidates the analysis dropped and why.
 
-### 4. Reconcile against existing guidance and auto-memory
+Do not editorialize or add learnings of your own. If a proposal is internally inconsistent (e.g.
+destination file does not exist, or an edit is ambiguous), flag it inline as needing attention —
+but still present it; the user decides.
 
-For every surviving candidate, before proposing anything, classify it against what already exists:
+### 3. Verify destinations before offering to apply
 
-- **New** — not present anywhere; propose adding to the right git-tracked destination.
-- **Duplicate of committed guidance** — already covered in a git-tracked file; do not re-add. If it
-  is *also* sitting in auto-memory, propose trimming the auto-memory copy.
-- **Contradicts committed guidance** — propose a replacement edit at the source (fix the existing
-  line/section), not an addition.
-- **Refines committed guidance** — propose a tightening/reword of the existing text.
+For each proposed edit, quickly confirm the destination is writable and appropriate:
 
-Separately, sweep the auto-memory store itself:
+- Project files: `git ls-files --error-unmatch <path>` (must be tracked).
+- Global files under `~/.claude`: confirm the real path exists (these are symlinked from the
+  user's dotfiles; edit the real file, never write through a symlink if that fails).
+- If a destination fails verification, mark that proposal as **not applicable** with the reason.
 
-- **Migrate durable content out of auto-memory into git-tracked files** wherever it belongs there,
-  then remove it from auto-memory (and update `MEMORY.md`). Move as much as reasonably can live in
-  committed guidance.
-- **Remove duplicates**: any auto-memory entry already covered by a committed file should be deleted
-  from auto-memory, with `MEMORY.md` updated to drop the pointer.
-- **Fix inaccuracies**: if committed guidance contains stale or wrong information the session
-  disproved, propose correcting it at the source.
+### 4. Ask for approval
 
-### 5. Choose destinations
+Call `AskUserQuestion`. Offer at least:
 
-- `CLAUDE.md` / `AGENTS.md`: short, high-priority rules that should affect every session. Put
-  frequently forgotten rules earlier, or reword them to be direct and actionable.
-- `.claude/rules/`: scoped or file-type-specific rules.
-- Referenced docs (`docs/`, `README.md`): verbose troubleshooting, repo maps, debugging recipes,
-  detailed workflows — link from `CLAUDE.md`/`AGENTS.md` so they load lazily.
-- A skill: reusable multi-step procedural knowledge that should load on demand.
-- Keep always-loaded files lean: prefer moving bulk into a referenced doc over growing `CLAUDE.md`.
+- Apply all applicable proposals
+- Skip all
 
-### 6. Present the change list and ask for approval
+If proposals fall into independent groups (e.g. project-guidance edits vs. a global CLAUDE.md
+change vs. a new enforcement hook), offer a selectable choice per group so the user can approve a
+subset. Make no edit before approval.
 
-Print, in this order, before asking anything:
+### 5. Apply approved edits
 
-**## Proposed Updates** — one entry per change: file path, the category (add / replace / refine /
-migrate-out-of-auto-memory / trim-auto-memory-duplicate / fix-inaccuracy), and the one-line future benefit.
+- Apply only approved, applicable edits, exactly as the proposal specified. Keep them surgical.
+- For a **replace**, edit the existing text in place. For an **add**, insert at the natural spot,
+  matching surrounding style (e.g. this user keeps each sentence on its own line in markdown).
+- For **enforcement-hook** or **permissions** proposals, create/modify the hook script or
+  `settings.json` block as specified.
+- Preserve existing wording conventions and ordering unless reordering was part of the approval.
+- Do not stage or commit; leave the working tree dirty for the user's normal commit/PR flow.
 
-**## Exact Edits** — show the precise text change for each file, as a unified diff or a compact
-before/after snippet with enough surrounding context to be unambiguous. Do not describe edits only in
-prose. Show auto-memory trims/migrations as concrete deletions with the `MEMORY.md` pointer update.
+### 6. Record applied learnings in the ledger
 
-**## Skipped Candidates** — each dropped candidate and the one-line reason (one-off, not durable,
-already covered, ephemeral).
+For each edit actually applied, append one JSON line to `~/.claude/learning/ledger.jsonl`. Use a
+compact object with these fields:
 
-Then, in the same turn, call `AskUserQuestion` for approval. Offer at least:
+```
+{"date":"<YYYY-MM-DD>","session":"<session_id>","signature":"<short stable phrase describing the mistake>","type":"<behavioral|project-fact|procedure/skill|agent|enforcement-hook|permissions>","destination":"<path>","action":"<add|replace|refine>","recurred":<true|false>,"status":"active","project":"<project path>"}
+```
 
-- Apply all proposed updates
-- Skip all updates
+The `signature` is what the analysis reduce step matches future mistakes against to detect
+recurrence, so make it a stable, generalized description of the mistake — not a verbatim quote.
+Take the date from the environment context. If the ledger file or its directory does not exist,
+create it.
 
-If there are independent update groups (e.g. project-guidance edits vs. auto-memory cleanup), offer a
-separate selectable choice per group so the user can approve subsets. Make no edit before approval.
+### 7. Report
 
-### 7. Apply approved edits
-
-- Apply only the approved edits. Keep them small and surgical.
-- Preserve existing style, wording conventions, and ordering unless reordering was part of the approval.
-- Do not add backward-compatibility shims or new abstractions unless clearly useful.
-- Do not stage or commit; leave the working tree dirty for the user's normal `commit`/`pr` flow.
-
-### 8. Report
-
-End with: files changed, candidates skipped, auto-memory entries trimmed or migrated, and any
-approved edits that could not be applied (with the reason).
+End with: proposals applied, proposals skipped or rejected (with reason), any that were not
+applicable (with reason), and the ledger entries appended.

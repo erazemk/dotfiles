@@ -72,7 +72,9 @@ The PR title and description are already set; these commits are squashed on merg
 
 - title only, no body required
 - still use a valid prefix and imperative voice
-- skip the `AskUserQuestion` approval step — commit immediately
+- skip the `AskUserQuestion` approval step — create the commit immediately
+- do **not** push the follow-up commit automatically. Creating the commit and pushing it are separate steps: after committing, ask the user (via `AskUserQuestion`, `Yes`/`No`) whether to push the new commit(s) to the PR, and only run `git push` if they approve. This applies to every follow-up commit, including fixes made in response to review feedback.
+- never squash, rebase, amend, or force-push to tidy up branch history. The repo's enforced merge strategy squashes all commits into one on merge, so intermediate commits never reach `main` — a messy branch history is expected and requires no cleanup.
 
 ## Before committing (first commit only)
 

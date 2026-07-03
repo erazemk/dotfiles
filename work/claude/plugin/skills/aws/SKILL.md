@@ -1,10 +1,8 @@
 ---
 name: aws
-description: AWS CLI usage at DevRev — refresh expired SSO credentials automatically, and map an AirSync/Airdrop sync context to its S3 bucket and key prefix. Use when running any `aws` CLI command, especially `aws s3` against the airdrop data buckets.
+description: AWS CLI usage at DevRev. Use when running any `aws` CLI command, especially `aws s3` against the airdrop data buckets or when mapping sync contexts to S3 paths.
 user-invocable: false
 ---
-
-Use this skill whenever you run an `aws` CLI command on the user's behalf.
 
 ## SSO credentials
 

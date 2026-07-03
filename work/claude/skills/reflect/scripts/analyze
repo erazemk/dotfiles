@@ -1,0 +1,195 @@
+#!/usr/bin/env bash
+# reflect/analyze — shared transcript-analysis pipeline for the self-learning loop.
+#
+# Turns a Claude Code transcript into a set of reconciled, destination-tagged
+# learning PROPOSALS. It performs the reflection *reasoning* in independent
+# `claude -p --model haiku` processes with fresh context — the agent in the
+# conversation being analyzed never grades itself. This script edits NO config;
+# it only writes a proposals file that the `reflect` skill later applies (gated).
+#
+# Usage:
+#   analyze [TRANSCRIPT_PATH]
+#     TRANSCRIPT_PATH  Optional. A .jsonl transcript to analyze. If omitted,
+#                      resolves the current session's transcript for the working
+#                      directory (newest .jsonl in ~/.claude/projects/<slug>/).
+#
+# Output: writes ~/.claude/learning/proposals/<session_id>.md and prints its
+# path when durable learnings are found; otherwise prints nothing and exits 0.
+#
+# Pipeline: preprocess (strip noise) -> chunk (Haiku-sized, overlapping) ->
+#   MAP (haiku per chunk) -> REDUCE (haiku: merge/dedupe/reconcile vs guidance
+#   + ledger) -> proposals file.
+#
+# To retune, edit the constants below — there is intentionally no env-var config.
+
+set -uo pipefail
+
+MODEL=haiku          # model for both map and reduce stages
+MAXBYTES=350000      # ~100k tokens; chunk boundary
+OVERLAP=8            # lines of overlap between chunks
+TEXT_TRUNC=4000      # truncate each text/thinking block
+TOOL_TRUNC=800       # truncate tool_use input / tool_result
+
+LEARNING_DIR="$HOME/.claude/learning"
+PROPOSALS_DIR="$LEARNING_DIR/proposals"
+LEDGER="$LEARNING_DIR/ledger.jsonl"
+
+command -v jq  >/dev/null 2>&1 || { echo "analyze: jq not found" >&2; exit 1; }
+command -v claude >/dev/null 2>&1 || { echo "analyze: claude CLI not found; skipping" >&2; exit 0; }
+
+# --- 1. resolve transcript --------------------------------------------------
+transcript="${1:-}"
+if [ -z "$transcript" ]; then
+  slug="$(printf '%s' "$PWD" | sed 's/[^a-zA-Z0-9]/-/g')"
+  transcript="$(ls -t "$HOME/.claude/projects/$slug"/*.jsonl 2>/dev/null | head -1 || true)"
+fi
+[ -n "$transcript" ] && [ -f "$transcript" ] || { echo "analyze: no transcript to analyze" >&2; exit 0; }
+
+session_id="$(basename "$transcript" .jsonl)"
+project_cwd="$(jq -r 'select(.cwd) | .cwd' "$transcript" 2>/dev/null | head -1 || true)"
+[ -z "$project_cwd" ] && project_cwd="$PWD"
+
+work="$(mktemp -d)" || exit 1
+trap 'rm -rf "$work"' EXIT
+
+mkdir -p "$PROPOSALS_DIR"
+proposals_path="$PROPOSALS_DIR/$session_id.md"
+
+# --- 2. preprocess: transcript JSONL -> lean plain-text turns ---------------
+# Keep only user/assistant content that reveals what happened; drop attachments,
+# mode/permission records, snapshots, titles, and blobs. Truncate long blocks.
+jq -r --argjson tt "$TEXT_TRUNC" --argjson ot "$TOOL_TRUNC" '
+  select(.type=="user" or .type=="assistant")
+  | (.type | ascii_upcase) as $role
+  | .message.content as $c
+  | if ($c | type) == "string" then [ $role + ": " + $c[0:$tt] ]
+    elif ($c | type) == "array" then
+      [ $c[]? |
+          if .type=="text" then $role + ": " + (.text // "")[0:$tt]
+          elif .type=="thinking" then "THINKING: " + (.thinking // "")[0:$tt]
+          elif .type=="tool_use" then "TOOL_USE " + (.name // "?") + ": " + (.input | tostring)[0:$ot]
+          elif .type=="tool_result" then "TOOL_RESULT" + (if .is_error==true then "(ERROR)" else "" end) + ": " + (.content | tostring)[0:$ot]
+          else empty end ]
+    else [] end
+  | .[]
+' "$transcript" > "$work/clean.txt" 2>/dev/null || true
+
+[ -s "$work/clean.txt" ] || { echo "analyze: transcript produced no analyzable content" >&2; exit 0; }
+
+# --- 3. chunk into Haiku-sized, overlapping windows -------------------------
+awk -v max="$MAXBYTES" -v ov="$OVERLAP" -v dir="$work" '
+  { L[NR]=$0; B[NR]=length($0)+1; n=NR }
+  END {
+    ci=0; cb=0; f=sprintf("%s/chunk_%03d", dir, ci);
+    for (i=1; i<=n; i++) {
+      print L[i] > f; cb += B[i];
+      if (cb >= max && i < n) {
+        close(f); ci++; f=sprintf("%s/chunk_%03d", dir, ci); cb=0;
+        lo=i-ov+1; if (lo < 1) lo=1;
+        for (j=lo; j<=i; j++) { print L[j] > f; cb += B[j]; }
+      }
+    }
+    close(f);
+  }
+' "$work/clean.txt"
+
+# --- 4. MAP: one independent haiku pass per chunk ---------------------------
+MAP_PROMPT='You are auditing a Claude Code session transcript chunk to improve FUTURE sessions. You are an independent reviewer; you did not participate in this conversation. Identify concrete MISTAKES the assistant made and durable, reusable LEARNINGS worth encoding into config. Look for: user corrections of the assistant; instructions the assistant missed, forgot, or violated; wrong tool/command choices; repeated failed attempts, retries, or thrashing; non-obvious project facts the assistant had to discover the hard way; permission prompts or command failures that a config change would prevent.
+
+Ignore one-off status, ticket/PR chatter, timestamps, and anything trivially re-derivable. If the chunk contains nothing worth encoding, reply with exactly: NONE.
+
+Otherwise output a terse markdown bullet list. For each item: what went wrong or was learned, a short quote or reference as evidence, and (if obvious) the kind of fix — a behavioral rule, a project fact, a skill, an agent tweak, an enforcement hook, or a permission/setting change. Be specific and concise. Do not propose file edits yet.'
+
+for cf in "$work"/chunk_*; do
+  mf="$work/map_$(basename "$cf")"
+  if claude -p "$MAP_PROMPT" --model "$MODEL" < "$cf" > "$mf" 2>/dev/null; then
+    grep -qx 'NONE' "$mf" && rm -f "$mf"    # drop empty verdicts
+  else
+    echo "analyze: map stage failed on $(basename "$cf") (continuing)" >&2
+    rm -f "$mf"
+  fi
+done
+
+if ! ls "$work"/map_* >/dev/null 2>&1; then
+  echo "analyze: no candidate learnings found" >&2
+  rm -f "$proposals_path"
+  exit 0
+fi
+
+# --- 5. REDUCE: merge/dedupe/reconcile against guidance + ledger ------------
+reduce_in="$work/reduce_in.txt"
+{
+  echo "=== CANDIDATE LEARNINGS (from transcript chunks) ==="
+  cat "$work"/map_* ; echo
+
+  echo "=== GLOBAL GUIDANCE (~/.claude/CLAUDE.md) ==="
+  cat "$HOME/.claude/CLAUDE.md" 2>/dev/null || echo "(none)"
+  echo
+
+  echo "=== PROJECT GUIDANCE ($project_cwd) ==="
+  cat "$project_cwd/CLAUDE.md" 2>/dev/null || echo "(no project CLAUDE.md)"
+  if [ -d "$project_cwd/.claude/rules" ]; then
+    echo "--- .claude/rules ---"; cat "$project_cwd/.claude/rules"/* 2>/dev/null
+  fi
+  echo
+
+  echo "=== APPLIED-LEARNINGS LEDGER (prior fixes; check for recurrence) ==="
+  cat "$LEDGER" 2>/dev/null || echo "(empty)"
+} > "$reduce_in"
+
+REDUCE_PROMPT="You are consolidating candidate learnings from a Claude Code session into a final PROPOSALS list to improve future sessions. You are independent of the conversation. The input has four sections: CANDIDATE LEARNINGS, GLOBAL GUIDANCE, PROJECT GUIDANCE, and the APPLIED-LEARNINGS LEDGER.
+
+Do this:
+1. Merge and de-duplicate the candidates. Drop anything already covered by existing global or project guidance. Drop one-off, ephemeral, or trivially re-derivable items. Prefer a few high-value proposals over many.
+2. For each surviving learning, choose the RIGHT destination:
+   - global CLAUDE.md (~/.claude/CLAUDE.md): only for behavior that should apply across ALL projects.
+   - project CLAUDE.md or .claude/rules/: default for repo-specific behavior/facts (PREFER THIS over global).
+   - a skill: reusable multi-step procedures.
+   - a specific agent definition: when a subagent misbehaved.
+   - an enforcement hook (PreToolUse/PostToolUse): when the mistake is deterministically detectable and a rule alone would keep being forgotten.
+   - settings.json permissions: for repeated permission prompts/denials.
+   If a candidate contradicts existing guidance, propose REPLACING the existing text at its source, never appending a duplicate.
+3. RECURRENCE: if a learning matches something already in the ledger, the earlier fix did not work. Mark it RECURRED and escalate: reword the rule, move it earlier, or promote an advisory rule to an enforcement hook.
+4. Respect scope: prefer project-scoped; only propose global when the behavior is clearly cross-project OR the ledger shows it recurring across multiple projects.
+
+Never propose writing secrets. Destinations must be real files.
+
+If nothing survives, reply with exactly: NO_PROPOSALS
+
+Otherwise output EXACTLY this markdown structure:
+
+## Proposed learnings
+### 1. <one-line description of the mistake or learning>
+- type: <behavioral | project-fact | procedure/skill | agent | enforcement-hook | permissions>
+- destination: <file path> (<add | replace | refine>)
+- recurrence: <none | RECURRED: ledger match + escalation>
+- evidence: <short quote or reference from the transcript>
+- exact edit: <the precise text to add, or a before/after for a replacement>
+
+### 2. ...
+
+## Skipped
+- <candidate>: <one-line reason (one-off | already covered | ephemeral | low-confidence)>"
+
+reduce_out="$work/reduce_out.md"
+if ! claude -p "$REDUCE_PROMPT" --model "$MODEL" < "$reduce_in" > "$reduce_out" 2>/dev/null; then
+  echo "analyze: reduce stage failed" >&2
+  exit 1
+fi
+
+# --- 6. emit proposals (or nothing) -----------------------------------------
+if [ ! -s "$reduce_out" ] || grep -q 'NO_PROPOSALS' "$reduce_out"; then
+  echo "analyze: no durable learnings after reconciliation" >&2
+  rm -f "$proposals_path"
+  exit 0
+fi
+
+{
+  echo "# Reflection proposals — $session_id"
+  echo "transcript: $transcript"
+  echo "project: $project_cwd"
+  echo
+  cat "$reduce_out"
+} > "$proposals_path"
+
+echo "$proposals_path"

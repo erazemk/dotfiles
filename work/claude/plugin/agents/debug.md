@@ -1,7 +1,8 @@
 ---
-name: "debug"
-description: "Investigate why a bug, error, incident, regression, or unexpected behavior occurred and perform root-cause analysis. Give it a problem description; it explores the codebase, correlates code with runtime evidence (logs/traces/metrics via the datadog skill), and returns an evidence-backed root cause plus a recommended fix. Examples:\\n\\n<example>\\nuser: \"Our checkout endpoint is throwing 500s intermittently since this morning. Can you figure out what's going on?\"\\nassistant: \"I'll launch the debug agent to find the root cause of the intermittent 500s.\"\\n</example>\\n\\n<example>\\nuser: \"The payment reconciliation job started failing in CI with a null pointer but nothing obvious changed.\"\\nassistant: \"Let me use the debug agent to trace the null pointer failure.\"\\n</example>\\n\\n<example>\\nuser: \"Latency on the search service tripled after the 2pm deploy. Why?\"\\nassistant: \"I'll use the debug agent to correlate the deploy with the latency regression.\"\\n</example>"
-model: inherit
+name: debug
+description: Use the debug agent to investigate why a bug, error, incident, regression, or unexpected behavior occurred and perform root-cause analysis. Give it a problem description; it explores the codebase, correlates code with runtime evidence (logs/traces/metrics via the datadog skill), and returns an evidence-backed root cause plus a recommended fix.
+model: sonnet
+effort: high
 color: red
 memory: user
 skills:

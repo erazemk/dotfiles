@@ -1,6 +1,6 @@
 ---
 name: worktree
-description: Create a git worktree following a VS Code-style convention and switch the session into it. Branch <prefix>/<1-4-kebab-words>, worktree at <repo-root>.worktrees/<trimmed-branch>, branched fresh from the remote default branch. Use when asked to start/create/use a worktree, or via /worktree [branch] [instructions...]. The first word is the branch name; any words after it are instructions to carry out once inside the new worktree.
+description: Read this skill when the user asks to create, enter, switch into, or otherwise work with a git worktree — whether they type /worktree or describe the action in conversation. Creates a git worktree and switches the session into it.
 argument-hint: "[branch] [instructions...]"
 arguments: [branch]
 allowed-tools: Bash(git worktree:*), Bash(git fetch:*), Bash(git branch:*), Bash(git rev-parse:*), Bash(git show-ref:*), Bash(git symbolic-ref:*), EnterWorktree, AskUserQuestion
@@ -49,8 +49,11 @@ PLAN.md".
   `<prefix>` in-shell — you never substitute it by hand.
 - **Worktree path**: `<repo-root>.worktrees/<words>` — the current repo root path with
   `.worktrees/<words>` appended (the `<prefix>/` prefix is omitted from the path).
-- **Base ref**: branch fresh from the remote default branch (e.g. `origin/main`),
-  resolved dynamically so it works in any repo.
+- **Base ref**: always branch off the remote default branch (`origin/main`), and always
+  pull the latest `origin/main` first (the step 2 script's `git fetch origin` does this).
+  The default branch is resolved dynamically (via `origin/HEAD`) so it works in any repo.
+  The **only** exception is when the user explicitly asks to branch off a specific branch —
+  in that case fetch and branch off that branch instead.
 
 ## Step 1 — pick the branch words
 

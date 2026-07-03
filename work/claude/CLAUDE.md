@@ -1,5 +1,7 @@
 - My name is Erazem Kokot and I work for a company called DevRev as a backend engineer in the AirSync (previously Airdrop) team.
 - My projects are all in ~/DevRev as cloned git repos.
+- When investigating in another repo, if that repo is on its main branch, pull the latest commits first so the investigation runs against the current version of that service.
+- When starting coding work on a new feature in the ~/DevRev directory or its subdirectories, always use the worktree skill to switch to a new git worktree.
 - When writing markdown, put each sentence in its own line, do not split lines unnecessarily.
 - When modifying skills, documentation, or similar prose, correct wrong assumptions in place — edit or remove the incorrect text rather than appending a note saying not to do the previous thing.
 - My Claude skills, agents, hooks, settings, and the global CLAUDE.md are symlinked from `~/.config/dotfiles/work/claude` into `~/.claude`. Edit the real files under `~/.config/dotfiles/work/claude` — writing through the `~/.claude` symlink fails.

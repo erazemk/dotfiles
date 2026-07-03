@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# reflection — the single trigger for the self-learning loop.
+#
+# Thin dispatcher. Reads the hook JSON payload on stdin and branches on the
+# hook event. All real work lives in the reflect skill's bundled pipeline
+# (skills/reflect/scripts/analyze); this hook only decides WHICH transcript to
+# analyze and WHEN to offer applying the results.
+#
+#   SessionEnd   -> run `analyze <just-ended-transcript>` in the background.
+#   SessionStart -> if a proposals file exists for a prior session in this
+#                   project, tell the agent to invoke the reflect skill in
+#                   consume mode (present + gate + apply).
+#
+# Stays silent (exit 0, no output) whenever there is nothing to do.
+# To retune, edit the constants below — there is intentionally no env-var config.
+
+set -uo pipefail
+
+MIN_BYTES=20000        # skip trivial transcripts
+LEARNING_DIR="$HOME/.claude/learning"
+PROPOSALS_DIR="$LEARNING_DIR/proposals"
+ANALYZE="$HOME/.claude/skills/reflect/scripts/analyze"
+
+payload="$(cat)"
+event="$(printf '%s' "$payload" | jq -r '.hookEventName // empty')"
+cwd="$(printf '%s' "$payload" | jq -r '.cwd // empty')"; [ -z "$cwd" ] && cwd="$PWD"
+session_id="$(printf '%s' "$payload" | jq -r '.session_id // empty')"
+transcript="$(printf '%s' "$payload" | jq -r '.transcript_path // empty')"
+
+slug="$(printf '%s' "$cwd" | sed 's/[^a-zA-Z0-9]/-/g')"
+proj_dir="$HOME/.claude/projects/$slug"
+
+case "$event" in
+
+  SessionEnd)
+    if [ -z "$transcript" ] || [ ! -f "$transcript" ]; then
+      transcript="$(ls -t "$proj_dir"/*.jsonl 2>/dev/null | head -1 || true)"
+    fi
+    [ -n "$transcript" ] && [ -f "$transcript" ] || exit 0
+
+    size="$(wc -c < "$transcript" | tr -d ' ')"
+    [ "${size:-0}" -lt "$MIN_BYTES" ] && exit 0
+    [ -x "$ANALYZE" ] || exit 0
+
+    # Analyze in the background so session teardown is never blocked.
+    nohup "$ANALYZE" "$transcript" >/dev/null 2>&1 &
+    ;;
+
+  SessionStart)
+    # Only offer on a genuinely new session, not resume/clear/compact restarts.
+    [ "$(printf '%s' "$payload" | jq -r '.source // empty')" = "startup" ] || exit 0
+    [ -d "$PROPOSALS_DIR" ] || exit 0
+
+    # Most recent proposals file for a PRIOR session in this project.
+    proposals=""
+    while IFS= read -r t; do
+      base="$(basename "$t" .jsonl)"
+      [ "$base" = "$session_id" ] && continue
+      if [ -f "$PROPOSALS_DIR/$base.md" ]; then proposals="$PROPOSALS_DIR/$base.md"; break; fi
+    done < <(ls -t "$proj_dir"/*.jsonl 2>/dev/null || true)
+    [ -z "$proposals" ] && exit 0
+
+    # Only offer each proposals file once.
+    marker_dir="$LEARNING_DIR/.offered"
+    mkdir -p "$marker_dir"
+    marker="$marker_dir/$(basename "$proposals" .md)"
+    [ -f "$marker" ] && exit 0
+    : > "$marker"
+
+    ctx="A previous Claude Code session in this project produced reflection proposals — learnings that could improve future sessions.
+
+Proposals file: $proposals
+
+On your FIRST action this session, before anything else, invoke the reflect skill in CONSUME mode: read the proposals file above (do NOT re-run analysis), present its proposals to the user, and use its approval gate before applying anything. Set REFLECT_PROPOSALS=$proposals as context for that run.
+
+If the user is clearly mid-task and doesn't want to reflect now, offer to skip and proceed with their request."
+
+    jq -n --arg ctx "$ctx" '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $ctx}}'
+    ;;
+
+esac
+
+exit 0

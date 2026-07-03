@@ -1,6 +1,6 @@
 ---
 name: finish
-description: Finish feature work end-to-end — verify the build, create or resolve a DevRev issue, commit, push, open a PR, and move the issue to in_review. Use when the user explicitly runs /finish to wrap up the current changes.
+description: Finish feature work end-to-end — verify the build, create or resolve a DevRev issue, commit, push, open a PR, and move the issue to in_review. Use when the user explicitly runs /finish to wrap up the current changes or ask you to finish up the feature work.
 argument-hint: "[devrev-issue-url]"
 ---
 

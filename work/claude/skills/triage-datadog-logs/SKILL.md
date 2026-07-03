@@ -1,6 +1,6 @@
 ---
 name: triage-datadog-logs
-description: Triage the most common production errors for Erazem's services using the live Datadog dashboard, flag anomalies against a 7-day baseline, root-cause the top clusters against this repo's code, and produce a markdown report with proposed fixes. Use when asked to check/triage Datadog errors, review the dashboard, or investigate recent production errors for the airdrop loader/extractor services.
+description: Triage the most common production errors for Erazem's services using the live Datadog dashboard. Use when asked to check/triage Datadog errors, review the dashboard, or investigate recent production errors for the airdrop loader/extractor services.
 ---
 
 Run a structured triage of recent production errors for the services on the **"Erazem's Services"** Datadog dashboard (`q7p-88p-qds`). Output is a **markdown report only** — never create issues, post to Slack, or mutate anything unless the user explicitly asks in a follow-up.

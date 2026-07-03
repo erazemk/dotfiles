@@ -28,6 +28,7 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_NEW_INIT": "1",
     "CLAUDE_CODE_NO_FLICKER": "1",
+    "CLAUDE_CODE_SCROLL_SPEED": "0.25",
     "CLAUDE_CODE_USE_BEDROCK": "1",
     "DISABLE_ERROR_REPORTING": "1",
     "DISABLE_TELEMETRY": "1"
@@ -47,11 +48,47 @@
       }
     }
   },
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/reflection",
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/reflection",
+            "type": "command"
+          }
+        ],
+        "matcher": "startup"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/split",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  },
   "includeGitInstructions": false,
   "model": "sonnet",
   "outputStyle": "Explanatory",
   "permissions": {
-    "additionalDirectories": ["~/DevRev"],
+    "additionalDirectories": [
+      "~/DevRev"
+    ],
     "defaultMode": "auto"
   },
   "showThinkingSummaries": true,
@@ -61,5 +98,6 @@
     "type": "command"
   },
   "teammateMode": "in-process",
-  "theme": "auto"
+  "theme": "auto",
+  "wheelScrollAccelerationEnabled": false
 }
