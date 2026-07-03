@@ -5,3 +5,5 @@
 - When writing markdown, put each sentence in its own line, do not split lines unnecessarily.
 - When modifying skills, documentation, or similar prose, correct wrong assumptions in place — edit or remove the incorrect text rather than appending a note saying not to do the previous thing.
 - My Claude skills, agents, hooks, settings, and the global CLAUDE.md are symlinked from `~/.config/dotfiles/work/claude` into `~/.claude`. Edit the real files under `~/.config/dotfiles/work/claude` — writing through the `~/.claude` symlink fails.
+- When you apply a fix in response to a PR reviewer's comment, do not post a reply comment on that reviewer's comment thread.
+- Only resolve a review thread when I explicitly ask (see the `pr` skill's "Resolving review conversations" section), and never add a new comment there.

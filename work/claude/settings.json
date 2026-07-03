@@ -70,16 +70,6 @@
         ],
         "matcher": "startup"
       }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "command": "~/.claude/hooks/split",
-            "type": "command"
-          }
-        ]
-      }
     ]
   },
   "includeGitInstructions": false,
@@ -91,6 +81,7 @@
     ],
     "defaultMode": "auto"
   },
+  "plansDirectory": ".claude/plans",
   "showThinkingSummaries": true,
   "spinnerTipsEnabled": true,
   "statusLine": {
