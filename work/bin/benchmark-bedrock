@@ -1,0 +1,803 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "boto3>=1.34",
+#     "anthropic[bedrock]>=0.40",
+# ]
+# ///
+"""
+Bedrock Claude latency benchmark.
+
+Measures response latency for the latest Sonnet / Haiku / Opus / Fable models
+across three AWS regions (us-east-1, eu-central-1, eu-north-1) over TWO endpoint
+families:
+
+  * "direct"  -> standard AWS Bedrock runtime (boto3 bedrock-runtime), reached
+                 at https://bedrock-runtime.<region>.amazonaws.com
+  * "mantle"  -> Anthropic's Mantle gateway (native Messages API), reached at
+                 https://bedrock-mantle.<region>.api.aws/anthropic
+
+Both endpoints authenticate with the same AWS SSO credentials picked up from the
+standard credential chain (the AWS CLI's cached SSO token). No arguments, no
+bearer token, no manual dependency install:
+
+    uv run bedrock_latency_benchmark.py
+
+Prerequisite: a live SSO session (run `aws sso login` first if `aws sts
+get-caller-identity` fails).
+
+Every call uses the SAME fixed prompt and the SAME high-effort extended-thinking
+budget so cross-model / cross-region / cross-endpoint numbers are comparable.
+Availability is discovered empirically: a region/model/prefix combo that isn't
+reachable is recorded as an error rather than crashing the run.
+
+Output: live per-iteration progress, then a color-coded summary table -- one row
+per model, one column per combination, each cell the MEDIAN total response time
+(ms). For each model the fastest combination is green, the slowest is red.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import statistics
+import sys
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
+
+import boto3
+import botocore
+from anthropic import AnthropicBedrockMantle
+
+# --------------------------------------------------------------------------- #
+# Configuration -- edit here; the script takes no CLI arguments.
+# --------------------------------------------------------------------------- #
+
+REGIONS = ["us-east-1", "eu-central-1", "eu-north-1"]
+
+# Model families to test. The value is the family stem used two different ways:
+#
+#   * Mantle  -> bare native name  "anthropic.<family>"  (no prefix, no version),
+#                e.g. anthropic.claude-haiku-4-5
+#   * Direct  -> full prefixed + versioned inference-profile ID DISCOVERED at
+#                runtime via list-inference-profiles (e.g.
+#                eu.anthropic.claude-haiku-4-5-20251001-v1:0). The family stem is
+#                matched as a substring so we never hardcode a version and the
+#                matrix self-corrects as availability changes.
+#
+# Fable is included for forward-compatibility (currently needs a non-default data
+# retention mode, so it will typically record an error). sonnet-4-6 exists on the
+# direct endpoint but not on Mantle -- unavailable combos simply record an error.
+MODELS = {
+    "sonnet-5": "claude-sonnet-5",
+    "sonnet-4-6": "claude-sonnet-4-6",
+    "haiku": "claude-haiku-4-5",
+    "opus": "claude-opus-4-8",
+    "fable": "claude-fable-5",
+}
+
+
+def mantle_model_id(model_key: str) -> str:
+    """Bare native Anthropic name Mantle expects, e.g. anthropic.claude-haiku-4-5."""
+    return f"anthropic.{MODELS[model_key]}"
+
+
+# Extended-thinking scheme per model family. This is a property of the model
+# generation and is identical on both endpoints; only the request syntax differs.
+#
+#   "adaptive" -> thinking={"type":"adaptive"} plus output_config.effort. Required
+#                 by the newest models (sonnet-5, opus-4-8); they REJECT "enabled".
+#   "enabled"  -> thinking={"type":"enabled","budget_tokens":N}. Used by haiku-4-5,
+#                 which in turn REJECTS output_config.effort.
+#
+# sonnet-4-6 accepts both; we use adaptive for a consistent high-effort setting.
+# fable's scheme is unverified (currently blocked by data-retention); adaptive is
+# the safer default for a new model.
+THINKING_SCHEME = {
+    "sonnet-5": "adaptive",
+    "sonnet-4-6": "adaptive",
+    "haiku": "enabled",
+    "opus": "adaptive",
+    "fable": "adaptive",
+}
+EFFORT = "high"  # output_config.effort for adaptive-thinking models
+
+# Cross-region inference-profile prefixes that are legal per region.
+# A "us." profile is only invocable from a US region, "eu." only from EU
+# regions; "global." works everywhere. We test the geo-matched prefix plus
+# "global." so regional vs. global routing can be compared. Both the direct
+# and Mantle endpoints accept these prefixes (Claude Code drives Mantle with
+# "eu."-prefixed IDs in this environment).
+PREFIXES_BY_REGION = {
+    "us-east-1": ["us.", "global."],
+    "eu-central-1": ["eu.", "global."],
+    "eu-north-1": ["eu.", "global."],
+}
+
+ENDPOINTS = ["direct", "mantle"]
+
+# Mantle: the AnthropicBedrockMantle client derives the endpoint itself as
+# https://bedrock-mantle.{region}.api.aws/anthropic (same URL Claude Code uses)
+# and signs with SigV4 for the "bedrock-mantle" service, so we only pass region.
+
+# Identical payload for every single invocation. The prompt is MODERATE, not
+# maximally hard: a fully hard prompt drove high-effort thinking to 12000+ tokens
+# and 130-175s per call, which is too slow to sweep and prone to timeouts. This
+# problem is small enough to finish in roughly <=30s per iteration while still
+# opening with an explicit "think hard about the problem" nudge -- adaptive
+# models may automatically dial effort down for an easy prompt, but the nudge
+# plus a bit of genuine reasoning keeps some thinking engaged. The exact effort
+# is model-chosen; we care about response latency, not maximal thinking.
+PROMPT = (
+    "Think hard about the problem. A farmer has 100 animals made up of chickens, "
+    "cows, and pigs. Chickens have 2 legs, cows and pigs have 4 legs. There are "
+    "twice as many chickens as cows, and the total number of legs is 290. "
+    "Work out how many of each animal there are, show your reasoning step by "
+    "step, and verify the answer satisfies every constraint."
+)
+
+# Extended thinking, held constant across all models for a fair comparison.
+#   * adaptive models (sonnet-5, opus): effort=high (see EFFORT below)
+#   * budget models (haiku): THINKING_BUDGET tokens
+#
+# PRIMARY METRIC = TTFT (time to first token). Empirically, TOTAL wall time is
+# dominated by how many tokens the model chooses to emit, which varies with the
+# model and prompt, not the region/endpoint we are benchmarking. TTFT -- captured
+# before streaming begins -- isolates round-trip + queue + model spin-up, is
+# immune to output-length variance, and stays stable even under concurrency. We
+# rank the summary on median TTFT and keep total time as a reference figure.
+#
+# MAX_TOKENS is a safety ceiling so a call cannot stream indefinitely; hitting it
+# (stop_reason=max_tokens) is fine and does not affect the TTFT metric. Sized so
+# the moderate prompt finishes naturally (~20-40s/iteration): the hardest model
+# on this prompt used ~3500 thinking + ~500 answer tokens, so 6000 leaves room.
+MAX_TOKENS = 6000         # ceiling only; TTFT is the metric, so length barely matters
+THINKING_BUDGET = 4000    # haiku's explicit budget; < MAX_TOKENS so answer has room
+
+# Network timeout -- generous headroom, not a hard cutoff. The moderate prompt
+# runs ~20-40s/iteration, so ~90s comfortably covers a slow call without letting
+# a genuinely stuck request hang forever.
+READ_TIMEOUT = 90  # seconds
+
+# Sampling.
+WARMUP = 1            # discarded per scenario (avoids cold-start / JIT skew)
+ITERATIONS = 5        # measured invocations per scenario
+SLEEP_BETWEEN = 2.0   # seconds between calls WITHIN one combination (serial)
+
+# Concurrency: each combination is a unit of work run in its own thread; the
+# ITERATIONS within a combination stay serial (they share SLEEP_BETWEEN pacing
+# and measure steady-state latency, not contention). Requests are I/O-bound
+# (network waits), so threads parallelize them well despite the GIL.
+#
+# Worker count is derived from the CPU rather than fixed: os.process_cpu_count()
+# (Python 3.13+) honors CPU affinity/cgroup limits; os.cpu_count() is the
+# fallback. We never spawn more threads than there are combinations to run.
+def _cpu_workers() -> int:
+    n = getattr(os, "process_cpu_count", None)
+    count = n() if n else os.cpu_count()
+    return max(1, count or 1)
+
+
+MAX_WORKERS = _cpu_workers()
+
+
+# --------------------------------------------------------------------------- #
+# ANSI colors
+# --------------------------------------------------------------------------- #
+
+_COLOR = os.environ.get("NO_COLOR") is None
+GREEN = "\033[92m" if _COLOR else ""
+RED = "\033[91m" if _COLOR else ""
+DIM = "\033[2m" if _COLOR else ""
+BOLD = "\033[1m" if _COLOR else ""
+RESET = "\033[0m" if _COLOR else ""
+
+
+# --------------------------------------------------------------------------- #
+# Scenario matrix
+# --------------------------------------------------------------------------- #
+
+@dataclass(frozen=True)
+class Scenario:
+    endpoint: str      # "direct" | "mantle"
+    region: str
+    model_key: str     # key of MODELS
+    prefix: str        # direct: "us."/"eu."/"global."; mantle: "" (no prefix)
+    model_id: str      # exact ID to send to the API for this endpoint
+
+    @property
+    def combo(self) -> tuple[str, str, str]:
+        # Column identity in the summary table. Mantle has no prefix dimension.
+        return (self.endpoint, self.region, self.prefix)
+
+    @property
+    def label(self) -> str:
+        p = f"/{self.prefix.rstrip('.')}" if self.prefix else ""
+        return f"{self.endpoint}/{self.region}/{self.model_key}{p}"
+
+
+def discover_direct_profiles(region: str) -> dict[str, list[tuple[str, str]]]:
+    """Return {model_key: [(prefix, full_model_id), ...]} for the DIRECT endpoint.
+
+    Queries Bedrock's inference profiles and matches each configured family by
+    substring, keeping only the prefixes we care about (per PREFIXES_BY_REGION).
+    Resolves versioned IDs (e.g. haiku's -20251001-v1:0) and skips
+    families/prefixes that don't exist in the region. The stem must be followed
+    by a non-digit so "claude-sonnet-5" does not also match "claude-sonnet-5x".
+    """
+    client = boto3.client("bedrock", region_name=region)
+    profile_ids: list[str] = []
+    paginator = client.get_paginator("list_inference_profiles")
+    for page in paginator.paginate():
+        for p in page.get("inferenceProfileSummaries", []):
+            profile_ids.append(p["inferenceProfileId"])
+
+    wanted_prefixes = PREFIXES_BY_REGION[region]
+    found: dict[str, list[tuple[str, str]]] = {k: [] for k in MODELS}
+    for model_key, stem in MODELS.items():
+        for pid in profile_ids:
+            for prefix in wanted_prefixes:
+                if not pid.startswith(prefix):
+                    continue
+                rest = pid[len(prefix):]  # strip prefix before matching stem
+                needle = f"anthropic.{stem}"
+                if rest.startswith(needle):
+                    # The tail must be empty (bare, e.g. ...claude-sonnet-5) or a
+                    # version suffix starting with "-" (e.g. -20251001-v1:0). This
+                    # keeps "claude-sonnet-5" from matching "claude-sonnet-5x" and
+                    # keeps distinct families (sonnet-5 vs sonnet-4-6) separate.
+                    tail = rest[len(needle):]
+                    if tail == "" or tail.startswith("-"):
+                        found[model_key].append((prefix, pid))
+    return found
+
+
+def mantle_regions_available() -> list[str]:
+    """Regions where the Mantle gateway actually serves this account.
+
+    Mantle is not offered in every region (on this account only us-east-1 works;
+    eu-central-1 / eu-north-1 return 404 for every model). We probe once per
+    region with a tiny 1-token call so unavailable regions are dropped entirely
+    instead of producing a wall of per-model 404s -- and so the set self-corrects
+    if Mantle is later enabled elsewhere.
+    """
+    available: list[str] = []
+    for region in REGIONS:
+        client = _mantle_client(region)
+        try:
+            client.messages.create(
+                model=mantle_model_id("haiku"),
+                max_tokens=1,
+                messages=[{"role": "user", "content": "ping"}],
+            )
+            available.append(region)
+            print(f"  mantle {region:14} -> available")
+        except Exception as exc:  # noqa: BLE001
+            kind, msg = classify(exc)
+            if kind == "unavailable":
+                print(f"  {DIM}mantle {region:14} -> not served (skipping){RESET}")
+            else:
+                # A non-availability error (throttle, etc.): keep the region so
+                # the real error is visible per scenario rather than hidden.
+                available.append(region)
+                print(f"  mantle {region:14} -> probe error, keeping ({msg})")
+    return available
+
+
+def build_scenarios(
+    direct_profiles: dict[str, dict], mantle_regions: list[str]
+) -> list[Scenario]:
+    scenarios: list[Scenario] = []
+    for model_key in MODELS:
+        # Direct: one scenario per discovered (prefix, versioned-id) per region.
+        for region in REGIONS:
+            for prefix, model_id in direct_profiles[region][model_key]:
+                scenarios.append(
+                    Scenario("direct", region, model_key, prefix, model_id)
+                )
+        # Mantle: no prefix dimension; one scenario per SERVED region.
+        for region in mantle_regions:
+            scenarios.append(
+                Scenario("mantle", region, model_key, "", mantle_model_id(model_key))
+            )
+    return scenarios
+
+
+def all_combos() -> list[tuple[str, str, str]]:
+    """Deterministic ordered list of (endpoint, region, prefix) summary columns.
+
+    Direct columns carry a prefix; Mantle columns have none.
+    """
+    combos: list[tuple[str, str, str]] = []
+    for region in REGIONS:
+        for prefix in PREFIXES_BY_REGION[region]:
+            combos.append(("direct", region, prefix))
+    for region in REGIONS:
+        combos.append(("mantle", region, ""))
+    return combos
+
+
+# --------------------------------------------------------------------------- #
+# Measurement result
+# --------------------------------------------------------------------------- #
+
+@dataclass
+class Measurement:
+    scenario: Scenario
+    iteration: int
+    ok: bool
+    ttft_ms: float | None = None      # time to first streamed chunk
+    total_ms: float | None = None     # end-to-end wall time
+    output_tokens: int | None = None
+    tokens_per_s: float | None = None
+    error: str | None = None
+    # "unavailable" = combo simply not offered (404 / no access) -> expected,
+    # rendered as a blank cell. "error" = unexpected failure (throttle, bad
+    # request, timeout) -> surfaced loudly with the raw message.
+    kind: str | None = None
+    # stop_reason == "max_tokens" means the response hit the token cap before the
+    # model finished -> the latency is "time to ceiling", not time to answer, so
+    # it is flagged rather than trusted as a clean measurement.
+    stop_reason: str | None = None
+
+
+# --------------------------------------------------------------------------- #
+# Client caches -- one client per (endpoint, region), reused across iterations
+# so connection setup is not re-measured on every call. Guarded by a lock
+# because combinations run on multiple threads and may create the same client
+# concurrently. boto3 clients and the anthropic client are themselves
+# thread-safe for concurrent requests once constructed.
+# --------------------------------------------------------------------------- #
+
+_direct_clients: dict[str, object] = {}
+_mantle_clients: dict[str, AnthropicBedrockMantle] = {}
+_clients_lock = threading.Lock()
+
+
+def _direct_client(region: str):
+    with _clients_lock:
+        if region not in _direct_clients:
+            cfg = botocore.config.Config(
+                # High-effort calls legitimately run 130-175s; 120s was too low
+                # and truncated ~20% of runs mid-stream as read timeouts.
+                read_timeout=READ_TIMEOUT,
+                connect_timeout=15,
+                retries={"max_attempts": 0},  # do not let retries pollute latency
+                max_pool_connections=MAX_WORKERS,  # avoid connection-pool waits
+            )
+            _direct_clients[region] = boto3.client(
+                "bedrock-runtime", region_name=region, config=cfg
+            )
+        return _direct_clients[region]
+
+
+def _mantle_client(region: str) -> AnthropicBedrockMantle:
+    with _clients_lock:
+        if region not in _mantle_clients:
+            # AnthropicBedrockMantle talks the native Messages API to the Mantle
+            # gateway (bedrock-mantle.<region>.api.aws/anthropic) and signs with
+            # SigV4 from the standard AWS credential chain (our SSO creds). It
+            # derives the endpoint from aws_region, so nothing else is needed.
+            _mantle_clients[region] = AnthropicBedrockMantle(
+                aws_region=region,
+                timeout=float(READ_TIMEOUT),
+                max_retries=0,
+            )
+        return _mantle_clients[region]
+
+
+# --------------------------------------------------------------------------- #
+# Invokers -- both stream so TTFT can be separated from total latency.
+# --------------------------------------------------------------------------- #
+
+def invoke_direct(scenario: Scenario) -> Measurement:
+    client = _direct_client(scenario.region)
+    payload = {
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": MAX_TOKENS,
+        "messages": [{"role": "user", "content": PROMPT}],
+    }
+    if THINKING_SCHEME[scenario.model_key] == "adaptive":
+        payload["thinking"] = {"type": "adaptive"}
+        payload["output_config"] = {"effort": EFFORT}
+    else:  # "enabled"
+        payload["thinking"] = {"type": "enabled", "budget_tokens": THINKING_BUDGET}
+    body = json.dumps(payload)
+
+    start = time.perf_counter()
+    ttft: float | None = None
+    output_tokens: int | None = None
+    stop_reason: str | None = None
+
+    resp = client.invoke_model_with_response_stream(
+        modelId=scenario.model_id, body=body
+    )
+    for event in resp["body"]:
+        if ttft is None:
+            ttft = time.perf_counter()
+        chunk = json.loads(event["chunk"]["bytes"])
+        # Final usage arrives on the message_delta / message_stop events.
+        usage = chunk.get("usage") or (chunk.get("message", {}) or {}).get("usage")
+        if usage and usage.get("output_tokens") is not None:
+            output_tokens = usage["output_tokens"]
+        # stop_reason arrives on the message_delta event.
+        delta = chunk.get("delta") or {}
+        if delta.get("stop_reason"):
+            stop_reason = delta["stop_reason"]
+    end = time.perf_counter()
+
+    return _finish(scenario, start, ttft, end, output_tokens, stop_reason)
+
+
+def invoke_mantle(scenario: Scenario) -> Measurement:
+    client = _mantle_client(scenario.region)
+
+    start = time.perf_counter()
+    ttft: float | None = None
+    output_tokens: int | None = None
+
+    kwargs: dict = {
+        "model": scenario.model_id,
+        "max_tokens": MAX_TOKENS,
+        "messages": [{"role": "user", "content": PROMPT}],
+    }
+    if THINKING_SCHEME[scenario.model_key] == "adaptive":
+        kwargs["thinking"] = {"type": "adaptive"}
+        # output_config is not a named SDK param; pass it through the raw body.
+        kwargs["extra_body"] = {"output_config": {"effort": EFFORT}}
+    else:  # "enabled"
+        kwargs["thinking"] = {"type": "enabled", "budget_tokens": THINKING_BUDGET}
+
+    stop_reason: str | None = None
+    with client.messages.stream(**kwargs) as stream:
+        for _ in stream:
+            if ttft is None:
+                ttft = time.perf_counter()
+        final = stream.get_final_message()
+        if final and final.usage:
+            output_tokens = final.usage.output_tokens
+        if final:
+            stop_reason = final.stop_reason
+    end = time.perf_counter()
+
+    return _finish(scenario, start, ttft, end, output_tokens, stop_reason)
+
+
+def _finish(scenario, start, ttft, end, output_tokens, stop_reason) -> Measurement:
+    total_ms = (end - start) * 1000
+    ttft_ms = (ttft - start) * 1000 if ttft is not None else None
+    tok_s = None
+    if output_tokens and ttft is not None and end > ttft:
+        tok_s = output_tokens / (end - ttft)
+    return Measurement(
+        scenario=scenario,
+        iteration=-1,  # set by caller
+        ok=True,
+        ttft_ms=ttft_ms,
+        total_ms=total_ms,
+        output_tokens=output_tokens,
+        tokens_per_s=tok_s,
+        stop_reason=stop_reason,
+    )
+
+
+INVOKERS = {"direct": invoke_direct, "mantle": invoke_mantle}
+
+
+# --------------------------------------------------------------------------- #
+# Runner
+# --------------------------------------------------------------------------- #
+
+def run_scenario(scenario: Scenario) -> tuple[list[Measurement], list[str]]:
+    """Run one combination's warmup + iterations.
+
+    Runs synchronously (it is the unit of parallelism -- many of these run
+    concurrently). All output is buffered into a list of lines and returned
+    rather than printed, so the caller can emit each combination's block
+    atomically without interleaving with other concurrent combinations. The
+    first buffered line (the header) is bold to mark where each block starts.
+    No index is shown: combinations complete in nondeterministic order, so a
+    running counter would not correspond to any meaningful sequence.
+    """
+    invoke = INVOKERS[scenario.endpoint]
+    results: list[Measurement] = []
+    lines: list[str] = [
+        f"{BOLD}{scenario.label}  ({scenario.model_id}){RESET}"
+    ]
+
+    # Warmup (discarded). Only a genuine "unavailable" (404 / no access) should
+    # abort the whole combination -- that means the combo simply isn't offered.
+    # A transient "error" here (timeout, 5xx) must NOT discard the measured
+    # iterations: a single unlucky warmup previously wiped out all 5 real samples
+    # for otherwise-healthy combos. So on a transient error we note it and fall
+    # through to the measured iterations anyway.
+    for _ in range(WARMUP):
+        try:
+            invoke(scenario)
+        except Exception as exc:  # noqa: BLE001
+            kind, msg = classify(exc)
+            if kind == "unavailable":
+                m = Measurement(scenario, iteration=0, ok=False, error=msg, kind=kind)
+                lines.append(f"  {DIM}∅ not available ({msg}){RESET}")
+                return [m], lines
+            lines.append(f"  {DIM}(warmup error, continuing: {msg}){RESET}")
+            break  # don't burn more warmups; go straight to measured iterations
+        time.sleep(SLEEP_BETWEEN)
+
+    for i in range(1, ITERATIONS + 1):
+        try:
+            m = invoke(scenario)
+            m.iteration = i
+            tps = f" tok/s={m.tokens_per_s:.1f}" if m.tokens_per_s else ""
+            # end_turn = finished before the cap (did less work); note it dimly.
+            early = (f" {DIM}[{m.stop_reason}]{RESET}"
+                     if m.stop_reason and m.stop_reason != "max_tokens" else "")
+            lines.append(
+                f"  {GREEN}✓{RESET} [{i}/{ITERATIONS}] "
+                f"ttft={m.ttft_ms:.0f}ms total={m.total_ms:.0f}ms "
+                f"out={m.output_tokens}{tps}{early}"
+            )
+        except Exception as exc:  # noqa: BLE001
+            kind, msg = classify(exc)
+            m = Measurement(scenario, iteration=i, ok=False, error=msg, kind=kind)
+            if kind == "unavailable":
+                lines.append(f"  {DIM}∅ [{i}/{ITERATIONS}]: not available{RESET}")
+            else:
+                lines.append(f"  {RED}✗ [{i}/{ITERATIONS}]: {msg}{RESET}")
+        results.append(m)
+        time.sleep(SLEEP_BETWEEN)
+
+    return results, lines
+
+
+def classify(exc: Exception) -> tuple[str, str]:
+    """Return (kind, message) for a failed invocation.
+
+    kind == "unavailable": the model/region/prefix combination is simply not
+    offered on this endpoint (HTTP 404 / "does not exist" / access-denied /
+    data-retention not enabled). These are expected discovery results and are
+    shown as blank cells, not errors.
+
+    kind == "error": an unexpected failure (throttling, malformed request,
+    timeout, anything else). These stay loud with the raw message so the user
+    sees exactly what the script did not handle.
+    """
+    code = ""
+    message = ""
+    status = None
+
+    if isinstance(exc, botocore.exceptions.ClientError):
+        err = exc.response.get("Error", {})
+        code = err.get("Code", "ClientError")
+        message = err.get("Message", str(exc))
+        status = exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+    else:
+        code = type(exc).__name__
+        message = str(exc)
+        status = getattr(exc, "status_code", None)
+
+    lowered = message.lower()
+    unavailable_markers = (
+        "does not exist",
+        "not found",
+        "invalid model identifier",
+        "provided model identifier is invalid",
+        "data retention",
+        "don't have access",
+        "you do not have access",
+        "not authorized",
+    )
+    is_unavailable = (
+        status in (403, 404)
+        or code in ("NotFoundError", "AccessDeniedException", "ResourceNotFoundException")
+        or any(m in lowered for m in unavailable_markers)
+    )
+    kind = "unavailable" if is_unavailable else "error"
+    return kind, f"{code}: {message[:180]}"
+
+
+# --------------------------------------------------------------------------- #
+# Reporting -- color-coded table: rows = models, columns = combinations,
+# cells = median total latency (ms), green = fastest per model, red = slowest.
+# --------------------------------------------------------------------------- #
+
+_EP_AB = {"direct": "D", "mantle": "M"}
+_REG_AB = {"us-east-1": "US1", "eu-central-1": "EUC", "eu-north-1": "EUN"}
+
+
+def _combo_header(combo: tuple[str, str, str]) -> str:
+    endpoint, region, prefix = combo
+    if prefix:  # direct: include the routing prefix
+        return f"{_EP_AB[endpoint]}-{_REG_AB[region]}-{prefix.rstrip('.')}"
+    return f"{_EP_AB[endpoint]}-{_REG_AB[region]}"  # mantle: no prefix dimension
+
+
+def _cell(text: str, width: int, color: str = "") -> str:
+    s = text.rjust(width)
+    return f"{color}{s}{RESET}" if color else s
+
+
+def _medians(measurements: list[Measurement], attr: str) -> dict[tuple[str, tuple], float]:
+    """Median of `attr` per (model_key, combo) over successful measurements."""
+    buckets: dict[tuple[str, tuple], list[float]] = {}
+    for m in measurements:
+        if not m.ok:
+            continue
+        v = getattr(m, attr)
+        if v is None:
+            continue
+        buckets.setdefault((m.scenario.model_key, m.scenario.combo), []).append(v)
+    return {k: statistics.median(v) for k, v in buckets.items()}
+
+
+def _counts(measurements: list[Measurement]) -> dict[tuple[str, tuple], int]:
+    """Number of successful samples per (model_key, combo)."""
+    counts: dict[tuple[str, tuple], int] = {}
+    for m in measurements:
+        if m.ok:
+            key = (m.scenario.model_key, m.scenario.combo)
+            counts[key] = counts.get(key, 0) + 1
+    return counts
+
+
+def _print_table(title: str, medians: dict, counts: dict) -> None:
+    """Render one color-coded table: rows = models, cols = combos, green =
+    fastest per model, red = slowest. Cells backed by a single sample are dimmed
+    and marked with '?' since one measurement is not a reliable median."""
+    combos = all_combos()
+    headers = [_combo_header(c) for c in combos]
+    col_w = max(8, max(len(h) for h in headers))
+    model_w = max(6, max(len(k) for k in MODELS))
+
+    width = model_w + 3 + len(combos) * (col_w + 1)
+    print("\n" + "=" * width)
+    print(f"{BOLD}{title}{RESET}  "
+          f"{GREEN}■ fastest per model{RESET}  {RED}■ slowest per model{RESET}")
+    print("=" * width)
+
+    line = " " * model_w + " |"
+    for h in headers:
+        line += " " + h.rjust(col_w)
+    print(line)
+    print("-" * len(line))
+
+    for model_key in MODELS:
+        row_vals = {c: medians.get((model_key, c)) for c in combos}
+        present = {c: v for c, v in row_vals.items() if v is not None}
+        fastest = min(present, key=present.get) if present else None
+        slowest = max(present, key=present.get) if present else None
+
+        line = f"{model_key.ljust(model_w)} |"
+        for c in combos:
+            v = row_vals[c]
+            if v is None:
+                line += " " + _cell("—", col_w, DIM)
+                continue
+            n = counts.get((model_key, c), 0)
+            text = f"{v:.0f}?" if n < 2 else f"{v:.0f}"  # '?' = single sample
+            color = ""
+            if n < 2:
+                color = DIM  # unreliable: don't rank a 1-sample cell green/red
+            elif c == fastest and len(present) > 1:
+                color = GREEN
+            elif c == slowest and len(present) > 1:
+                color = RED
+            elif c == fastest:
+                color = GREEN
+            line += " " + _cell(text, col_w, color)
+        print(line)
+
+    print("-" * len(line))
+    print(f"{DIM}legend:{RESET} "
+          "D=direct M=mantle | US1=us-east-1 EUC=eu-central-1 EUN=eu-north-1 | "
+          "prefix us/eu/global | "
+          f"{DIM}? = single sample (unreliable) | — = not offered / no data{RESET}")
+
+
+def report(measurements: list[Measurement]) -> None:
+    ttft = _medians(measurements, "ttft_ms")
+    total = _medians(measurements, "total_ms")
+    counts = _counts(measurements)
+
+    # PRIMARY: TTFT isolates region/endpoint responsiveness (see design note).
+    _print_table("MEDIAN TIME TO FIRST TOKEN (ms) -- PRIMARY", ttft, counts)
+
+    # Per-model fastest callout, on TTFT.
+    print()
+    combos = all_combos()
+    for model_key in MODELS:
+        present = {c: ttft[(model_key, c)] for c in combos if (model_key, c) in ttft}
+        if not present:
+            print(f"  {model_key}: {DIM}no reachable combination{RESET}")
+            continue
+        best = min(present, key=present.get)
+        print(f"  {model_key}: fastest TTFT = {GREEN}{_combo_header(best)}{RESET} "
+              f"({present[best]:.0f} ms)")
+
+    # SECONDARY: total wall time, for reference. Confounded by model-chosen output
+    # length, so it is shown but not the basis for the fastest callout.
+    _print_table("MEDIAN TOTAL RESPONSE TIME (ms) -- reference, confounded by "
+                 "output length", total, counts)
+
+    # Metric explanation.
+    ok = [m for m in measurements if m.ok]
+    print(f"\n{DIM}Primary metric = median TTFT (time to first token): round-trip "
+          f"+ queue + model spin-up, independent of how many tokens the model "
+          f"emits. Total time is model-verbosity-dominated and shown only for "
+          f"reference. {len(ok)} successful calls; effort={EFFORT}, "
+          f"max_tokens={MAX_TOKENS}.{RESET}")
+
+    # Unexpected errors (kind == "error") -- the script did NOT handle these, so
+    # surface them loudly and distinctly from the quietly-skipped "unavailable".
+    errors = [m for m in measurements if not m.ok and m.kind == "error"]
+    if errors:
+        by_combo: dict[str, list[str]] = {}
+        for m in errors:
+            by_combo.setdefault(m.scenario.label, []).append(m.error or "")
+        print(f"\n{RED}{BOLD}UNHANDLED ERRORS ({len(errors)} across "
+              f"{len(by_combo)} combos){RESET}")
+        for label in sorted(by_combo):
+            msgs = by_combo[label]
+            print(f"  {RED}✗{RESET} {label} (x{len(msgs)}): {msgs[0]}")
+
+
+# --------------------------------------------------------------------------- #
+# Main
+# --------------------------------------------------------------------------- #
+
+def preflight() -> None:
+    try:
+        ident = boto3.client("sts").get_caller_identity()
+        print(f"AWS identity: {ident['Arn']}")
+    except Exception as exc:  # noqa: BLE001
+        print("ERROR: no valid AWS credentials. Run `aws sso login` first.")
+        print(f"  ({classify(exc)[1]})")
+        sys.exit(1)
+
+
+def main() -> None:
+    preflight()
+
+    print("\nDiscovering direct-endpoint inference profiles per region...")
+    direct_profiles: dict[str, dict] = {}
+    for region in REGIONS:
+        direct_profiles[region] = discover_direct_profiles(region)
+        for model_key in MODELS:
+            prefixes = [p.rstrip(".") for p, _ in direct_profiles[region][model_key]]
+            status = ", ".join(prefixes) if prefixes else f"{DIM}none{RESET}"
+            print(f"  {region:14} {model_key:10} -> {status}")
+    print(f"{DIM}(Mantle uses bare names 'anthropic.<family>'; probing regions "
+          f"below.){RESET}")
+
+    print("\nProbing Mantle availability per region...")
+    mantle_regions = mantle_regions_available()
+
+    scenarios = build_scenarios(direct_profiles, mantle_regions)
+    total = len(scenarios)
+    workers = max(1, min(MAX_WORKERS, total))  # never more threads than scenarios
+    print(
+        f"\nRunning {total} scenarios "
+        f"({WARMUP} warmup + {ITERATIONS} measured each) "
+        f"across {workers} parallel workers ({MAX_WORKERS} CPU threads available), "
+        f"effort={EFFORT}, thinking budget={THINKING_BUDGET}, max_tokens={MAX_TOKENS}\n"
+    )
+
+    # Each combination runs in its own thread; its output is buffered and printed
+    # as one atomic block on completion, so concurrent combinations never
+    # interleave. Completion order is nondeterministic (by design).
+    all_measurements: list[Measurement] = []
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(run_scenario, sc): sc for sc in scenarios}
+        for fut in as_completed(futures):
+            measurements, lines = fut.result()
+            all_measurements.extend(measurements)
+            print("\n".join(lines))
+
+    report(all_measurements)
+
+
+if __name__ == "__main__":
+    main()
