@@ -5,7 +5,7 @@
     "commit": "",
     "pr": ""
   },
-  "awsAuthRefresh": "aws sso login",
+  "awsAuthRefresh": "aws sso login --profile claude",
   "enabledPlugins": {
     "airsync@erazemk": true,
     "claude-code-setup@claude-plugins-official": true,
