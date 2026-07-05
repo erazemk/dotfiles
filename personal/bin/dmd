@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# DMD - Download Markdown
+# Usage: dmd [-f] -o <output_file> <url>
+
+set -euo pipefail
+
+output_file=""
+url=""
+
+force=0
+
+while getopts "fo:" opt; do
+  case $opt in
+    f) force=1 ;;
+    o) output_file="$OPTARG" ;;
+    \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
+  esac
+done
+
+shift $((OPTIND-1))
+url="${1:-}"
+
+if [ -z "$output_file" ] || [ -z "$url" ]; then
+  echo "Usage: dmd [-f] -o <output_file> <url>" >&2
+  exit 1
+fi
+
+if [ -e "$output_file" ] && [ "$force" -eq 0 ]; then
+  echo "Error: output file '$output_file' already exists. Use -f to overwrite." >&2
+  exit 1
+fi
+
+token="$(security find-generic-password -a minibase -s minibase -w)"
+body="$(jq -nc --arg url "$url" '{url:$url}')"
+
+curl -fsSL -X POST https://api.savemarkdown.co/v1/convert \
+  -H "Authorization: Bearer ${token}" \
+  -H "Content-Type: application/json" \
+  -d "$body" \
+  | jq -r '.markdown' > "$output_file"
