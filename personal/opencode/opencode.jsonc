@@ -1,8 +1,25 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "autoupdate": true,
   "experimental": {
     "disable_paste_summary": true,
   },
-  "lsp": {},
-  "formatter": {},
+  "formatter": true,
+  "lsp": true,
+  "server": {
+    "mdns": true,
+  },
+  "model": "opencode-go/minimax-m3",
+  "small_model": "opencode-go/mimo-v2.5",
+  "agent": {
+    "oracle": {
+      "model": "opencode-go/glm-5.2"
+    },
+    "explore": {
+      "model": "opencode-go/mimo-v2.5"
+    },
+    "scout": {
+      "model": "opencode-go/mimo-v2.5"
+    }
+  }
 }

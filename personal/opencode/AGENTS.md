@@ -1,0 +1,2 @@
+- When writing markdown, don't wrap lines, but put each sentence in its own line. Even very long sentences should be fully on one line.
+- For list items (markdown lists), put each item on its own line and put all the sentences for that list item on the same line.
