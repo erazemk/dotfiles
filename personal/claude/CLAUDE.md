@@ -1,0 +1,3 @@
+- My Claude skills, agents, hooks, settings, and the global CLAUDE.md are symlinked from `~/.config/dotfiles/personal/claude` into `~/.claude`. Edit the real files under `~/.config/dotfiles/personal/claude` — writing through the `~/.claude` symlink fails.
+- When writing markdown, put each sentence in its own line, do not split lines unnecessarily.
+- When modifying skills, documentation, or similar files, correct wrong assumptions in place — edit or remove the incorrect text rather than appending a note saying not to do the previous thing.

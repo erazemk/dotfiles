@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "agentPushNotifEnabled": true,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "enabledPlugins": {
+    "claude-code-setup@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true
+  },
+  "env": {
+    "CLAUDE_AFK_TIMEOUT_MS": "86400000",
+    "CLAUDE_CODE_ENABLE_AUTO_MODE": "1",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_NEW_INIT": "1",
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "CLAUDE_CODE_SCROLL_SPEED": "0.25"
+  },
+  "extraKnownMarketplaces": {
+    "claude-plugins-official": {
+      "source": {
+        "repo": "anthropics/claude-plugins-official",
+        "source": "github"
+      }
+    }
+  },
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/reflection",
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/reflection",
+            "type": "command"
+          }
+        ],
+        "matcher": "startup"
+      }
+    ]
+  },
+  "includeGitInstructions": false,
+  "inputNeededNotifEnabled": true,
+  "model": "sonnet",
+  "outputStyle": "Concise",
+  "permissions": {
+    "defaultMode": "auto",
+    "deny": ["Bash(git push:*)"]
+  },
+  "plansDirectory": ".claude/plans",
+  "showThinkingSummaries": true,
+  "spinnerTipsEnabled": true,
+  "statusLine": {
+    "command": "bash ~/.claude/statusline-command.sh",
+    "type": "command"
+  },
+  "teammateMode": "in-process",
+  "theme": "auto",
+  "wheelScrollAccelerationEnabled": false
+}
