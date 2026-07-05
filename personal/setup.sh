@@ -8,6 +8,21 @@ ln -sf $DOTFILES_HOME/fish/* ~/.config/fish/
 mkdir -p ~/.config/git
 ln -sf $DOTFILES_HOME/git/* ~/.config/git/
 
+mkdir -p ~/Library/LaunchAgents
+ln -sf $DOTFILES_HOME/launchctl/* ~/Library/LaunchAgents/
+for file in ~/Library/LaunchAgents/*; do
+    launchctl load "$file"
+done
+
+mkdir -p ~/.claude
+ln -sf $DOTFILES_HOME/claude/CLAUDE.md ~/.claude/CLAUDE.md
+ln -sf $DOTFILES_HOME/claude/settings.json ~/.claude/settings.json
+ln -sf $DOTFILES_HOME/claude/statusline-command.sh ~/.claude/statusline-command.sh
+ln -sf $DOTFILES_HOME/claude/hooks ~/.claude/hooks
+ln -sf $DOTFILES_HOME/claude/output-styles ~/.claude/output-styles
+ln -sf $DOTFILES_HOME/claude/skills ~/.claude/skills
+ln -sf $DOTFILES_HOME/claude/agents ~/.claude/agents
+
 mkdir -p ~/.config/opencode
 ln -sf $DOTFILES_HOME/opencode/* ~/.config/opencode/
 

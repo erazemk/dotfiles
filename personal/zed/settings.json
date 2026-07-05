@@ -1,4 +1,55 @@
 {
+  "proxy": "",
+  "edit_predictions": {
+    "allow_data_collection": "no"
+  },
+  "agent": {
+    "tool_permissions": {
+      "tools": {
+        "skill": {
+          "default": "allow"
+        },
+        "search_web": {
+          "default": "allow"
+        },
+        "fetch": {
+          "default": "allow"
+        },
+        "create_directory": {
+          "default": "allow"
+        },
+        "terminal": {
+          "always_allow": [
+            {
+              "pattern": "^cd\\s+SIC/toolchain/testdata/comparisons(\\s|$)"
+            },
+            {
+              "pattern": "^go\\s+vet(\\s|$)"
+            }
+          ]
+        }
+      }
+    },
+    "thinking_display": "always_collapsed",
+    "sandbox_permissions": {
+      "allow_unsandboxed": true,
+      "write_paths": []
+    },
+    "show_turn_stats": true,
+    "default_profile": "write",
+    "default_model": {
+      "provider": "opencode",
+      "model": "go/glm-5.2",
+      "enable_thinking": false
+    },
+    "favorite_models": [],
+    "model_parameters": []
+  },
+  "language_models": {
+    "opencode": {
+      "show_zen_models": false
+    }
+  },
   "session": {
     "trust_all_worktrees": true,
   },
