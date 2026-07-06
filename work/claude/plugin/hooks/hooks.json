@@ -1,0 +1,17 @@
+{
+  "description": "airsync plugin — require a git worktree before editing files on a repo's deploy branch",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/worktree-guard.sh\"",
+            "statusMessage": "checking worktree guard"
+          }
+        ]
+      }
+    ]
+  }
+}
