@@ -18,7 +18,10 @@ red='\033[31m'
 reset='\033[0m'
 
 model_name=$(echo "$input" | jq -r '.model.display_name // empty' | sed 's/ (1M context)//')
-if [ -n "$model_name" ]; then
+effort_level=$(echo "$input" | jq -r '.effort.level // empty')
+if [ -n "$model_name" ] && [ -n "$effort_level" ]; then
+  model_str=" ${blue}[${model_name} - ${effort_level}]${reset}"
+elif [ -n "$model_name" ]; then
   model_str=" ${blue}[${model_name}]${reset}"
 else
   model_str=""
