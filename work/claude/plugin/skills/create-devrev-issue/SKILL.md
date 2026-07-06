@@ -2,6 +2,7 @@
 name: create-devrev-issue
 description: Create a current-work DevRev issue non-interactively from an already-confirmed title and description. Built for the finish workflow — runs in a forked context and never asks the user anything. For interactive or general DevRev work, use the devrev skill instead.
 context: fork
+model: haiku
 user-invocable: false
 allowed-tools: mcp__devrev__*
 ---

@@ -1,6 +1,8 @@
 ---
 name: triage-datadog-logs
 description: Triage the most common production errors for Erazem's services using the live Datadog dashboard. Use when asked to check/triage Datadog errors, review the dashboard, or investigate recent production errors for the airdrop loader/extractor services.
+model: sonnet
+effort: high
 ---
 
 Run a structured triage of recent production errors for the services on the **"Erazem's Services"** Datadog dashboard (`q7p-88p-qds`). Output is a **markdown report only** — never create issues, post to Slack, or mutate anything unless the user explicitly asks in a follow-up.
@@ -62,7 +64,7 @@ For each cluster worth investigating:
 
 1. Pull a representative sample with full context: `search_datadog_logs` with the message substring and `extra_fields=["*"]`, `max_tokens` ~5000. Capture: `custom.stacktrace`, `custom.event_type`, `custom.external_system_*`, `custom.sync_unit_id`, `custom.run_id`, `custom.recipe_system`, `trace_id`, and `version`.
 2. **Is it one sync or broad?** Check whether the errors share a single `sync_unit_id` / `run_id` / `request_id`. A single-sync spike (one customer, one run) is very different from a systemic regression — say which.
-3. **Correlate to code.** The `version` tag (e.g. `vc2915ae`) maps to a git commit (`c2915ae...`). Read the files named in `custom.stacktrace`. Frames under `github.com/devrev/airdrop-devrev-loader/internal/...` live in the loader repo (`~/DevRev/airdrop-devrev-loader`); frames under `github.com/devrev/airdrop-devrev-extractor/...` in the extractor repo. Stack frames under `github.com/devrev/airdrop-common/...` are the shared library (a Go module dependency, not editable from those repos — note the version). This skill is user-scoped and may run outside the relevant repo: if the source isn't reachable, report the `file:line` from the stacktrace and note the code wasn't read rather than guessing.
+3. **Correlate to code.** The `version` tag (e.g. `vc2915ae`) maps to a git commit (`c2915ae...`). Delegate reading the files named in `custom.stacktrace` to an `Explore` agent rather than reading them yourself, to keep stack-trace-driven code dumps out of this conversation's context. Frames under `github.com/devrev/airdrop-devrev-loader/internal/...` live in the loader repo (`~/DevRev/airdrop-devrev-loader`); frames under `github.com/devrev/airdrop-devrev-extractor/...` in the extractor repo. Stack frames under `github.com/devrev/airdrop-common/...` are the shared library (a Go module dependency, not editable from those repos — note the version). This skill is user-scoped and may run outside the relevant repo: if the source isn't reachable, report the `file:line` from the stacktrace and note the code wasn't read rather than guessing.
 4. **Assess severity vs. logging.** Many loader "errors" are best-effort/recoverable paths logged loudly (e.g. an actor that fails to resolve falls back to a system user). Determine from the code whether the error is fatal to the sync or a noisy non-fatal log. State your confidence.
 5. If the log alone is insufficient and a `trace_id` is present, pull the trace with `mcp__datadog__get_datadog_trace`.
 
