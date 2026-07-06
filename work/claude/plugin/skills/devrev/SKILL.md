@@ -2,7 +2,7 @@
 name: devrev
 description: Interact with the DevRev platform — fetch, read, create, link, and update issues (ISS-*), tickets (TKT-*), enhancements (ENH-*), articles (ART-*), and other work items. Use when the user references a DevRev work ID, display ID, or app.devrev.ai URL, asks to create or update DevRev work, or frames a request as filing the current task/PR/branch as an issue.
 user-invocable: false
-allowed-tools: mcp__devrev__*, Bash(devrev:*), Bash(curl:*), Bash(jq:*), Bash(*handle-article-body:*)
+allowed-tools: mcp__devrev__*, Bash(devrev:*), Bash(curl:*), Bash(jq:*), Bash(*devrev/scripts/article:*)
 ---
 
 DevRev unifies product development (Build), support (Support), and CRM (Grow) around one knowledge graph. Use the `mcp__devrev__*` tools to operate on it; fall back to the `devrev` CLI (via bash) only where noted below.
@@ -61,85 +61,114 @@ Include comments only when the user explicitly asks for them or when they're cle
 
 ## Articles (ART-*)
 
-Article **bodies cannot be handled through the MCP.** The body lives in a separate
-`devrev/rt` artifact (ProseMirror JSON), not inline on the article object:
-- `create_article`'s `content` field is broken server-side (fails with
-  `missing_required_field: file_name`).
-- `update_article` has **no** body/content field at all — only title, status,
-  owner, parts, tags, attachments.
-
-So all body reads/writes go through the DevRev **REST API** with `curl` + `$DEVREV_API_KEY`
-(raw token, NO `Bearer` prefix). Always `curl` the signed URL directly (or via the
-helper below) and parse the raw JSON with `jq`. A helper script wraps the fiddly
-artifact-upload dance — use it rather than hand-rolling curl for writes:
+Article **bodies cannot be handled through the MCP**, so ALL article operations
+(get/create/update/delete/list) go through the **`article`** helper script instead of
+the MCP `*_article` tools or hand-rolled curl — it handles both metadata and body in
+one call and hides the artifact/S3 upload plumbing:
 
 ```
-${SKILL_PATH}/scripts/handle-article-body {get|create|upload} …
+${SKILL_PATH}/scripts/article [--env dev|qa|prod] {get|create|update|delete|list} …
 ```
+
+Why the MCP can't be used for bodies: `create_article`'s `content` field is broken
+server-side (fails with `missing_required_field: file_name`), and `update_article` has
+no body/content field at all — the body lives in a separate `devrev/rt` artifact
+(ProseMirror JSON), not inline on the article object.
+
+By default the script talks to **prod** (`https://api.devrev.ai`). To test against a
+non-prod org first, pass `--env dev` or `--env qa` — before the command:
+
+```
+${SKILL_PATH}/scripts/article --env dev get ART-12345
+```
+
+The script authenticates via the `devrev` CLI (`devrev profiles get-token access -e
+<env> -o devrev`, always org `devrev`) — no API key needed, but the CLI must already be
+authenticated for that env (`devrev profiles authenticate -e <env> -o devrev`). When
+testing a change to this script or to article handling in general, run it against
+`--env dev` first — never experiment against prod.
+
+### Field names — always check discover_schema first
+
+The script passes fields straight through to the DevRev REST API with **the exact
+names and shapes the API expects** — it does not rename or reshape anything except
+`body` (see below). Before building a payload, call the MCP
+**`mcp__devrev__discover_schema`** with `action_name='create_article'`,
+`'update_article'`, or `'list_articles'` to get the current field names, required
+fields, and enum values — field shapes do change between create and update (e.g. the
+update schema wraps most array fields as `{"set": [...]}` while create takes plain
+arrays), and this doc is not the source of truth for that.
+
+### `get` — read title, description, body, and any other fields on request
+
+```bash
+${SKILL_PATH}/scripts/article get ART-84444                              # {title, description, body}
+${SKILL_PATH}/scripts/article get ART-84444 --fields status,owned_by,tags # + those raw API fields
+```
+`body` is the devrev/rt content (see format below), or `null` if the article has none.
+Never treat `extracted_content` as the body — that's an AI-facing plaintext artifact,
+not the real one; this script already resolves the right artifact for you.
+
+### `create` — pass a JSON file of fields, body included
+
+```bash
+${SKILL_PATH}/scripts/article create <json-file>
+```
+`<json-file>` is a JSON object with whatever `articles.create` fields you want
+(`title`, `owned_by`, `applies_to_parts`, `status`, `tags`, …), plus an optional
+`body` field — the script uploads it as the article's content artifact
+automatically. Prints `{title, description, body, id, display_id}` of the new article.
+
+### `update` — pass only the fields you want changed
+
+```bash
+${SKILL_PATH}/scripts/article update ART-123 <json-file>
+```
+Same idea as `create`, but partial — only include fields you're changing, plus the
+article ID (as the command argument, not in the file). An optional `body` field
+replaces the content: if the article already has a body artifact, this uploads a
+**new version of that same artifact** (`artifacts.versions.prepare`); if it has none
+yet, it uploads a new artifact and attaches it via `content_artifact`. Metadata-only
+and body-only updates both work — the script skips the `articles.update` call
+entirely when only `body` was given, since there's nothing else to change.
+
+**Do not** work around this script by pointing an article at a *different* `devrev/rt`
+artifact via `articles.update`'s `content_artifact`/`artifacts.set` on an article that
+already has a body — that leaves it un-renderable in the KB (404s as "item doesn't
+exist anymore"). Verified with `--env dev`: uploading a new version of the *same*
+artifact re-renders and re-indexes correctly (the `extracted_content` search artifact
+regenerates); swapping to a different artifact id does not fire that side effect.
+
+### `delete`
+
+```bash
+${SKILL_PATH}/scripts/article delete ART-123
+```
+
+### `list` — filter and pick fields, avoid dumping the whole catalog
+
+```bash
+${SKILL_PATH}/scripts/article list                                        # {total, articles:[{id,display_id,title,parent}, ...]}
+${SKILL_PATH}/scripts/article list --filter <json-file>                   # <json-file>: articles.list filter fields, e.g. {"status":["draft"],"limit":20}
+${SKILL_PATH}/scripts/article list --filter <json-file> --fields status,owned_by
+```
+Default output per article is just `{id, display_id, title, parent}` — request more
+via `--fields` rather than assuming the full object is needed; the KB can hold
+thousands of articles.
 
 ### The devrev/rt body format
 
-The body artifact is JSON with two top-level keys — preserve this shape:
+The `body` field (in `get`/`create`/`update`) is JSON with two top-level keys —
+preserve this shape when you edit one:
 ```json
 { "article": { "type": "doc", "content": [ …ProseMirror nodes… ] }, "artifactIds": [] }
 ```
 `article` is a ProseMirror doc: nodes like `heading` (with `attrs.level`),
 `paragraph`, `bulletList`/`orderedList` → `listItem` → `paragraph`, and leaf `text`
 nodes holding the string (bold/italic via `marks`). `artifactIds` lists artifacts
-embedded in the body (images, etc.) — usually `[]`. **To change an article, fetch the
-existing body first and mutate its `content` tree**, then create a replacement article
-from it (bodies can't be updated in place — see below) so the structure is retained.
-
-### Reading a body
-
-Never use `extracted_content` — that `text/plain` artifact is AI-facing plaintext,
-not the real body. The real body is the `resource.artifacts[]` entry whose
-`file.name` is `Article` (its `file.type` is `devrev/rt`).
-
-```bash
-${SKILL_PATH}/scripts/handle-article-body get ART-84444    # or a full DON / bare numeric id
-```
-Prints the raw `devrev/rt` JSON. Under the hood: `articles.get` → pick the `Article`
-artifact → `artifacts.locate` for a signed URL → download. When the user wants the
-body, return the article identifiers plus this body (or a Markdown rendering of it).
-
-If no `Article` artifact exists, the download isn't valid JSON, or it lacks an
-`article` key, report the error — do not fall back to `extracted_content` silently.
-
-### Creating an article with a body
-
-```bash
-${SKILL_PATH}/scripts/handle-article-body create <rt-json-file> "<title>" \
-  <owner-devu-id> <applies-to-part-id> [status]     # status defaults to draft
-```
-`owner` is a `devu` id (`get_self` for yourself); the part id comes from
-`hybrid_search`. This uploads the rt file as an artifact and sets the article's
-`resource:{artifacts:[…]}`. (Title/owner/part/status alone can also go through the
-MCP `create_article` — but only the REST path attaches a body.)
-
-### Updating a body — NOT POSSIBLE; replace the article instead
-
-**You cannot change an existing article's body.** Pointing an existing article at a
-new `devrev/rt` artifact via `articles.update` (any field — `artifacts.set`,
-`content_artifact`, …) leaves it un-renderable in the KB: the page 404s as "item
-doesn't exist anymore". This was verified exhaustively — the resulting article
-object, artifact object, and body bytes are byte-for-byte identical to a
-freshly-created article that renders fine, so the missing piece is a create-only
-side effect (render/search indexing) that update never fires, and no REST/MCP field
-reproduces it. There is intentionally no `set` command in the helper.
-
-To change a published article's body, **create a replacement and delete the old one**:
-1. `handle-article-body get ART-123 > /tmp/body.json` — fetch the current body.
-2. Edit `/tmp/body.json` (mutate its ProseMirror `content` tree with jq/an editor).
-3. `handle-article-body create /tmp/body.json "<title>" <owner> <part> [status]` — create
-   the replacement. Replicate the original's other fields (`parent`, `shared_with`,
-   `tags`, `description`) via MCP `update_object` (`action_name='update_article'`) on
-   the new article if they matter; `scope` is derived from sharing automatically.
-4. Verify the new article renders in the KB, then delete the old one (`articles.delete`).
-
-Non-body article fields (title, status, owner, parts, sharing) on an EXISTING article
-still work fine via the MCP `update_object` with `action_name='update_article'` — only
-the body/content is unchangeable.
+embedded in the body (images, etc.) — usually `[]`. **To change an article's body,
+`get` it first and mutate the `content` tree**, then pass the mutated JSON back in
+as `update`'s `body` field so the structure is retained.
 
 ## Creating objects
 
