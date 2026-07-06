@@ -6,6 +6,7 @@
     "pr": ""
   },
   "awsAuthRefresh": "aws sso login --profile claude",
+  "effortLevel": "medium",
   "enabledPlugins": {
     "airsync@erazemk": true,
     "claude-code-setup@claude-plugins-official": true,
@@ -85,6 +86,7 @@
       "ExitPlanMode"
     ]
   },
+  "preferredNotifChannel": "notifications_disabled",
   "showThinkingSummaries": true,
   "spinnerTipsEnabled": true,
   "statusLine": {
