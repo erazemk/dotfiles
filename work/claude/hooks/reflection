@@ -6,10 +6,28 @@
 # (skills/reflect/scripts/analyze); this hook only decides WHICH transcript to
 # analyze and WHEN to offer applying the results.
 #
-#   SessionEnd   -> run `analyze <just-ended-transcript>` in the background.
-#   SessionStart -> if a proposals file exists for a prior session in this
-#                   project, tell the agent to invoke the reflect skill in
-#                   consume mode (present + gate + apply).
+#   SessionEnd   -> hand off to launchd (so it survives this CLI exiting) to:
+#                   1. analyze <just-ended-transcript>
+#                   2. re-check how many proposals files are pending for this
+#                      project and, if 2+, (re)build one combined file via
+#                      `analyze --combine` — all of this off the interactive
+#                      path, since SessionStart hooks block session startup.
+#   SessionStart -> if a proposals file (single or combined) is pending for
+#                   this project, tell the agent to invoke the reflect skill
+#                   in consume mode (present + gate + apply). Never calls
+#                   `analyze` itself — only cheap file/mtime checks — so it
+#                   can't add Haiku-call latency to session startup.
+#   --seal       -> internal continuation invoked by the launchd job above;
+#                   not a hook event, just how this script re-enters itself
+#                   with plain args once reparented outside Claude Code.
+#
+# SessionEnd fires while the whole CLI is tearing down, and that teardown
+# signals the process group the hook runs in. A plain `nohup ... &` stays in
+# that process group (nohup only blocks SIGHUP, not SIGTERM/SIGKILL), so work
+# started that way was getting killed before `analyze` (which only writes
+# output after its Haiku pass finishes, tens of seconds in) could finish.
+# `launchctl submit` hands the job to launchd instead, reparenting it (ppid=1)
+# fully outside this process group, immune to that teardown signal.
 #
 # Stays silent (exit 0, no output) whenever there is nothing to do.
 # To retune, edit the constants below — there is intentionally no env-var config.
@@ -19,7 +37,48 @@ set -uo pipefail
 MIN_BYTES=20000        # skip trivial transcripts
 LEARNING_DIR="$HOME/.claude/learning"
 PROPOSALS_DIR="$LEARNING_DIR/proposals"
+COMBINED_DIR="$LEARNING_DIR/combined"
+LOG_DIR="$LEARNING_DIR/logs"
+MARKER_DIR="$LEARNING_DIR/.offered"
 ANALYZE="$HOME/.claude/skills/reflect/scripts/analyze"
+LABEL_PREFIX="com.erazemk.claude-reflect"
+SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+
+# --- internal continuation, reparented under launchd by SessionEnd below ---
+# Not a hook event: invoked as `reflection --seal TRANSCRIPT PROJ_SLUG`.
+if [ "${1:-}" = "--seal" ]; then
+  transcript="${2:-}"
+  proj_slug="${3:-}"
+  [ -n "$transcript" ] && [ -n "$proj_slug" ] || exit 0
+  proj_dir="$HOME/.claude/projects/$proj_slug"
+
+  mkdir -p "$MARKER_DIR" "$COMBINED_DIR"
+  [ -x "$ANALYZE" ] && "$ANALYZE" "$transcript" >/dev/null 2>&1
+
+  # Every not-yet-offered proposals file for this project, oldest first.
+  pending=""
+  n=0
+  while IFS= read -r t; do
+    base="$(basename "$t" .jsonl)"
+    f="$PROPOSALS_DIR/$base.md"
+    [ -f "$f" ] || continue
+    [ -f "$MARKER_DIR/$base" ] && continue
+    pending="$pending$f"$'\n'
+    n=$((n + 1))
+  done < <(ls -tr "$proj_dir"/*.jsonl 2>/dev/null || true)
+
+  combined_path="$COMBINED_DIR/$proj_slug.md"
+  if [ "$n" -ge 2 ] && [ -x "$ANALYZE" ]; then
+    # shellcheck disable=SC2086
+    "$ANALYZE" --combine "$proj_slug" $pending >/dev/null 2>&1
+  else
+    # 0 or 1 pending: no combined file is needed: SessionStart handles a
+    # single pending file directly, and removing any stale combined file
+    # here keeps it from being trusted after its sources are exhausted.
+    rm -f "$combined_path"
+  fi
+  exit 0
+fi
 
 payload="$(cat)"
 event="$(printf '%s' "$payload" | jq -r '.hookEventName // empty')"
@@ -42,8 +101,20 @@ case "$event" in
     [ "${size:-0}" -lt "$MIN_BYTES" ] && exit 0
     [ -x "$ANALYZE" ] || exit 0
 
-    # Analyze in the background so session teardown is never blocked.
-    nohup "$ANALYZE" "$transcript" >/dev/null 2>&1 &
+    mkdir -p "$LOG_DIR"
+    label="$LABEL_PREFIX.$session_id"
+    # launchd keeps a stale (pid "-") entry for finished submit jobs, so the
+    # job removes its own label on exit — /bin/sh -c with positional args
+    # avoids re-quoting $transcript/$slug/$label into a shell string.
+    # `launchctl submit` jobs run with launchd's bare PATH (/usr/bin:/bin:...),
+    # which doesn't include ~/.local/bin where `claude` lives — forward this
+    # hook's own PATH explicitly (it has claude on it, since Claude Code just
+    # invoked this script) via a positional arg rather than an env flag, since
+    # `submit` has no option to set environment variables.
+    launchctl submit -l "$label" \
+      -o "$LOG_DIR/$session_id.out" -e "$LOG_DIR/$session_id.err" \
+      -- /bin/sh -c 'export PATH="$4"; "$0" --seal "$1" "$2"; launchctl remove "$3"' \
+        "$SELF" "$transcript" "$slug" "$label" "$PATH" >/dev/null 2>&1
     ;;
 
   SessionStart)
@@ -51,21 +122,50 @@ case "$event" in
     [ "$(printf '%s' "$payload" | jq -r '.source // empty')" = "startup" ] || exit 0
     [ -d "$PROPOSALS_DIR" ] || exit 0
 
-    # Most recent proposals file for a PRIOR session in this project.
-    proposals=""
+    mkdir -p "$MARKER_DIR"
+
+    # Every not-yet-offered proposals file for a PRIOR session in this
+    # project, oldest first. Cheap: only file listing and mtime checks below
+    # — SessionStart must never shell out to `analyze` itself, since it
+    # blocks session startup (unlike SessionEnd, which hands work to launchd).
+    pending=""
     while IFS= read -r t; do
       base="$(basename "$t" .jsonl)"
       [ "$base" = "$session_id" ] && continue
-      if [ -f "$PROPOSALS_DIR/$base.md" ]; then proposals="$PROPOSALS_DIR/$base.md"; break; fi
-    done < <(ls -t "$proj_dir"/*.jsonl 2>/dev/null || true)
-    [ -z "$proposals" ] && exit 0
+      f="$PROPOSALS_DIR/$base.md"
+      [ -f "$f" ] || continue
+      [ -f "$MARKER_DIR/$base" ] && continue
+      pending="$pending$f"$'\n'
+    done < <(ls -tr "$proj_dir"/*.jsonl 2>/dev/null || true)
+    [ -z "$pending" ] && exit 0
 
-    # Only offer each proposals file once.
-    marker_dir="$LEARNING_DIR/.offered"
-    mkdir -p "$marker_dir"
-    marker="$marker_dir/$(basename "$proposals" .md)"
-    [ -f "$marker" ] && exit 0
-    : > "$marker"
+    combined_path="$COMBINED_DIR/$slug.md"
+    proposals=""
+    to_offer=""
+    if [ -f "$combined_path" ]; then
+      # Trust the combined file only if it's at least as new as every
+      # currently-pending source — otherwise a proposals file arrived after
+      # the last combine ran, and the combined file is stale (missing it).
+      stale=""
+      printf '%s' "$pending" | while IFS= read -r f; do
+        [ -n "$f" ] && [ "$f" -nt "$combined_path" ] && echo stale
+      done | grep -q stale && stale=1
+      if [ -z "$stale" ]; then
+        proposals="$combined_path"
+        to_offer="$pending"
+      fi
+    fi
+    if [ -z "$proposals" ]; then
+      # No fresh combined file: fall back to the single newest pending file.
+      # Any other pending files stay pending — the next SessionEnd's --seal
+      # step will fold them into a combined file for a later SessionStart.
+      proposals="$(printf '%s' "$pending" | tail -1)"
+      to_offer="$proposals"$'\n'
+    fi
+
+    printf '%s' "$to_offer" | while IFS= read -r f; do
+      [ -n "$f" ] && : > "$MARKER_DIR/$(basename "$f" .md)"
+    done
 
     ctx="A previous Claude Code session in this project produced reflection proposals — learnings that could improve future sessions.
 

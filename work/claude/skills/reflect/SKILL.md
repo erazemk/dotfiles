@@ -2,6 +2,7 @@
 name: reflect
 description: Reflect on a Claude Code conversation to improve future sessions. Use when asked to reflect, consolidate session learnings, or when the reflection hook offers it.
 allowed-tools: Read, Edit, Write, Grep, Glob, Bash, AskUserQuestion
+effort: high
 ---
 
 Reflect on a Claude Code conversation and turn what went wrong into durable, correctly-placed
@@ -46,7 +47,13 @@ wrong, surface that to the user rather than substituting your own analysis.
 Two modes:
 
 - **Consume mode** (the reflection hook set `REFLECT_PROPOSALS` or told you a proposals file
-  exists): read that file directly. Do not re-run analysis.
+  exists): read that file directly. Do not re-run analysis, and do not merge or dedupe anything
+  yourself — if the hook had multiple pending sessions to offer, it already ran
+  `scripts/analyze --combine` (a Haiku pass, same as normal analysis) to merge them into the one
+  file you were handed, so by the time you see it there is exactly one file with the reconciled
+  result. A `sources:` line near the top of a combined file lists which sessions fed into it,
+  and its items carry a `sessions:` field instead of one implicit session — read but do not act
+  differently on this, it only affects ledger recording in step 6.
 - **Analyze-current mode** (manual `/reflect`, or no proposals file exists): run the bundled
   script against the current conversation:
 
@@ -116,7 +123,9 @@ compact object with these fields:
 The `signature` is what the analysis reduce step matches future mistakes against to detect
 recurrence, so make it a stable, generalized description of the mistake — not a verbatim quote.
 Take the date from the environment context. If the ledger file or its directory does not exist,
-create it.
+create it. `session` is normally the proposals file's own session id (its filename minus `.md`).
+For a combined file (its item has a `sessions:` field naming more than one session), append one
+ledger line per listed session so recurrence-matching still sees every originating session.
 
 ### 7. Report
 

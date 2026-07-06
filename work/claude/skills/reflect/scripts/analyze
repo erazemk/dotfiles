@@ -13,6 +13,13 @@
 #                      resolves the current session's transcript for the working
 #                      directory (newest .jsonl in ~/.claude/projects/<slug>/).
 #
+#   analyze --combine OUT_ID PROPOSALS_FILE...
+#     Merges two or more already-generated proposals files (e.g. from several
+#     sessions closed while no one was around to consume them) into a single
+#     file via one Haiku pass, so the caller only ever hands the reflect skill
+#     one combined file. Writes ~/.claude/learning/combined/OUT_ID.md and
+#     prints its path.
+#
 # Output: writes ~/.claude/learning/proposals/<session_id>.md and prints its
 # path when durable learnings are found; otherwise prints nothing and exits 0.
 #
@@ -24,7 +31,7 @@
 
 set -uo pipefail
 
-MODEL=haiku          # model for both map and reduce stages
+MODEL=haiku          # model for both map, reduce, and combine stages
 MAXBYTES=350000      # ~100k tokens; chunk boundary
 OVERLAP=8            # lines of overlap between chunks
 TEXT_TRUNC=4000      # truncate each text/thinking block
@@ -32,10 +39,109 @@ TOOL_TRUNC=800       # truncate tool_use input / tool_result
 
 LEARNING_DIR="$HOME/.claude/learning"
 PROPOSALS_DIR="$LEARNING_DIR/proposals"
+COMBINED_DIR="$LEARNING_DIR/combined"
 LEDGER="$LEARNING_DIR/ledger.jsonl"
 
 command -v jq  >/dev/null 2>&1 || { echo "analyze: jq not found" >&2; exit 1; }
 command -v claude >/dev/null 2>&1 || { echo "analyze: claude CLI not found; skipping" >&2; exit 0; }
+
+# --- 0. combine mode: merge N existing proposals files into one -------------
+if [ "${1:-}" = "--combine" ]; then
+  shift
+  out_id="${1:-}"; shift || true
+  [ -n "$out_id" ] && [ "$#" -ge 1 ] || { echo "analyze --combine: usage: --combine OUT_ID FILE..." >&2; exit 1; }
+
+  # All inputs belong to the same project (the hook only combines within one
+  # project dir) — take it from the first file's header rather than re-deriving.
+  project_cwd="$(grep -m1 '^project: ' "$1" | sed 's/^project: //')"
+  [ -z "$project_cwd" ] && project_cwd="$PWD"
+
+  mkdir -p "$COMBINED_DIR"
+  combined_path="$COMBINED_DIR/$out_id.md"
+
+  work="$(mktemp -d)" || exit 1
+  trap 'rm -rf "$work"' EXIT
+
+  combine_in="$work/combine_in.txt"
+  {
+    echo "=== PROPOSALS TO MERGE (each already reconciled independently, one section per source session) ==="
+    for f in "$@"; do
+      echo "--- source session: $(basename "$f" .md) ---"
+      cat "$f"
+      echo
+    done
+
+    echo "=== GLOBAL GUIDANCE (~/.claude/CLAUDE.md) ==="
+    cat "$HOME/.claude/CLAUDE.md" 2>/dev/null || echo "(none)"
+    echo
+
+    echo "=== PROJECT GUIDANCE ($project_cwd) ==="
+    cat "$project_cwd/CLAUDE.md" 2>/dev/null || echo "(no project CLAUDE.md)"
+    if [ -d "$project_cwd/.claude/rules" ]; then
+      echo "--- .claude/rules ---"; cat "$project_cwd/.claude/rules"/* 2>/dev/null
+    fi
+    echo
+
+    echo "=== APPLIED-LEARNINGS LEDGER (prior fixes; check for recurrence) ==="
+    cat "$LEDGER" 2>/dev/null || echo "(empty)"
+  } > "$combine_in"
+
+  COMBINE_PROMPT="You are merging reflection PROPOSALS from several independent Claude Code sessions in the same project into one final list. Each source session already ran its own reconciliation, so proposals are already destination-tagged — your job is cross-session merging, not first-pass analysis. The input has a PROPOSALS TO MERGE section (one sub-section per source session, each with its own '## Proposed learnings' and '## Skipped'), followed by GLOBAL GUIDANCE, PROJECT GUIDANCE, and the LEDGER.
+
+Do this:
+1. Merge and de-duplicate across sessions. Two items describing the same underlying mistake or learning (even worded differently) are ONE item — keep the more specific or more recent wording, and list every source session that surfaced it.
+2. Re-verify each surviving item against the CURRENT guidance shown here: if it is already covered (e.g. an earlier session's proposal was already applied since that file was written), move it to Skipped with reason 'already covered'.
+3. Re-check destination choice for each surviving item using these rules, same as original analysis:
+   - global CLAUDE.md (~/.claude/CLAUDE.md): only for behavior that should apply across ALL projects.
+   - project CLAUDE.md or .claude/rules/: default for repo-specific behavior/facts (PREFER THIS over global).
+   - a skill / a specific agent definition / an enforcement hook / settings.json permissions: as in original analysis.
+   If a candidate contradicts existing guidance, propose REPLACING the existing text at its source, never appending a duplicate.
+4. RECURRENCE: if an item matches the ledger, mark it RECURRED and escalate (reword, move earlier, or promote advisory rule to enforcement hook). If the SAME item recurs across multiple source sessions here, that is itself a recurrence signal — call it out explicitly and consider escalating scope from project to global per the rules above.
+5. Never merge away items that are genuinely distinct just because they share a type or destination file.
+
+Never propose writing secrets. Destinations must be real files.
+
+If nothing survives, reply with exactly: NO_PROPOSALS
+
+Otherwise output EXACTLY this markdown structure:
+
+## Proposed learnings
+### 1. <one-line description of the mistake or learning>
+- type: <behavioral | project-fact | procedure/skill | agent | enforcement-hook | permissions>
+- destination: <file path> (<add | replace | refine>)
+- sessions: <comma-separated source session ids this item was drawn from>
+- recurrence: <none | RECURRED: ledger match + escalation | RECURRED across sessions: escalation>
+- evidence: <short quote or reference from the transcript>
+- exact edit: <the precise text to add, or a before/after for a replacement>
+
+### 2. ...
+
+## Skipped
+- <candidate>: <one-line reason (one-off | already covered | ephemeral | low-confidence | duplicate of item N)>"
+
+  combine_out="$work/combine_out.md"
+  if ! claude -p "$COMBINE_PROMPT" --model "$MODEL" < "$combine_in" > "$combine_out" 2>/dev/null; then
+    echo "analyze --combine: combine stage failed" >&2
+    exit 1
+  fi
+
+  if [ ! -s "$combine_out" ] || grep -q 'NO_PROPOSALS' "$combine_out"; then
+    echo "analyze --combine: no durable learnings survived merge" >&2
+    rm -f "$combined_path"
+    exit 0
+  fi
+
+  {
+    echo "# Reflection proposals (combined) — $out_id"
+    echo "sources: $*"
+    echo "project: $project_cwd"
+    echo
+    cat "$combine_out"
+  } > "$combined_path"
+
+  echo "$combined_path"
+  exit 0
+fi
 
 # --- 1. resolve transcript --------------------------------------------------
 transcript="${1:-}"
