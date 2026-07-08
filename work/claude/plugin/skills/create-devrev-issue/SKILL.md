@@ -1,18 +1,21 @@
 ---
 name: create-devrev-issue
-description: Create a current-work DevRev issue non-interactively from an already-confirmed title and description. Built for the finish workflow — runs in a forked context and never asks the user anything. For interactive or general DevRev work, use the devrev skill instead.
+description: Create a current-work DevRev issue non-interactively from an already-confirmed title and description, or sync an already-existing issue to the same current-work state (sprint, dates, stage). Built for the finish workflow — runs in a forked context and never asks the user anything. For interactive or general DevRev work, use the devrev skill instead.
 context: fork
 model: haiku
 user-invocable: false
 allowed-tools: mcp__devrev__*
 ---
 
-Create a DevRev issue for the current work and return its URL. You run in a forked context and cannot talk to the user — **never ask a question; decide everything deterministically.**
+Create a DevRev issue for the current work and return its URL — or, if the caller passes an **existing issue reference** instead of a title/description, bring that issue up to the same current-work state (sprint, dates, stage) that a freshly created issue would have. You run in a forked context and cannot talk to the user — **never ask a question; decide everything deterministically.**
 
 ## Input contract
 
-The caller provides an **already-confirmed** exact title and exact description (the user has already approved them in the main conversation).
+The caller provides either:
+- an **already-confirmed** exact title and exact description (the user has already approved them in the main conversation) — use the **create** path below, or
+- an **existing issue reference** (display ID or URL) — use the **sync existing issue** path below instead. Do not create a duplicate issue in this case.
 
+For the create path:
 - Use the title and description verbatim. Do not rewrite, summarize, improve, expand, or shorten them.
 - Do not put file paths or git-specific terms in the issue text unless the caller included them.
 - If the caller named an owner, use it; otherwise default the owner to the active user — call `mcp__devrev__get_self` and use the returned user's ID.
@@ -58,6 +61,17 @@ Decide deterministically and without asking. The part is easily corrected later,
    - `AirSync Sync` → `don:core:dvrv-us-1:devo/0:feature/832` — sync behavior and lifecycle changes.
 3. **Default.** If nothing above clearly applies, use `AirSync Sync` → `don:core:dvrv-us-1:devo/0:feature/832`.
 
+## Sync an existing issue
+
+When the caller passes an existing issue reference instead of a title/description, the issue was already established as the one tracking this work — but it may still be sitting in whatever stage/sprint it had before this session (e.g. `backlog`, no active sprint). Bring it to the same current-work state a freshly created issue would have, without touching its title, description, or `applies_to_part`.
+
+1. Fetch the issue (`mcp__devrev__fetch_object_context`) to read its current `sprint` and `stage`.
+2. **Sprint and dates.** If the issue has no sprint, or its sprint is not the current active one, assign the latest active sprint (same lookup as "Fetching the latest sprint" above) and set `target_close_date` to that sprint's `end_date`. Also set `target_start_date` to today (UTC `00:00:00Z`) if it is unset or in the past. Leave the sprint/dates untouched if the issue is already in the current active sprint.
+3. **Stage.** Move the issue to `in_review` following "Moving to in_review" in the `devrev` skill's SKILL.md — use the known stage paths listed there directly (e.g. `backlog`/`triage` route through `in_development` first) and only call `mcp__devrev__get_valid_stage_transitions` for a current stage not already covered there. If the issue is already in `in_review` or later, or in a terminal stage (`completed`, `wont_fix`, `duplicate`), leave the stage as-is and note it.
+4. Apply the sprint/date update and the stage transition(s) via `mcp__devrev__update_object` with `action_name='update_issue'`.
+
+If any step fails, return the issue in whatever state it reached and note exactly which update failed — never leave the caller guessing which fields did or didn't apply.
+
 ## Return value
 
-Return the created issue's display ID, its canonical app URL (`https://app.devrev.ai/devrev/works/ISS-123`), the chosen `applies_to_part`, the sprint used, and the final stage (`in_review`, or `in_development`/`triage` if a transition failed).
+Return the issue's display ID, its canonical app URL (`https://app.devrev.ai/devrev/works/ISS-123`), the chosen/existing `applies_to_part`, the sprint used, and the final stage (`in_review`, or wherever it ended up if a transition failed or was intentionally skipped) — for both the create and sync paths.

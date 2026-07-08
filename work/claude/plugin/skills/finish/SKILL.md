@@ -18,7 +18,7 @@ Follow this workflow exactly.
    - Determine the existing DevRev issue, ticket, work ID, or work URL to use, in this order:
      1. If the arguments contain an existing DevRev reference, use it.
      2. Otherwise, if a single specific DevRev issue was established as the current relevant issue earlier in this conversation (e.g. the user gave its link so you could gather context from it), use that reference. Only do this when exactly one such issue is unambiguous — if several issues were mentioned and none is clearly *the* current one, treat it as no reference.
-   - If an existing DevRev reference was resolved this way, skip issue creation and use that reference as the issue link for `commit`.
+   - If an existing DevRev reference was resolved this way, skip issue *creation* — but the issue still needs to end up in the same current-work state a freshly created one would have (see step 4). Use the reference as the issue link for `commit`.
    - If no DevRev reference was provided or established:
      - Draft an exact issue title and description from the conversation context and verified changes.
      - Confirm them with the user using `AskUserQuestion` (show the proposed title and description; offer `Yes` / `No`). Do this here in the main context — the creation step cannot ask.
@@ -36,3 +36,8 @@ Follow this workflow exactly.
    - Pass the arguments as context to e.g. decide whether the PR should be a draft.
    - Do not ask for separate PR confirmation.
    - Print the PR URL at the end.
+
+5. **Sync the issue to current-work state, if it was pre-existing.**
+   - Skip this step entirely if the issue was newly created in step 2 — `create-devrev-issue` already left it fully synced (sprint, dates, `in_review`).
+   - Otherwise (an existing issue reference was used), now that the PR is open, call the `create-devrev-issue` skill again, this time passing the existing issue reference instead of a title/description. It brings the issue's sprint, target dates, and stage up to the same state a freshly created issue would have — including routing through `in_development` first if the issue's current stage (e.g. `backlog`, `triage`) doesn't allow a direct move to `in_review`.
+   - Report the issue's final stage/sprint from that skill's return value, including any step it couldn't complete.

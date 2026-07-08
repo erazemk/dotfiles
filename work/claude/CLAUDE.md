@@ -9,3 +9,17 @@
 - When you apply a fix in response to a PR reviewer's comment, do not post a reply comment on that reviewer's comment thread.
 - Only resolve a review thread when I explicitly ask (see the `pr` skill's "Resolving review conversations" section), and never add a new comment there.
 - Avoid writing short helper functions that are only used once or twice — inline the logic at the call site instead.
+
+# LSP tool
+
+Prefer the LSP tool over Read/Grep/Glob in these cases, since it resolves symbols semantically instead of matching text:
+- Finding all callers of a function before renaming, changing its signature, or deleting it (`findReferences`/`incomingCalls`).
+- Understanding a function's call graph / blast radius (`incomingCalls`, `outgoingCalls`).
+- Finding all concrete implementations of an interface (`goToImplementation`).
+- Jumping to a symbol's actual definition across files or packages, including through imports/aliases (`goToDefinition`).
+- Disambiguating same-named symbols in different scopes or types (e.g. multiple `Validate()` methods).
+- Getting a quick outline of a file's functions/types/methods before deciding what to read in full (`documentSymbol`).
+- Locating a symbol by name across the whole workspace when the file is unknown (`workspaceSymbol`).
+- Checking a symbol's resolved type/doc without opening its defining file (`hover`).
+- Verifying a rename/refactor is complete and didn't miss usages behind interfaces (`findReferences`).
+- Investigating usages of a symbol across repos, following the real import graph rather than guessing which repo to grep.

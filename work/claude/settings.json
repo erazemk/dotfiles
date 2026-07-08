@@ -1,6 +1,7 @@
 {
   "$docs": "https://code.claude.com/docs/en/keybindings",
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "askUserQuestionTimeout": "never",
   "attribution": {
     "commit": "",
     "pr": ""

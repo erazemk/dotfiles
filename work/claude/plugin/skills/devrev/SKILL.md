@@ -186,5 +186,12 @@ This skill handles all other (interactive / general) DevRev creation per "Creati
 
 ## Moving to in_review
 
-After the pull request for the work has been opened, transition the issue stage from `in_development` to `in_review` → `don:core:dvrv-us-1:devo/0:custom_stage/17` (this is a valid `in_development` → `in_review` transition; do not attempt a direct `triage` → `in_review` move).
-If the `in_review` update fails, report it and note the issue remained in `in_development`.
+After the pull request for the work has been opened, transition the issue to `in_review` → `don:core:dvrv-us-1:devo/0:custom_stage/17`. Known paths from the issue's current stage (confirmed valid — apply these directly, no need to call `mcp__devrev__get_valid_stage_transitions` first):
+
+- `in_development` → `in_review` directly.
+- `triage` or `backlog` (`don:core:dvrv-us-1:devo/0:custom_stage/6`) → `in_development` (`don:core:dvrv-us-1:devo/0:custom_stage/5`) → `in_review`. `in_review` is never a valid direct target from these.
+- `completed`, `wont_fix`, `duplicate` are terminal — stop and report the issue's current stage instead of forcing a transition.
+
+For any other current stage (e.g. `prioritized`, `in_testing`, `in_deployment`) — or if a transition above gets rejected by the API — call `mcp__devrev__get_valid_stage_transitions` for that stage to find the real path, then use it. Once you've confirmed a new path this way, add it to the list above (only the stage you actually hit — don't enumerate the full transition graph speculatively) so future runs skip the lookup.
+
+If any transition step fails, report it and note the stage the issue actually ended up in.
