@@ -2,6 +2,10 @@
 # ~/.config/fish/config.fish
 #
 
+#
+# Environment variables
+#
+
 set -gx XDG_CACHE_HOME $HOME/.cache
 set -gx XDG_CONFIG_HOME $HOME/.config
 set -gx XDG_DATA_HOME $HOME/.local/share
@@ -16,11 +20,7 @@ set -gx EDITOR code --wait
 set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
 set -gx SSH_AUTH_SOCK ~/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock
 
-abbr mv 'mv -iv'
-abbr rm 'rm -Iv'
-abbr cp 'cp -Riv'
-abbr mkdir 'mkdir -p'
-abbr cdtmp 'cd (mktemp -d)'
+# Homebrew
 
 set -gx HOMEBREW_PREFIX /opt/homebrew
 set -gx HOMEBREW_CELLAR /opt/homebrew/Cellar
@@ -36,9 +36,28 @@ if not contains /opt/homebrew/share/info $INFOPATH
     set -gx INFOPATH /opt/homebrew/share/info $INFOPATH
 end
 
+#
+# Aliases
+#
+
+abbr mv 'mv -iv'
+abbr rm 'rm -Iv'
+abbr cp 'cp -Riv'
+abbr mkdir 'mkdir -p'
+abbr cdtmp 'cd (mktemp -d)'
+
+# Claude
+
+abbr cc 'claude'
+abbr usage 'npx ccusage@latest claude'
+
 if not set -q DEVREV_API_KEY
     set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
 end
+
+#
+# Functions
+#
 
 function update --description "Update system packages"
     brew update && brew upgrade && brew autoremove && brew cleanup
@@ -58,10 +77,6 @@ end
 
 function mkcd --description "Create a temporary directory and go into it"
     mkdir -p "$argv[1]" && cd "$argv[1]"
-end
-
-function cc --description "Claude Code"
-    command claude $argv
 end
 
 function devrev --description "Run DevRev CLI or install it if missing"
