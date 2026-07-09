@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+# reflect/split-session — split a Claude Code session transcript into
+# Haiku-sized chunk files for on-demand /reflect analysis.
+#
+# This script does preprocessing and chunking ONLY. It never calls a model —
+# the /reflect skill's main agent spawns all Haiku analysis itself via the
+# Agent tool, one call per chunk (MAP) plus one merge call (REDUCE), so every
+# spawned agent is visible in Claude Code's own subagent tracking and none of
+# them can spawn further agents. This intentionally does strictly less than
+# the old scripts/analyze it replaces (no --combine, no --seal, no launchd,
+# no claude -p calls).
+#
+# Usage:
+#   split-session TRANSCRIPT_PATH
+#     Preprocesses TRANSCRIPT_PATH (a .jsonl session transcript) into
+#     role-tagged plain text, then splits it into chunk files under a fresh
+#     mktemp -d directory the caller never needs to know about. Prints one
+#     chunk file path per line to stdout — nothing else. A transcript small
+#     enough to fit in one chunk still produces exactly one chunk file; there
+#     is no separate "no chunking" code path.
+#
+# Since chunk files are written once, at the moment this script runs, they
+# are a frozen snapshot: anything appended to TRANSCRIPT_PATH afterward (e.g.
+# the rest of the /reflect run analyzing this very output) is never part of
+# any chunk file. This is what keeps /reflect from ingesting its own
+# in-progress reasoning, with no extra bookkeeping required.
+
+set -uo pipefail
+
+MAXBYTES=350000      # ~100k tokens; chunk boundary
+OVERLAP=8            # lines of overlap between chunks
+TEXT_TRUNC=4000      # truncate each text/thinking block
+TOOL_TRUNC=800       # truncate tool_use input / tool_result
+MAX_CHUNKS=12        # refuse to fan out past this many chunks
+
+command -v jq >/dev/null 2>&1 || { echo "split-session: jq not found" >&2; exit 1; }
+
+transcript="${1:-}"
+if [ -z "$transcript" ]; then
+  echo "usage: split-session TRANSCRIPT_PATH" >&2
+  exit 1
+fi
+[ -f "$transcript" ] || {
+  echo "split-session: transcript not found: $transcript" >&2
+  exit 1
+}
+
+out_dir="$(mktemp -d)" || exit 1
+clean="$out_dir/.clean.txt"
+
+# --- preprocess: transcript JSONL -> lean plain-text turns ------------------
+# Keep only user/assistant content that reveals what happened; drop attachments,
+# mode/permission records, snapshots, titles, and blobs. Truncate long blocks.
+jq -r --argjson tt "$TEXT_TRUNC" --argjson ot "$TOOL_TRUNC" '
+  select(.type=="user" or .type=="assistant")
+  | (.type | ascii_upcase) as $role
+  | .message.content as $c
+  | if ($c | type) == "string" then [ $role + ": " + $c[0:$tt] ]
+    elif ($c | type) == "array" then
+      [ $c[]? |
+          if .type=="text" then $role + ": " + (.text // "")[0:$tt]
+          elif .type=="thinking" then "THINKING: " + (.thinking // "")[0:$tt]
+          elif .type=="tool_use" then "TOOL_USE " + (.name // "?") + ": " + (.input | tostring)[0:$ot]
+          elif .type=="tool_result" then "TOOL_RESULT" + (if .is_error==true then "(ERROR)" else "" end) + ": " + (.content | tostring)[0:$ot]
+          else empty end ]
+    else [] end
+  | .[]
+' "$transcript" > "$clean" 2>/dev/null || true
+
+if [ ! -s "$clean" ]; then
+  echo "split-session: transcript produced no analyzable content" >&2
+  rm -f "$clean"
+  exit 0
+fi
+
+# --- chunk into Haiku-sized, overlapping windows ----------------------------
+awk -v max="$MAXBYTES" -v ov="$OVERLAP" -v dir="$out_dir" '
+  { L[NR]=$0; B[NR]=length($0)+1; n=NR }
+  END {
+    ci=0; cb=0; f=sprintf("%s/chunk_%03d.txt", dir, ci);
+    for (i=1; i<=n; i++) {
+      print L[i] > f; cb += B[i];
+      if (cb >= max && i < n) {
+        close(f); ci++; f=sprintf("%s/chunk_%03d.txt", dir, ci); cb=0;
+        lo=i-ov+1; if (lo < 1) lo=1;
+        for (j=lo; j<=i; j++) { print L[j] > f; cb += B[j]; }
+      }
+    }
+    close(f);
+  }
+' "$clean"
+
+rm -f "$clean"
+
+chunk_count=$(find "$out_dir" -maxdepth 1 -name 'chunk_*.txt' | wc -l | tr -d ' ')
+if [ "$chunk_count" -gt "$MAX_CHUNKS" ]; then
+  echo "split-session: transcript split into $chunk_count chunks, exceeding the cap of $MAX_CHUNKS — too large for automatic reflection; narrow the scope (e.g. reflect on a shorter session)" >&2
+  rm -rf "$out_dir"
+  exit 1
+fi
+
+find "$out_dir" -maxdepth 1 -name 'chunk_*.txt' | sort
