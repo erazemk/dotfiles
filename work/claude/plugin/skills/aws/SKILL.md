@@ -37,7 +37,7 @@ V2 (legacy, the default when `V3PathFormat` is unset):
 # external-system level (adds the dev user)
 .../{DevUserID}
 
-# external-sync-unit level (to-devrev modes: initial, sync_to_devrev) — this is the loader's working prefix
+# external-sync-unit level (to-devrev modes: initial, sync_to_devrev)
 .../{ExternalSyncUnitID}
 
 # from-devrev mode appends:
@@ -63,11 +63,11 @@ Structured run logs live at `{external-sync-unit-level prefix}/logs/{RunId}`.
 
 - `DevOrgID` — `dev_org_id` in the sync context.
 - `ExternalSystemType` — `source_type` (e.g. `ADaaS`).
-- `ExternalSystemName` — `external_system_name` (V3 only).
+- `ExternalSystemName` — `external_system_name`.
 - `ExternalSystemID` — `source_id`.
 - `ExternalSyncUnitID` — `source_unit_id`.
-- `SyncUnitID` — `migration_unit_id` (V3 only).
-- `DevUserID` — `dev_user_id` (V2 only).
+- `SyncUnitID` — `migration_unit_id`.
+- `DevUserID` — `dev_user_id`
 - `SnapInSlug` / `ImportSlug` — `snap_in_slug` / `import_slug`, present only for ADaaS sources.
 
 So a full object key is `s3://devrev-<env>-airdrop-data/<key-prefix>/<object-name>`.

@@ -82,7 +82,8 @@ manually). Name the file descriptively after the feature, e.g.
 
 Build the plan incrementally with `Edit` (not repeated full `Write`s) so each
 change renders as an inline diff. Keep it concise enough to scan quickly, but
-detailed enough to execute effectively. Structure it:
+detailed enough to execute effectively. Do not hard-wrap body lines — write
+each paragraph/bullet as a single unwrapped line so diffs stay clean. Structure it:
 
 - **Context** — why this change: the problem/need, what prompted it, intended outcome.
 - **Approach** — only the recommended approach, not every alternative.

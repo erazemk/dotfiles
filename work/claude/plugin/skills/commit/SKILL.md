@@ -4,6 +4,10 @@ description: Inspect current git changes, draft a commit message, require approv
 allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git branch:*), Bash(git checkout:*), Bash(git switch:*), Bash(git add:*), Bash(git commit:*), Bash(git log:*), AskUserQuestion
 ---
 
+This skill only performs the commit step. It assumes the caller already ran the rest of the wrap-up process — verifying the build and resolving/creating the DevRev issue — per the `finish` skill.
+If you (the agent) have not already run the full `finish` flow in this conversation, read the `finish` skill first and follow it from the top, rather than invoking `commit` in isolation and reinventing pieces of that flow (e.g. asking the user ad hoc questions this skill has no answer for).
+Only proceed straight to the steps below when `finish` has already been followed, or when the caller explicitly wants just the commit step in isolation (e.g. a follow-up commit on an already-open PR).
+
 The caller must provide a DevRev issue URL to append to the commit body.
 If the caller provides a DevRev URL, use that exact URL verbatim everywhere.
 Do not canonicalize it, normalize it, reconstruct it from an issue ID, or replace it with another URL format.
@@ -34,7 +38,7 @@ Unstaged diff:
 - if nothing is staged, use the unstaged diff above
 - if both staged and unstaged changes exist, consider both, but commit only the staged changes unless the caller explicitly asked to include unstaged changes
 - if there are no staged or unstaged changes, stop and say there is nothing to commit
-- if the DevRev issue URL is missing, stop and ask for it
+- if the DevRev issue URL is missing, this is a sign `finish` was not followed — go read it and resolve/create the issue per its process (including via `create-devrev-issue`) rather than asking the user directly. Only ask the user directly if `finish`'s own resolution step says to stop and ask (e.g. they decline to approve a drafted title/description).
 - exclude likely secrets such as `.env`, credentials, private keys, or token files unless the user explicitly confirms
 
 ## Branch rules
@@ -61,8 +65,10 @@ This commit's title and body become the basis for the PR title and description, 
 - simple commits should use only that exact DevRev URL as the body
 - do not repeat or paraphrase the commit title in the body
 - complex commits may include short paragraphs before the issue URL only when the extra context is genuinely needed
-- the opening sentence must start with `This commit ...`
-- use present tense and `we`
+- the opening sentence must start with `This commit ...`, and if a second sentence is needed, start it with `The commit also ...`
+- use present tense
+- avoid personal pronouns (`I`, `we`, `our`, `my`) entirely
+- avoid vague referents like `it`, `this`, `that` — name the actual service, function, file, or person explicitly instead
 - NEVER hard-wrap the body at a fixed column width: a line break must only ever fall at the end of a paragraph, never in the middle of one (multiple sentences in a paragraph should all be on the same line).
 - Separate paragraphs with a blank line. The PR body must match the amended commit body verbatim, so if the commit body was re-wrapped, re-read it before creating the PR.
 
@@ -84,6 +90,7 @@ The PR title and description are already set; these commits are squashed on merg
 - ask whether the commit title and description are okay
 - provide exactly `Yes` and `No`
 - if approval is not granted through `AskUserQuestion`, stop
+- if the response is not a plain `Yes` (e.g. the user requests a change to the title or body, via `No` with a note or free text), do not treat that as approval and do not commit with the revised message yet — revise the draft accordingly and go through the `AskUserQuestion` approval step again with the new version. Repeat until the user approves a version with a plain `Yes`.
 
 ## If approved
 
