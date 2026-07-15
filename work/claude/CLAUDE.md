@@ -9,6 +9,14 @@
 - When you apply a fix in response to a PR reviewer's comment, do not post a reply comment on that reviewer's comment thread.
 - Only resolve a review thread when I explicitly ask (see the `pr` skill's "Resolving review conversations" section), and never add a new comment there.
 - Avoid writing short helper functions that are only used once or twice — inline the logic at the call site instead.
+- When a task list exists, work through tasks sequentially.
+- LSP-resolve callsites for a function only when that function's task is the active one — do not pre-read all callsites upfront across multiple tasks.
+- For bulk mechanical renames in Go files, use the `Edit` tool with `replace_all: true` per file — do not use shell `sed -i` or `find -exec sed`.
+
+# Git discipline
+
+- Never run `git stash` to investigate whether a test failure is pre-existing.
+- Read the diff and reason from the code changes instead.
 
 # LSP tool
 
@@ -23,3 +31,13 @@ Prefer the LSP tool over Read/Grep/Glob in these cases, since it resolves symbol
 - Checking a symbol's resolved type/doc without opening its defining file (`hover`).
 - Verifying a rename/refactor is complete and didn't miss usages behind interfaces (`findReferences`).
 - Investigating usages of a symbol across repos, following the real import graph rather than guessing which repo to grep.
+
+# DevRev issue creation defaults
+
+When creating issues for the current work, use these team-specific defaults:
+- Space (team): `don:identity:dvrv-us-1:devo/0:space/kI5OWQqm` (AirSync Data Plane / ASDAT)
+- Sprint board: `don:core:dvrv-us-1:devo/0:vista/14964` ("AS Data Plane")
+- Commonly used parts:
+  - `Integration with core DevRev` → `don:core:dvrv-us-1:devo/0:feature/834` — core DevRev integration boundaries and contracts.
+  - `AirSync Platform` → `don:core:dvrv-us-1:devo/0:capability/5` — shared libraries, generic loader maintenance, dependency updates, repo-wide cleanup, generic AirSync/Airdrop platform work.
+  - `AirSync Sync` → `don:core:dvrv-us-1:devo/0:feature/832` — sync behavior and lifecycle changes.

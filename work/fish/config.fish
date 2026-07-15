@@ -48,11 +48,13 @@ abbr cdtmp 'cd (mktemp -d)'
 
 # Claude
 
-abbr cc 'claude'
 abbr usage 'npx ccusage@latest claude'
+function cc --description "Claude code"
+    if not set -q DEVREV_API_KEY
+        set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
+    end
 
-if not set -q DEVREV_API_KEY
-    set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
+    CLAUDE_CODE_USE_BEDROCK=1 claude --permission-mode bypassPermissions
 end
 
 #
@@ -111,8 +113,7 @@ end
 
 function ecr --description "Log into AWS ECR through docker"
     aws sso login
-    aws ecr get-login-password --region us-east-1 | \
-        docker login --username AWS --password-stdin 173672169127.dkr.ecr.us-east-1.amazonaws.com
+    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 173672169127.dkr.ecr.us-east-1.amazonaws.com
 end
 
 function venv --description "Create and activate a new virtual environment"
