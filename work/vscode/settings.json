@@ -7,9 +7,6 @@
   "chat.editor.localAgent.enabled": false,
   "chat.fontSize": 14,
   "chat.titleBar.openInAgentsWindow.enabled": false,
-  "claudeCode.disableLoginPrompt": true,
-  "claudeCode.enableNewConversationShortcut": true,
-  "claudeCode.preferredLocation": "panel",
   "debug.console.fontSize": 15,
   "debug.onTaskErrors": "abort",
   "debug.openExplorerOnEnd": true,
@@ -50,6 +47,7 @@
   "git.closeDiffOnOperation": true,
   "git.confirmSync": false,
   "git.defaultCloneDirectory": "~/DevRev",
+  "git.enableSmartCommit": true,
   "git.fetchOnPull": true,
   "git.mergeEditor": true,
   "git.pruneOnFetch": true,
@@ -58,7 +56,6 @@
   "git.scanRepositories": [
     "~/DevRev"
   ],
-  "git.suggestSmartCommit": false,
   "git.terminalGitEditor": true,
   "github.copilot.chat.backgroundAgent.enabled": false,
   "github.copilot.chat.claudeAgent.enabled": false,
@@ -74,6 +71,7 @@
   "github.gitProtocol": "ssh",
   "githubIssues.issueCompletions.enabled": false,
   "githubPullRequests.codingAgent.enabled": false,
+  "githubPullRequests.commentExpandState": "collapseAll",
   "githubPullRequests.createOnPublishBranch": "always",
   "githubPullRequests.deleteBranchAfterMerge": true,
   "githubPullRequests.pullRequestDescription": "commit",
