@@ -8,10 +8,10 @@
   },
   "awsAuthRefresh": "aws sso login",
   "enabledPlugins": {
-    "airsync@erazemk": true,
     "claude-code-setup@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
+    "core@airsync": true,
     "gopls-lsp@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true
@@ -28,21 +28,20 @@
     "CLAUDE_CODE_NEW_INIT": "1",
     "CLAUDE_CODE_NO_FLICKER": "1",
     "CLAUDE_CODE_SCROLL_SPEED": "0.25",
-    "CLAUDE_CODE_USE_BEDROCK": "1",
     "DISABLE_ERROR_REPORTING": "1",
     "DISABLE_TELEMETRY": "1"
   },
   "extraKnownMarketplaces": {
-    "claude-plugins-official": {
+    "airsync": {
+      "autoUpdate": true,
       "source": {
-        "repo": "anthropics/claude-plugins-official",
+        "repo": "devrev/airsync-claude-plugins",
         "source": "github"
       }
     },
-    "erazemk": {
-      "autoUpdate": true,
+    "claude-plugins-official": {
       "source": {
-        "repo": "erazemk/dotfiles",
+        "repo": "anthropics/claude-plugins-official",
         "source": "github"
       }
     }
@@ -54,7 +53,7 @@
     "additionalDirectories": [
       "~/DevRev"
     ],
-    "defaultMode": "acceptEdits",
+    "defaultMode": "bypassPermissions",
     "deny": [
       "EnterPlanMode",
       "ExitPlanMode"
@@ -62,6 +61,7 @@
   },
   "preferredNotifChannel": "notifications_disabled",
   "showThinkingSummaries": true,
+  "skipDangerousModePermissionPrompt": true,
   "spinnerTipsEnabled": true,
   "statusLine": {
     "command": "bash ~/.claude/statusline-command.sh",
