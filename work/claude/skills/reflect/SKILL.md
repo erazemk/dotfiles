@@ -3,11 +3,23 @@ name: reflect
 description: Reflect on the current Claude Code session to improve future sessions. Use when asked to reflect, or to consolidate this session's learnings, via /reflect.
 allowed-tools: Read, Edit, Write, Grep, Glob, Bash, Agent, AskUserQuestion
 effort: high
+context: fork
+disable-model-invocation: true
 ---
 
 Reflect on the CURRENT Claude Code session only, and turn what went wrong into durable, correctly
 placed fixes, so future sessions make fewer of the same mistakes. Manually invoked, turn-scoped —
 no hook, no background process, no cross-session state.
+
+## Argument hint
+
+If this skill was invoked with arguments (e.g. `/reflect memory handling` or `/reflect <topic>`),
+treat them as a focus hint: the user wants the analysis to pay particular attention to interactions
+involving that topic.
+Append the following sentence to both the MAP audit prompt and the REDUCE merge instructions:
+"The user asked to focus on: <args>. Prioritise findings in that area, but still surface any other
+high-value learnings."
+If no arguments were provided, omit the sentence entirely — do not invent a focus.
 
 ## How this skill divides responsibility
 

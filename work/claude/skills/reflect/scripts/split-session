@@ -27,10 +27,8 @@
 
 set -uo pipefail
 
-MAXBYTES=350000      # ~100k tokens; chunk boundary
-OVERLAP=8            # lines of overlap between chunks
-TEXT_TRUNC=4000      # truncate each text/thinking block
-TOOL_TRUNC=800       # truncate tool_use input / tool_result
+MAXBYTES=600000      # ~150k tokens; 75% of Haiku's 200k context window
+OVERLAP=3            # blocks of overlap between chunks
 MAX_CHUNKS=12        # refuse to fan out past this many chunks
 
 command -v jq >/dev/null 2>&1 || { echo "split-session: jq not found" >&2; exit 1; }
@@ -50,18 +48,18 @@ clean="$out_dir/.clean.txt"
 
 # --- preprocess: transcript JSONL -> lean plain-text turns ------------------
 # Keep only user/assistant content that reveals what happened; drop attachments,
-# mode/permission records, snapshots, titles, and blobs. Truncate long blocks.
-jq -r --argjson tt "$TEXT_TRUNC" --argjson ot "$TOOL_TRUNC" '
+# mode/permission records, snapshots, titles, and blobs.
+jq -r '
   select(.type=="user" or .type=="assistant")
   | (.type | ascii_upcase) as $role
   | .message.content as $c
-  | if ($c | type) == "string" then [ $role + ": " + $c[0:$tt] ]
+  | if ($c | type) == "string" then [ $role + ": " + $c ]
     elif ($c | type) == "array" then
       [ $c[]? |
-          if .type=="text" then $role + ": " + (.text // "")[0:$tt]
-          elif .type=="thinking" then "THINKING: " + (.thinking // "")[0:$tt]
-          elif .type=="tool_use" then "TOOL_USE " + (.name // "?") + ": " + (.input | tostring)[0:$ot]
-          elif .type=="tool_result" then "TOOL_RESULT" + (if .is_error==true then "(ERROR)" else "" end) + ": " + (.content | tostring)[0:$ot]
+          if .type=="text" then $role + ": " + (.text // "")
+          elif .type=="thinking" then "THINKING: " + (.thinking // "")
+          elif .type=="tool_use" then "TOOL_USE " + (.name // "?") + ": " + (.input | tostring)
+          elif .type=="tool_result" then "TOOL_RESULT" + (if .is_error==true then "(ERROR)" else "" end) + ": " + (.content | tostring)
           else empty end ]
     else [] end
   | .[]
