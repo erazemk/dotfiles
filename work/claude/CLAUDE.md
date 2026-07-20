@@ -20,6 +20,10 @@
 - When updating a skill, agent, or hook, search both `~/.config/dotfiles/work/claude` and `~/DevRev/airsync-claude-plugins/plugins/core` to find the right file.
 - When modifying skills, documentation, or similar prose, correct wrong assumptions in place — edit or remove the incorrect text rather than appending a note saying not to do the previous thing.
 
+# Scripts and one-off tools
+
+- Any one-off, testing, or debugging scripts that should not be committed to the repo go in the project's `_build/scripts/` directory (if `_build/` already exists in the project root — it is gitignored by convention).
+
 # Git discipline
 
 - When starting coding work on a new feature in the ~/DevRev directory or its subdirectories, always use the worktree skill to switch to a new git worktree.
