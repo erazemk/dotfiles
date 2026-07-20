@@ -12,6 +12,7 @@
     "claude-md-management@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "core@airsync": true,
+    "engram@engram": true,
     "gopls-lsp@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true
@@ -42,6 +43,12 @@
     "claude-plugins-official": {
       "source": {
         "repo": "anthropics/claude-plugins-official",
+        "source": "github"
+      }
+    },
+    "engram": {
+      "source": {
+        "repo": "Gentleman-Programming/engram",
         "source": "github"
       }
     }
