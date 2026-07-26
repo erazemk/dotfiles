@@ -1,0 +1,81 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "cli_default_open_behavior": "existing_window",
+  "agent_servers": {
+    "claude-acp": {
+      "default_config_options": {
+        "agent": "default",
+        "effort": "high",
+        "model": "claude-sonnet-4-6[1m]",
+      },
+      "type": "registry",
+    },
+  },
+  "context_servers": {
+    "DevRev": {
+      "enabled": true,
+      "url": "https://api.devrev.ai/mcp/v1",
+      "headers": {
+        "Authorization": "Bearer ${DEVREV_API_KEY}",
+      },
+    },
+    "Datadog": {
+      "enabled": true,
+      "url": "https://mcp.datadoghq.com/v1/mcp",
+    },
+  },
+  "diff_view_style": "unified",
+  "terminal": {
+    "shell": {
+      "with_arguments": {
+        "program": "/opt/homebrew/bin/fish",
+        "args": ["--login", "--interactive"],
+        "title_override": "Shell",
+      },
+    },
+  },
+  "code_lens": "on",
+  "format_on_save": "on",
+  "agent": {
+    "default_model": {
+      "provider": "amazon-bedrock",
+      "model": "gpt-5.6-terra",
+      "enable_thinking": true,
+      "effort": "medium",
+    },
+    "show_turn_stats": true,
+    "tool_permissions": {
+      "default": "allow",
+    },
+    "sandbox_permissions": {
+      "write_paths": ["/Users/erazemk/DevRev"],
+      "allow_all_hosts": true,
+    },
+  },
+  "semantic_tokens": "combined",
+  "session": {
+    "trust_all_worktrees": true,
+  },
+  "file_types": {
+    "Make": ["Makefile.*"],
+    "Dockerfile": ["Dockerfile.*"],
+  },
+  "language_models": {
+    "bedrock": {
+      "authentication_method": "named_profile",
+      "region": "us-east-1",
+      "profile": "default",
+      "allow_global": true,
+    },
+  },
+  "git": {
+    "worktree_directory": ".git/worktrees",
+  },
+}
