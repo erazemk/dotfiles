@@ -1,111 +1,80 @@
 ---
 name: plan
-description: Investigate a change read-only and write an implementation plan to a file before touching any code. Use whenever the user asks you to plan, design an approach, or think through how to implement something before writing code — "plan this", "make a plan", "how would you implement", "design an approach", "/plan".
+description: Discuss and plan a change before touching any code. Use when the user wants to think through an approach, design a feature, or prepare a spec — "plan this", "let's plan", "how would you implement", "design an approach", "/plan". Does NOT write a plan file until the user explicitly asks.
 argument-hint: "[what to plan]"
 ---
 
-# Plan a change (read-only) and write it to a file
-
-Investigate before implementing, and write the plan down as an ordinary file
-using the `Write`/`Edit` tools — every revision to the plan then shows up as an
-inline diff in the conversation, so changes to the plan are easy to review.
+# Plan a change
 
 What to plan: $ARGUMENTS
 
-## The read-only contract
+## Two modes
 
-While planning, you may ONLY:
+This skill has two modes.
+The default is **conversation**.
+The plan file is only written when the user explicitly asks for it (e.g. "write the plan", "write it up", "let's create the spec").
 
-- read files, search the codebase, and run **read-only** commands (`git log`,
-  `git diff`, `grep`, `ls`, test/build commands only if strictly needed to
-  understand behavior — nothing that mutates);
-- `Write`/`Edit` the **single plan file** described below.
+---
 
-You may NOT edit source files, run mutating commands, create commits, or change
-any system state. If the user asks you to make a change mid-plan, stop and say
-planning is read-only — offer to finish the plan and then, once they approve,
-implement it. The worktree (step 1) is the real safety net: if a stray edit
-slips through, it lands on a throwaway branch, never on `main`.
+## Mode 1 — Conversation (default)
 
-## Step 1 — decide where the plan lives (worktree-first, conditionally)
+Engage in a back-and-forth discussion to understand the problem and iron out the approach.
+Explore the codebase as questions arise — read files, search for existing patterns, check ADRs — but only what the current question requires.
+Do not run a full upfront investigation pipeline; let the conversation drive what you read.
 
-Producing a plan usually means feature work is about to start, and feature work
-in `~/DevRev` always happens in a fresh git worktree.
+The goal is to arrive at a shared understanding of:
+- what problem is being solved and why
+- where the seams are (prefer existing seams at the highest level possible; the fewer new seams, the better)
+- what the approach is and what the key tradeoffs are
+- what is explicitly out of scope
 
-- **If the change is under `~/DevRev`, is real feature work, and you are NOT
-  already in a worktree:** switch to a new worktree first. Read and use the
-  `worktree` skill for all branch-naming and path logic — do not reimplement it.
-  Write the plan inside that worktree. This is the default for DevRev work.
-- **If you are already in a worktree:** stay there; do not nest. Write the plan
-  in the current worktree.
-- **If not in a git repo, not under `~/DevRev`, or the user explicitly wants a
-  quick throwaway plan:** skip the worktree and write the plan to the current
-  project's `.claude/plans/` directly.
+Stay in this mode until the user signals they are ready to write the plan.
+Do not produce a plan file, create a worktree, or begin implementing.
 
-Do not force a worktree for exploratory "should we even do this?" planning —
-that is premature commitment. When unsure whether the work is worktree-worthy,
-ask the user briefly rather than guessing.
+## Mode 2 — Write the plan
 
-## Step 2 — investigate, then design
+Triggered only by an explicit user signal.
 
-Feel free to use `AskUserQuestion` at any point in this workflow to clarify
-requirements or choose between approaches — don't make large assumptions about
-user intent. The goal is a well-researched plan with no loose ends before
-implementation begins.
+### Worktree
 
-- **Research.** Read the code yourself first. Actively search for existing
-  functions, utilities, and patterns that can be reused — avoid proposing new
-  code when suitable implementations already exist. Only when the scope is
-  uncertain or spans several areas, launch `Explore` agent(s) in parallel
-  (single message, multiple tool calls) to cover more ground, each with a
-  specific search focus.
-- **Design.** For anything beyond a trivial change (typo fixes, single-line
-  changes, simple renames), get independent implementation strategies before
-  committing to one — launch one or more `Plan` agents (a built-in,
-  permission-enforced read-only agent purpose-built for this), each given the
-  background context from research above, the requirements, and optionally a
-  distinct perspective to weigh (e.g. simplicity vs. performance vs.
-  maintainability). Read their output; take the best approach, or the best
-  ideas across them.
-- **Review.** Before finalizing, re-read the critical files identified during
-  research to deepen your understanding, and consult the `advisor` agent with
-  your drafted approach for a sanity check on risks and tradeoffs. Confirm the
-  approach still aligns with the user's original request.
+If the change is under `~/DevRev`, is real feature work, and you are not already in a worktree, switch to a new worktree first using the `worktree` skill.
+If already in a worktree, stay there.
+If not in a git repo, not under `~/DevRev`, or the user wants a quick throwaway plan, skip the worktree and write to `.claude/plans/` in the current project root.
 
-## Step 3 — write the plan file
+### Read-only contract
 
-Write to `.claude/plans/<descriptive-kebab-name>.md` in the repo/worktree root
-(this path is gitignored globally, so it never enters version control and is
-deleted automatically when the worktree is removed — you never clean it up
-manually). Name the file descriptively after the feature, e.g.
-`.claude/plans/oauth-token-refresh.md` — not a generic name.
+While writing the plan you may read files, search the codebase, and run read-only commands.
+You may not edit source files, run mutating commands, or create commits.
+If the user asks for a change mid-plan, finish the plan first, then implement after approval.
 
-Build the plan incrementally with `Edit` (not repeated full `Write`s) so each
-change renders as an inline diff. Keep it concise enough to scan quickly, but
-detailed enough to execute effectively. Do not hard-wrap body lines — write
-each paragraph/bullet as a single unwrapped line so diffs stay clean. Structure it:
+### The plan file
 
-- **Context** — why this change: the problem/need, what prompted it, intended outcome.
-- **Approach** — only the recommended approach, not every alternative.
-- **Changes** — name the critical files to modify; reference existing functions/
-  utilities to reuse (with paths). For a repeated pattern, describe it once and
-  list a few representative paths — do not enumerate every file.
-- **Verification** — how to test the change end-to-end (run the code, tests, MCP tools).
+Write to `.claude/plans/<descriptive-kebab-name>.md` in the repo/worktree root.
+This path is gitignored globally and is deleted automatically when the worktree is removed.
+Name the file after the feature, not generically.
 
-## Step 4 — stop and get approval
+The plan should contain whatever is needed to execute the work without ambiguity.
+For a small focused change a lightweight plan is fine.
+For feature work, include enough to serve as a spec:
 
-After the plan file is written, **STOP.** Present a short summary and wait for
-the user's explicit approval. Do not begin implementing on your own — planning
-does not silently roll into coding.
+- **Problem** — what problem is being solved, from the user's perspective
+- **Solution** — what the solution looks like, from the user's perspective
+- **User stories** — a thorough numbered list of "As a X, I want Y, so that Z"
+- **Implementation decisions** — modules touched, interface changes, architectural decisions, schema or API changes; no file paths or code snippets unless a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, type shape, schema) — trim to the decision-rich parts only
+- **Testing decisions** — what seams will be tested, what prior art in the codebase applies, what makes a good test for this change
+- **Out of scope** — explicit list of what is not being done
 
-On approval, planning ends and normal editing resumes: implement the plan in the
-same worktree, following it. The read-only contract is lifted only at this point.
+Omit sections that add no value for the specific change.
+Keep it concise enough to scan, detailed enough to execute.
+Do not hard-wrap body lines — write each paragraph or bullet as a single unwrapped line so diffs stay clean.
+
+### After writing
+
+Stop and present a short summary.
+Wait for explicit approval before implementing.
+Planning does not silently roll into coding.
 
 ## Later
 
-- **Cleanup** is automatic: the plan is gitignored and lives in the worktree, so
-  removing the worktree (see the `worktree` skill's cleanup section) deletes it.
-  Never delete plan files manually.
-- **Finishing:** when the work is done, use the `finish` skill. The plan file is
-  a good source for the PR/issue description — reference it there before the
-  worktree is removed, so anything worth keeping is preserved.
+The plan file is gitignored and lives in the worktree, so removing the worktree deletes it automatically.
+When finishing the work, use the `finish` skill — the plan file is a good source for the PR/issue description.
