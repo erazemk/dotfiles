@@ -1,22 +1,6 @@
 {
-  "$docs": "https://code.claude.com/docs/en/keybindings",
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "askUserQuestionTimeout": "never",
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
   "awsAuthRefresh": "aws sso login",
-  "enabledPlugins": {
-    "claude-code-setup@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true,
-    "core@airsync": true,
-    "engram@engram": true,
-    "gopls-lsp@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true
-  },
   "env": {
     "ANTHROPIC_DEFAULT_FABLE_MODEL": "global.anthropic.claude-fable-5",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
@@ -26,55 +10,85 @@
     "CLAUDE_AFK_TIMEOUT_MS": "86400000",
     "CLAUDE_CODE_ENABLE_AUTO_MODE": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_USE_BEDROCK": "1",
     "CLAUDE_CODE_NEW_INIT": "1",
     "CLAUDE_CODE_NO_FLICKER": "1",
     "CLAUDE_CODE_SCROLL_SPEED": "0.25",
     "DISABLE_ERROR_REPORTING": "1",
     "DISABLE_TELEMETRY": "1"
   },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "includeGitInstructions": false,
+  "permissions": {
+    "deny": [
+      "EnterPlanMode",
+      "ExitPlanMode"
+    ],
+    "defaultMode": "bypassPermissions",
+    "additionalDirectories": [
+      "~/DevRev"
+    ]
+  },
+  "model": "sonnet",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/worktree-guard.sh\"",
+            "statusMessage": "checking worktree guard"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "claude-code-setup@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "core@airsync": true,
+    "engram@engram": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true
+  },
   "extraKnownMarketplaces": {
     "airsync": {
-      "autoUpdate": true,
       "source": {
-        "repo": "devrev/airsync-claude-plugins",
-        "source": "github"
-      }
+        "source": "github",
+        "repo": "devrev/airsync-claude-plugins"
+      },
+      "autoUpdate": true
     },
     "claude-plugins-official": {
       "source": {
-        "repo": "anthropics/claude-plugins-official",
-        "source": "github"
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
       }
     },
     "engram": {
       "source": {
-        "repo": "Gentleman-Programming/engram",
-        "source": "github"
+        "source": "github",
+        "repo": "Gentleman-Programming/engram"
       }
     }
   },
-  "includeGitInstructions": false,
-  "model": "sonnet",
   "outputStyle": "Concise",
-  "permissions": {
-    "additionalDirectories": [
-      "~/DevRev"
-    ],
-    "defaultMode": "bypassPermissions",
-    "deny": [
-      "EnterPlanMode",
-      "ExitPlanMode"
-    ]
-  },
-  "preferredNotifChannel": "notifications_disabled",
+  "spinnerTipsEnabled": true,
+  "askUserQuestionTimeout": "never",
   "showThinkingSummaries": true,
   "skipDangerousModePermissionPrompt": true,
-  "spinnerTipsEnabled": true,
-  "statusLine": {
-    "command": "bash ~/.claude/statusline-command.sh",
-    "type": "command"
-  },
-  "teammateMode": "in-process",
   "theme": "auto",
-  "wheelScrollAccelerationEnabled": false
+  "preferredNotifChannel": "notifications_disabled",
+  "wheelScrollAccelerationEnabled": false,
+  "teammateMode": "in-process",
+  "$docs": "https://code.claude.com/docs/en/keybindings"
 }
