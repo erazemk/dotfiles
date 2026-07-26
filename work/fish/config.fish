@@ -2,6 +2,9 @@
 # ~/.config/fish/config.fish
 #
 
+# Homebrew
+eval (brew shellenv)
+
 #
 # Environment variables
 #
@@ -16,25 +19,8 @@ set -gx GOPATH $XDG_DATA_HOME/go
 set -gx GOPRIVATE github.com/devrev
 fish_add_path -gP $GOPATH/bin
 
-set -gx EDITOR code --wait
+set -gx EDITOR 'zed --wait'
 set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
-set -gx SSH_AUTH_SOCK ~/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock
-
-# Homebrew
-
-set -gx HOMEBREW_PREFIX /opt/homebrew
-set -gx HOMEBREW_CELLAR /opt/homebrew/Cellar
-set -gx HOMEBREW_REPOSITORY /opt/homebrew
-fish_add_path -g --move --path /opt/homebrew/bin /opt/homebrew/sbin
-fish_add_path $HOMEBREW_PREFIX/opt/curl/bin
-
-if test -n "$MANPATH[1]"
-    set -gx MANPATH '' $MANPATH
-end
-
-if not contains /opt/homebrew/share/info $INFOPATH
-    set -gx INFOPATH /opt/homebrew/share/info $INFOPATH
-end
 
 #
 # Aliases
@@ -54,7 +40,7 @@ function cc --description "Claude code"
         set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
     end
 
-    CLAUDE_CODE_USE_BEDROCK=1 claude --permission-mode bypassPermissions
+    claude --permission-mode bypassPermissions
 end
 
 #
