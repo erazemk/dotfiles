@@ -32,7 +32,7 @@ abbr cp 'cp -Riv'
 abbr mkdir 'mkdir -p'
 abbr cdtmp 'cd (mktemp -d)'
 
-# Claude
+# Agents
 
 abbr usage 'npx ccusage@latest claude'
 function cc --description "Claude code"
@@ -40,7 +40,29 @@ function cc --description "Claude code"
         set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
     end
 
-    claude --permission-mode bypassPermissions
+    command claude --permission-mode bypassPermissions $argv
+end
+
+abbr oc 'opencode'
+function opencode --description "OpenCode"
+    if not set -q DEVREV_API_KEY
+        set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
+    end
+    if not set -q CIRCLECI_TOKEN
+        set -gx CIRCLECI_TOKEN (security find-generic-password -w -s "CircleCI Token" -a "API Keys")
+    end
+
+    # set -gx OPENCODE_EXPERIMENTAL_LSP_TOOL true
+    # set -gx OPENCODE_ENABLE_EXA true
+    set -gx OPENCODE_ENABLE_PARALLEL true
+    set -gx OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS true
+    set -gx OPENCODE_EXPERIMENTAL_FILEWATCHER true
+
+    if not aws sts get-caller-identity >/dev/null 2>&1
+        aws sso login
+    end
+
+    command opencode $argv
 end
 
 #

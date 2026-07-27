@@ -6,6 +6,7 @@ sso_start_url = https://d-9067645937.awsapps.com/start
 sso_session = DevRev
 sso_account_id = 020040093233
 sso_role_name = EngineeringDevAccess
+sso_session_duration = 43200
 region = us-east-1
 output = json
 s3 =
