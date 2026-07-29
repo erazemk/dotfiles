@@ -7,43 +7,62 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
-  "cli_default_open_behavior": "existing_window",
+  "agent": {
+    "favorite_models": [],
+    "model_parameters": [],
+    "notify_when_agent_waiting": "never"
+  },
   "agent_servers": {
     "OpenCode": {
-      "type": "custom",
+      "args": [
+        "acp"
+      ],
       "command": "opencode",
-      "args": ["acp"],
-    },
+      "default_config_options": {
+        "effort": "high",
+        "mode": "build"
+      },
+      "type": "custom"
+    }
   },
+  "cli_default_open_behavior": "existing_window",
+  "code_lens": "on",
   "diff_view_style": "unified",
+  "file_types": {
+    "Dockerfile": [
+      "Dockerfile.*"
+    ],
+    "Make": [
+      "Makefile.*"
+    ]
+  },
+  "format_on_save": "on",
+  "language_models": {
+    "bedrock": {
+      "allow_global": true,
+      "authentication_method": "named_profile",
+      "profile": "default",
+      "region": "us-east-1"
+    }
+  },
+  "search": {
+    "center_on_match": true,
+    "include_ignored": true
+  },
+  "semantic_tokens": "combined",
+  "session": {
+    "trust_all_worktrees": true
+  },
   "terminal": {
     "shell": {
       "with_arguments": {
+        "args": [
+          "--login",
+          "--interactive"
+        ],
         "program": "/opt/homebrew/bin/fish",
-        "args": ["--login", "--interactive"],
-        "title_override": "Shell",
-      },
-    },
-  },
-  "code_lens": "on",
-  "format_on_save": "on",
-  "semantic_tokens": "combined",
-  "session": {
-    "trust_all_worktrees": true,
-  },
-  "file_types": {
-    "Make": ["Makefile.*"],
-    "Dockerfile": ["Dockerfile.*"],
-  },
-  "language_models": {
-    "bedrock": {
-      "authentication_method": "named_profile",
-      "region": "us-east-1",
-      "profile": "default",
-      "allow_global": true,
-    },
-  },
-  "git": {
-    "worktree_directory": ".git/worktrees",
-  },
+        "title_override": "Shell"
+      }
+    }
+  }
 }
