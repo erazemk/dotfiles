@@ -2,41 +2,24 @@
   "[markdown]": {
     "editor.wordWrap": "on"
   },
-  "accessibility.underlineLinks": true,
   "chat.agent.enabled": false,
-  "chat.editor.localAgent.enabled": false,
-  "chat.fontSize": 14,
+  "chat.agentsControl.enabled": "hidden",
   "chat.titleBar.openInAgentsWindow.enabled": false,
+  "chat.viewSessions.enabled": false,
   "debug.console.fontSize": 15,
-  "debug.onTaskErrors": "abort",
-  "debug.openExplorerOnEnd": true,
-  "debug.showVariableTypes": true,
-  "debug.terminal.clearBeforeReusing": true,
   "diffEditor.codeLens": true,
   "diffEditor.experimental.showMoves": true,
-  "diffEditor.ignoreTrimWhitespace": true,
   "diffEditor.renderSideBySide": false,
   "editor.fontSize": 15,
   "editor.formatOnSave": true,
-  "editor.linkedEditing": true,
   "editor.minimap.enabled": false,
-  "explorer.autoRevealExclude": {
-    "**/_build": true,
-    "**/converters": true,
-    "**/testdata": true
-  },
-  "explorer.confirmDelete": false,
-  "explorer.confirmDragAndDrop": false,
   "extensions.autoUpdate": "off",
   "files.associations": {
     "*.j2": "jinja",
     "*.jsonl": "json",
-    "*.plist": "xml",
+    "Dockerfile.*": "dockerfile",
     "Makefile.*": "makefile"
   },
-  "files.autoSave": "onFocusChange",
-  "files.autoSaveWhenNoErrors": true,
-  "files.autoSaveWorkspaceFilesOnly": true,
   "files.dialog.defaultPath": "/Users/erazemk/DevRev",
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
@@ -44,35 +27,22 @@
   "git.autofetch": "all",
   "git.autoStash": true,
   "git.branchPrefix": "erazemk/",
-  "git.closeDiffOnOperation": true,
   "git.confirmSync": false,
-  "git.defaultCloneDirectory": "~/DevRev",
+  "git.detectWorktrees": true,
+  "git.diagnosticsCommitHook.enabled": true,
   "git.enableSmartCommit": true,
   "git.fetchOnPull": true,
   "git.mergeEditor": true,
   "git.pruneOnFetch": true,
   "git.pullBeforeCheckout": true,
-  "git.replaceTagsWhenPull": true,
-  "git.scanRepositories": ["~/DevRev"],
   "git.terminalGitEditor": true,
-  "github.copilot.chat.backgroundAgent.enabled": false,
-  "github.copilot.chat.claudeAgent.enabled": false,
-  "github.copilot.chat.cloudAgent.enabled": false,
-  "github.copilot.chat.copilotDebugCommand.enabled": false,
-  "github.copilot.chat.exploreAgent.enabled": false,
-  "github.copilot.chat.newWorkspaceCreation.enabled": false,
-  "github.copilot.chat.reviewAgent.enabled": false,
-  "github.copilot.chat.reviewSelection.enabled": false,
-  "github.copilot.chat.setupTests.enabled": false,
-  "github.copilot.chat.tools.viewImage.enabled": false,
-  "github.copilot.editor.enableCodeActions": false,
   "github.gitProtocol": "ssh",
   "githubIssues.issueCompletions.enabled": false,
-  "githubPullRequests.codingAgent.enabled": false,
   "githubPullRequests.createOnPublishBranch": "always",
+  "githubPullRequests.defaultDeletionMethod.selectWorktree": true,
   "githubPullRequests.deleteBranchAfterMerge": true,
+  "githubPullRequests.pullBranch": "never",
   "githubPullRequests.pullRequestDescription": "commit",
-  "go.testExplorer.showDynamicSubtestsInEditor": true,
   "go.toolsManagement.autoUpdate": true,
   "gopls": {
     "ui.semanticTokens": true
@@ -81,41 +51,34 @@
   "json.schemaDownload.trustedDomains": {
     "https://json-schema.org/": true,
     "https://json.schemastore.org/": true,
-    "https://models.dev/model-schema.json": true,
+    "https://models.dev": true,
     "https://opencode.ai": true,
     "https://www.schemastore.org/": true
   },
   "makefile.configureOnOpen": false,
   "markdown.preview.fontSize": 16,
-  "python.analysis.exclude": [
-    "_build",
-    "**/node_modules",
-    "**/__pycache__",
-    "**/.*",
-    ".venv"
-  ],
-  "python.analysis.typeCheckingMode": "standard",
-  "search.exclude": {
-    "**/_build": true
+  "scm.diffDecorationsGutterPattern": {
+    "added": true
   },
   "security.workspace.trust.enabled": false,
   "telemetry.telemetryLevel": "off",
+  "terminal.integrated.defaultProfile.osx": "fish",
   "terminal.integrated.fontSize": 15,
   "terminal.integrated.initialHint": false,
-  "window.autoDetectColorScheme": true,
-  "window.restoreWindows": "none",
-  "workbench.browser.enableChatTools": false,
-  "workbench.editor.useModal": "off",
-  "workbench.preferredDarkColorTheme": "Dark Modern",
-  "workbench.preferredLightColorTheme": "Light Modern",
-  "workbench.secondarySideBar.defaultVisibility": "hidden",
-  "workbench.startupEditor": "none",
-  "githubPullRequests.pullBranch": "never",
+  "terminal.integrated.persistentSessionScrollback": 10000,
   "terminal.integrated.profiles.osx": {
     "fish": {
-      "path": "/opt/homebrew/bin/fish",
-      "args": ["-l"]
+      "args": [
+        "-l"
+      ],
+      "path": "/opt/homebrew/bin/fish"
     }
   },
-  "terminal.integrated.defaultProfile.osx": "fish"
+  "terminal.integrated.scrollback": 10000,
+  "window.autoDetectColorScheme": true,
+  "window.restoreWindows": "none",
+  "workbench.commandPalette.showAskInChat": false,
+  "workbench.experimental.modernUI": true,
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
+  "workbench.startupEditor": "none"
 }
