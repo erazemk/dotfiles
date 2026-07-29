@@ -19,7 +19,7 @@ set -gx GOPATH $XDG_DATA_HOME/go
 set -gx GOPRIVATE github.com/devrev
 fish_add_path -gP $GOPATH/bin
 
-set -gx EDITOR 'zed --wait'
+set -gx EDITOR 'code --wait'
 set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
 
 #
@@ -43,8 +43,7 @@ function cc --description "Claude code"
     command claude --permission-mode bypassPermissions $argv
 end
 
-abbr oc 'opencode'
-function opencode --description "OpenCode"
+function oc --description "OpenCode"
     if not set -q DEVREV_API_KEY
         set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
     end
