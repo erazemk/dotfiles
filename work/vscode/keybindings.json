@@ -56,10 +56,6 @@
         "key": "shift+cmd+0"
     },
     {
-        "command": "editor.action.goToTypeDefinition",
-        "key": "ctrl+f12"
-    },
-    {
         "key": "cmd+g cmd+o",
         "command": "git.openWorktree"
     }
