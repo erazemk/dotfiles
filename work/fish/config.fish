@@ -35,8 +35,8 @@ abbr cdtmp 'cd (mktemp -d)'
 
 # Agents
 
-abbr usage 'npx ccusage@latest claude'
-function cc --description "Claude code"
+abbr ccusage 'npx ccusage@latest claude'
+function claude --description "Claude code"
     if not set -q DEVREV_API_KEY
         set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
     end
@@ -44,6 +44,7 @@ function cc --description "Claude code"
     command claude --permission-mode bypassPermissions $argv
 end
 
+abbr usage 'npx ccusage@latest opencode'
 function oc --description "OpenCode"
     if not set -q DEVREV_API_KEY
         set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
