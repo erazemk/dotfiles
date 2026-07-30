@@ -59,6 +59,15 @@
   },
   "makefile.configureOnOpen": false,
   "markdown.preview.fontSize": 16,
+  "python.analysis.exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/_build",
+    ".venv",
+    "venv",
+    ".git",
+    "**/.*"
+  ],
   "scm.diffDecorationsGutterPattern": {
     "added": true
   },
