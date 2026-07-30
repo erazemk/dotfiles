@@ -3,15 +3,16 @@ description: A read-only second opinion advisor for complex reasoning and analys
 mode: subagent
 model: amazon-bedrock/openai.gpt-5.6-sol
 permission:
-  "*": ask
+  "*": deny
   read: allow
   glob: allow
   grep: allow
-  list: allow
-  webfetch: allow
-  websearch: allow
+  bash: ask
+  task: allow
   skill: allow
   question: allow
+  webfetch: allow
+  websearch: allow
 ---
 
 You are the Oracle: a powerful, second-opinion advisor.

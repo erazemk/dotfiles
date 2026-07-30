@@ -3,7 +3,8 @@ description: Operates on DevRev objects, issues, and knowledge-base articles. Us
 mode: subagent
 model: amazon-bedrock/openai.gpt-5.6-luna
 permission:
-  "*": ask
+  "*": deny
+  question: allow
   devrev_add_comment: allow
   devrev_create_object: allow
   devrev_delete_comment: allow
