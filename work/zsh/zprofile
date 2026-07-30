@@ -1,0 +1,21 @@
+export XDG_CACHE_HOME=$HOME/.cache
+export XDG_CONFIG_HOME=$HOME/.config
+export XDG_DATA_HOME=$HOME/.local/share
+
+export GIT_TERMINAL_PROMPT=1
+export GOPATH=$XDG_DATA_HOME/go
+export GOPRIVATE=github.com/devrev
+export PATH="$GOPATH/bin:$PATH"
+
+export EDITOR="code --wait"
+export COLIMA_HOME=$XDG_CONFIG_HOME/colima
+export SSH_AUTH_SOCK=$HOME/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock
+
+export PATH="$HOME/.local/bin:$PATH"
+
+export DEVREV_API_KEY="$(/usr/bin/security find-generic-password -w -s 'DevRev API Key' -a 'API Keys')"
+export CIRCLECI_TOKEN="$(/usr/bin/security find-generic-password -w -s 'CircleCI Token' -a 'API Keys')"
+
+export OPENCODE_ENABLE_PARALLEL=true
+export OPENCODE_EXPERIMENTAL_FILEWATCHER=true
+export OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS=true

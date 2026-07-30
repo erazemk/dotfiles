@@ -21,6 +21,7 @@ fish_add_path -gP $GOPATH/bin
 
 set -gx EDITOR 'code --wait'
 set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
+set -gx SSH_AUTH_SOCK $HOME/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock
 
 #
 # Aliases
