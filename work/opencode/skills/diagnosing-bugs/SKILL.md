@@ -1,6 +1,6 @@
 ---
 name: diagnosing-bugs
-description: Diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose"/"debug this", or reports something broken/throwing/failing/slow.
+description: Reproduce, minimize, fix, and regression-test a local code bug or performance regression. Use when the task includes implementing a fix and a tight agent-runnable feedback loop can be built; use debug for read-only or production-only investigations.
 ---
 
 # Diagnosing Bugs
