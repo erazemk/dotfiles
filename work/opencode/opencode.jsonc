@@ -22,8 +22,9 @@
   "permission": {
     "external_directory": {
       "~/DevRev/**": "allow",
-      "~/.cache/sidekick/cache/go/mod/**": "allow",
-      "~/.local/share/go/pkg/mod/**": "allow"
+      "~/.cache/sidekick/cache/go/**": "allow",
+      "~/.local/share/go/**": "allow",
+      "~/.config/opencode/**": "allow"
     },
     // DevRev
     "devrev_*": "deny", // (for now only devrev agent has access)

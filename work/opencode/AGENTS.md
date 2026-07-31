@@ -10,4 +10,4 @@
 - Any one-off scripts that should not be committed should go in the project's `_build/scripts/` directory.
 - When starting coding work in the ~/DevRev directory or its subdirectories, always use the worktree skill to switch to a new git worktree (this applies only after you start work, not while researching or planning).
 - My $GOPATH is set to `~/.local/share/go`, not `~/go`, so don't try to search for packages in `~/go`.
-- After finishing making changes to Go files, run `gopls check --severity=hint` on all of them to check for any style issues.
+- After finishing a run of code changes (e.g. before responding to the user), run `gopls check --severity=hint $(git diff --name-only -- '*.go')` to check for any linter issues.

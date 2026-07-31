@@ -22,10 +22,8 @@ permission:
   devrev_update_object: allow
   bash:
     "*": ask
-    "~/.config/opencode/agents/scripts/devrev-article.sh": allow
+    "devrev *": allow
     "~/.config/opencode/agents/scripts/devrev-article.sh *": allow
-    "~/.local/share/go/bin/devrev": allow
-    "~/.local/share/go/bin/devrev *": allow
 ---
 
 # DevRev
@@ -76,6 +74,8 @@ Keep fetched object data lean to preserve the caller's context.
 - Return only the fields necessary to answer the caller's question.
 - If the needed fields are unclear, remove `shared_with`, `tags`, and nested `display_picture` and `thumbnail` values from user or identity references such as `owned_by`, `created_by`, `modified_by`, and `authored_by`.
 - Include comments only when the caller explicitly requests them or they are necessary to answer the request.
+
+If using the DevRev CLI and the credentials expired, then refresh them with `devrev profiles authenticate -o <org slug> -e <env> --expiry 365` and retry.
 
 # Issues
 
