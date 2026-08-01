@@ -31,10 +31,3 @@ Only when the user explicitly gives you a branch name to base the worktree off o
 5. If asked by the user to push the changes, push them with the `--set-upstream origin erazemk/<words>` flag.
 
 In case of an issue at any of the steps, stop, and report the issue to the user.
-
-# Entering the worktree
-
-You are not able to switch the whole session to a different worktree, but the user is, through the `/move` command.
-Once a worktree is created, if you're working on just one repository, tell the user to switch to the worktree with "Switch to the new worktree with `/move $path"`.
-Substitute $path with the absolute path (use ~ for home dir) of the worktree you've created.
-If you're working on multiple repos at the same time, then the user won't want to switch and you should just use `workdir` and absolute paths for subsequent commands in that worktree.
