@@ -1,6 +1,6 @@
 ---
 name: diagnosing-bugs
-description: Reproduce, minimize, fix, and regression-test a local code bug or performance regression. Use when the task includes implementing a fix and a tight agent-runnable feedback loop can be built; use debug for read-only or production-only investigations.
+description: Reproduce, minimize, fix, and regression-test a local code bug or performance regression. Use proactively when a fix and tight agent-runnable feedback loop are possible; use debug for read-only or production-only investigations.
 ---
 
 # Diagnosing Bugs

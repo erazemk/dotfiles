@@ -1,6 +1,6 @@
 ---
 name: datadog
-description: Investigate runtime behavior in Datadog — search logs, traces (APM), metrics, and deploy/events to confirm what actually happened in production. Use when code reading alone cannot confirm runtime behavior, when given a Datadog URL, or when you have a service, environment, trace/run/request ID, time window, or error text to chase.
+description: Investigate runtime behavior through Datadog logs, traces, metrics, and events. Use proactively when code alone cannot confirm behavior, or when given a Datadog URL, service, environment, trace/run/request ID, time window, or production error.
 ---
 
 Use Datadog when runtime evidence is the cheapest way to test a hypothesis — not reflexively. If reading code answers the question, skip it.

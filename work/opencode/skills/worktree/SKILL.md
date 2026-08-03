@@ -1,6 +1,6 @@
 ---
 name: worktree
-description: Use this skill before making code changes on a `main` branch in a git repo in ~/DevRev, or when the user asks you to do something related to a git worktree.
+description: Manage DevRev git worktrees. Use before making code changes on a `main` branch in ~/DevRev, or whenever the user asks for worktree-related work.
 ---
 
 Create a git worktree following the naming convention below, then switch this session into it.

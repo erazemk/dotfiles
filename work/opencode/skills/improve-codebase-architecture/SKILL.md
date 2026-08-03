@@ -1,7 +1,6 @@
 ---
 name: improve-codebase-architecture
-description: Scan a codebase for deepening opportunities, present them as a ranked candidate list, then grill through whichever one you pick.
-disable-model-invocation: true
+description: Assess codebase architecture for deepening opportunities, rank the candidates, then grill through a selected one. Use proactively when asked to assess architectural friction or identify refactoring opportunities.
 ---
 
 # Improve Codebase Architecture

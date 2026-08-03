@@ -1,6 +1,6 @@
 ---
 name: pr
-description: Push the current branch and create a GitHub pull request from an existing commit. Use when asked to open a PR.
+description: Push the current branch and create a GitHub pull request from an existing commit. Use whenever the user asks to open a pull request.
 ---
 
 - PR titles and descriptions must exactly match the commit title and body, including keeping each paragraph on one line and preserving the DevRev issue URL verbatim.

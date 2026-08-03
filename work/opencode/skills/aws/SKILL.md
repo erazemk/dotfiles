@@ -1,6 +1,6 @@
 ---
 name: aws
-description: AirSync-specific AWS usage. Use when needing to interact with AWS S3, AWS CLI or when constructing AWS S3 paths from a SyncContext.
+description: AirSync AWS and S3 work. Use proactively whenever a task involves the AWS CLI, S3, or constructing an S3 path from a SyncContext.
 ---
 
 ## SSO credentials

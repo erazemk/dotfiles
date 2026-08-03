@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Use when asked to commit changes.
+description: Create a git commit. Use whenever the user asks to commit changes or a finishing workflow requires a commit.
 ---
 
 Commit messages require a DevRev issue URL to be appended to the commit body.
