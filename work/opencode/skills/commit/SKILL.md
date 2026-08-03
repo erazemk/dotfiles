@@ -61,7 +61,7 @@ This commit's title and body become the basis for the PR title and description, 
 - Avoid personal pronouns (`I`, `we`, `our`, `my`) entirely.
 - Avoid vague referents like `it`, `this`, `that` — name the actual service, function, file, or person explicitly instead.
 - Don't hard wrap the body, keep each paragraph as a single line; the PR body will be wrapped automatically.
-- **The first commit's title and description must be approved by the user before committing, so show the proposed title and body to the user and ask for approval.**
+- **The first commit's title and description must be approved by the user before committing. Show the proposed title and body, then use an available tool to request approval; otherwise ask for approval in the conversation.**
 
 After a successful commit, return the commit title, body, hash, branch name, whether staged-only or all safe changes were committed, and whether hook-generated changes had to be staged and recommitted.
 
