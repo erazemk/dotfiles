@@ -1,0 +1,4 @@
+font-size = 16
+keybind = super+enter=unbind
+theme = dark:Catppuccin Frappe,light:Catppuccin Latte
+command = /opt/homebrew/bin/fish --login --interactive
