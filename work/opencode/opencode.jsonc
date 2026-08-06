@@ -1,49 +1,53 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "provider": {
-    "amazon-bedrock": {
-      "options": {
-        "region": "us-east-1",
-        "profile": "default",
-      },
-    },
+  "experimental": {
+    "disable_paste_summary": true
   },
-  "model": "amazon-bedrock/openai.gpt-5.6-terra",
-  "small_model": "amazon-bedrock/openai.gpt-5.6-luna",
-  "watcher": {
-    "ignore": [
-      "_build/**"
-    ]
-  },
-  "enabled_providers": [
-    "amazon-bedrock"
-  ],
   "formatter": true,
-  "permission": {
-    "external_directory": {
-      "~/DevRev/**": "allow",
-      "~/.cache/sidekick/cache/go/**": "allow",
-      "~/.local/share/go/**": "allow",
-      "~/.config/opencode/**": "allow"
+  "mcp": {
+    "circleci": {
+      "command": [
+        "npx",
+        "-y",
+        "@circleci/mcp-server-circleci@latest"
+      ],
+      "enabled": false,
+      "environment": {
+        "CIRCLECI_TOKEN": "{env:CIRCLECI_TOKEN}"
+      },
+      "type": "local"
     },
-    // DevRev
-    "devrev_*": "deny", // (for now only devrev agent has access)
-    // "devrev_add_comment": "allow",
-    // "devrev_create_object": "allow",
-    // "devrev_delete_comment": "allow",
-    // "devrev_discover_schema": "allow",
-    // "devrev_execute_sql": "allow",
-    // "devrev_fetch_object_context": "allow",
-    // "devrev_get_self": "allow",
-    // "devrev_get_sprint": "allow",
-    // "devrev_get_sprint_board": "allow",
-    // "devrev_get_tool_metadata": "allow",
-    // "devrev_get_valid_stage_transitions": "allow",
-    // "devrev_hybrid_search": "allow",
-    // "devrev_link_objects": "allow",
-    // "devrev_list_objects": "allow",
-    // "devrev_update_object": "allow",
-    // Datadog
+    "datadog": {
+      "type": "remote",
+      "url": "https://mcp.datadoghq.com/v1/mcp"
+    },
+    "devrev": {
+      "headers": {
+        "Authorization": "Bearer {env:DEVREV_API_KEY}"
+      },
+      "type": "remote",
+      "url": "https://api.devrev.ai/mcp/v1"
+    },
+    "gh_grep": {
+      "type": "remote",
+      "url": "https://mcp.grep.app"
+    },
+    "granola": {
+      "enabled": false,
+      "type": "remote",
+      "url": "https://mcp.granola.ai/mcp"
+    },
+    "slack": {
+      "oauth": {
+        "clientId": "1601185624273.8899143856786",
+        "redirectUri": "http://localhost:3118/callback"
+      },
+      "type": "remote",
+      "url": "https://mcp.slack.com/mcp"
+    }
+  },
+  "model": "litellm/gpt-5.6-terra[1]",
+  "permission": {
     "datadog_*": "deny",
     "datadog_aggregate_events": "allow",
     "datadog_aggregate_spans": "allow",
@@ -58,7 +62,13 @@
     "datadog_search_datadog_metrics": "allow",
     "datadog_search_datadog_services": "allow",
     "datadog_search_datadog_spans": "allow",
-    // Slack
+    "devrev_*": "deny", // (for now only devrev agent has access)
+    "external_directory": {
+      "~/.cache/sidekick/cache/go/**": "allow",
+      "~/.config/opencode/**": "allow",
+      "~/.local/share/go/**": "allow",
+      "~/DevRev/**": "allow"
+    },
     "slack_*": "deny",
     "slack_slack_list_channel_members": "allow",
     "slack_slack_read_channel": "allow",
@@ -69,51 +79,28 @@
     "slack_slack_search_public": "allow",
     "slack_slack_search_public_and_private": "allow",
     "slack_slack_search_users": "allow",
-    "slack_slack_send_message_draft": "allow",
+    "slack_slack_send_message_draft": "allow"
   },
-  "mcp": {
-    "devrev": {
-      "type": "remote",
-      "url": "https://api.devrev.ai/mcp/v1",
-      "headers": {
-        "Authorization": "Bearer {env:DEVREV_API_KEY}"
-      },
-    },
-    "gh_grep": {
-      "type": "remote",
-      "url": "https://mcp.grep.app",
-    },
-    "granola": {
-      "enabled": false,
-      "type": "remote",
-      "url": "https://mcp.granola.ai/mcp",
-    },
-    "datadog": {
-      "type": "remote",
-      "url": "https://mcp.datadoghq.com/v1/mcp",
-    },
-    "slack": {
-      "type": "remote",
-      "url": "https://mcp.slack.com/mcp",
-      "oauth": {
-        "clientId": "1601185624273.8899143856786",
-        "redirectUri": "http://localhost:3118/callback",
-      },
-    },
-    "circleci": {
-      "enabled": false,
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@circleci/mcp-server-circleci@latest"
-      ],
-      "environment": {
-        "CIRCLECI_TOKEN": "{env:CIRCLECI_TOKEN}"
-      },
-    },
+  "plugin": [
+    "opencode-plugin-litellm@latest"
+  ],
+  "provider": {
+    "litellm": {
+      "name": "Arcus",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "apiKey": "{env:ARCUS_API_KEY}",
+        "baseURL": "https://ai-gateway.dev.devrev-eng.ai/v1"
+      }
+    }
   },
-  "experimental": {
-    "disable_paste_summary": true,
-  },
+  "enabled_providers": [
+    "litellm",
+  ],
+  "small_model": "litellm/gpt-5.6-luna[1m]",
+  "watcher": {
+    "ignore": [
+      "_build/**"
+    ]
+  }
 }

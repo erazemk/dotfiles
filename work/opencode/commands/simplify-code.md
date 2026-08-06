@@ -1,7 +1,5 @@
 ---
 description: Simplify the current code changes without changing behavior
-agent: build
-model: amazon-bedrock/openai.gpt-5.6-terra
 ---
 
 Simplify the current code changes while preserving their behavior.

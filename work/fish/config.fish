@@ -21,7 +21,6 @@ fish_add_path -gP $GOPATH/bin
 
 set -gx EDITOR 'code --wait'
 set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
-set -gx SSH_AUTH_SOCK $HOME/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock
 
 #
 # Aliases
@@ -51,6 +50,9 @@ function oc --description "OpenCode"
     end
     if not set -q CIRCLECI_TOKEN
         set -gx CIRCLECI_TOKEN (security find-generic-password -w -s "CircleCI Token" -a "API Keys")
+    end
+    if not set -q ARCUS_API_KEY
+        set -gx ARCUS_API_KEY (security find-generic-password -w -s "arcus-token" -a "devrev")
     end
 
     # set -gx OPENCODE_EXPERIMENTAL_LSP_TOOL true

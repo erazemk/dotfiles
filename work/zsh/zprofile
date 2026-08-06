@@ -9,10 +9,10 @@ export PATH="$GOPATH/bin:$PATH"
 
 export EDITOR="code --wait"
 export COLIMA_HOME=$XDG_CONFIG_HOME/colima
-export SSH_AUTH_SOCK=$HOME/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock
 
 export PATH="$HOME/.local/bin:$PATH"
 
+export ARCUS_API_KEY="$(/usr/bin/security find-generic-password -w -s 'arcus-token' -a 'devrev')"
 export DEVREV_API_KEY="$(/usr/bin/security find-generic-password -w -s 'DevRev API Key' -a 'API Keys')"
 export CIRCLECI_TOKEN="$(/usr/bin/security find-generic-password -w -s 'CircleCI Token' -a 'API Keys')"
 
