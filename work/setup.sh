@@ -12,7 +12,7 @@ ln -sf $DOTFILES_HOME/bin/* ~/.local/bin/
 
 # Colima
 mkdir -p ~/.config/colima/_templates ~/Library/LaunchAgents
-ln -sf $DOTFILES_HOME/colima/template.yml ~/.config/colima/_templates/default.yml
+ln -sf $DOTFILES_HOME/colima/template.yaml ~/.config/colima/_templates/default.yaml
 ln -sf $DOTFILES_HOME/launchctl/com.erazemk.colima.plist ~/Library/LaunchAgents/
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.erazemk.colima.plist
 
