@@ -1,9 +1,21 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "devrev": {
+      "model": "openrouter/openai/gpt-5.6-luna"
+    },
+    "oracle": {
+      "model": "openrouter/openai/gpt-5.6-sol"
+    }
+  },
+  "autoupdate": true,
   "experimental": {
     "disable_paste_summary": true
   },
   "formatter": true,
+  "instructions": [
+    "~/.config/dotfiles/common/opencode/AGENTS.md"
+  ],
   "mcp": {
     "devrev": {
       "headers": {
@@ -21,7 +33,7 @@
       "url": "https://mcp.slack.com/mcp"
     }
   },
-  "model": "litellm/gpt-5.6-luna",
+  "model": "openrouter/openai/gpt-5.6-luna",
   "permission": {
     "devrev_*": "deny", // (for now only devrev agent has access)
     "external_directory": {
@@ -42,11 +54,31 @@
     "slack_slack_search_users": "allow",
     "slack_slack_send_message_draft": "allow"
   },
-  "plugin": [
-    "opencode-plugin-litellm@latest"
-  ],
   "provider": {
-    "litellm": {
+    "openrouter": {
+      "models": {
+        "openai/gpt-5.6-luna": {
+          "limit": {
+            "context": 1050000,
+            "output": 128000
+          },
+          "name": "GPT 5.6 Luna"
+        },
+        "openai/gpt-5.6-sol": {
+          "limit": {
+            "context": 1050000,
+            "output": 128000
+          },
+          "name": "GPT 5.6 Sol"
+        },
+        "openai/gpt-5.6-terra": {
+          "limit": {
+            "context": 1050000,
+            "output": 128000
+          },
+          "name": "GPT 5.6 Terra"
+        }
+      },
       "name": "Arcus",
       "npm": "@ai-sdk/openai-compatible",
       "options": {
@@ -55,10 +87,7 @@
       }
     }
   },
-  "enabled_providers": [
-    "litellm",
-  ],
-  "small_model": "litellm/gpt-5.6-luna",
+  "small_model": "openrouter/openai/gpt-5.6-luna",
   "watcher": {
     "ignore": [
       "_build/**"

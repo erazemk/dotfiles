@@ -1,7 +1,6 @@
 ---
 description: Operates on DevRev objects, issues, and knowledge-base articles. Use for any DevRev work ID, app.devrev.ai URL, or DevRev read or mutation that should run outside the caller's context.
 mode: subagent
-model: litellm/gpt-5.6-luna
 permission:
   "*": deny
   question: allow
@@ -22,6 +21,7 @@ permission:
   devrev_update_object: allow
   bash:
     "*": ask
+    "dr *": allow
     "devrev *": allow
     "~/.config/opencode/agents/scripts/devrev-article.sh *": allow
 ---

@@ -4,8 +4,7 @@ description: Simplify the current code changes without changing behavior
 
 Simplify the current code changes while preserving their behavior.
 
-The intended behavior and any additional scope from the user is:
-$ARGUMENTS
+The intended behavior and any additional scope from the user is: $ARGUMENTS
 
 The changed files are:
 !`{ git diff --name-only; git diff --cached --name-only; git ls-files --others --exclude-standard; } | sort -u`
@@ -44,5 +43,5 @@ After editing:
 
 1. Run `gofmt` on changed Go files.
 2. Run the narrowest relevant tests.
-3. Run `gopls check --severity=hint $(git diff --name-only -- '*.go')`.
+3. Run `gopls check --severity=hint $(git diff --name-only -- '*.go')` if working in a Go project.
 4. Report only material changes, verification performed, and anything not verified.

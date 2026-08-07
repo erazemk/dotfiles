@@ -55,5 +55,4 @@ When the discussion resolves a new codebase-specific domain term, load `domain-m
 When the decisions are resolved, summarize the agreed design, interface boundaries, hidden complexity, rejected alternatives, risks, and testing strategy.
 Ask the user to confirm that summary before proposing or beginning implementation.
 
-Treat supplied command arguments as additional context:
-$ARGUMENTS
+Treat supplied command arguments as additional context: $ARGUMENTS
