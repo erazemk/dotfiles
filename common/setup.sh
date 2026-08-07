@@ -16,8 +16,8 @@ ln -sf $DOTFILES_HOME/git/* ~/.config/git/
 # Global environment variables
 mkdir -p ~/Library/LaunchAgents
 ln -sf $COMMON_DOTFILES_HOME/launchctl/com.erazemk.common.env.plist ~/Library/LaunchAgents/
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.erazemk.common.env.plist
 ln -sf $DOTFILES_HOME/launchctl/com.erazemk.env.plist ~/Library/LaunchAgents/
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.erazemk.common.env.plist
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.erazemk.env.plist
 
 # OpenCode
