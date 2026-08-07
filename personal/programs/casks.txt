@@ -1,2 +1,2 @@
 stremio
-zed
+tor-browser

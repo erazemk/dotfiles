@@ -33,7 +33,6 @@ ln -sf $DOTFILES_HOME/opencode/opencode.jsonc ~/.config/opencode/opencode.jsonc
 mkdir -p "~/Library/Application Support/Code/User/"
 ln -sf $COMMON_DOTFILES_HOME/vscode/* "~/Library/Application Support/Code/User/"
 
-
 # ZSH shell
 ln -sf $DOTFILES_HOME/zsh/zprofile ~/.zprofile
 
