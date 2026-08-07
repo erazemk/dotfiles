@@ -1,0 +1,11 @@
+awscli
+colima
+datadog-labs/pack/pup
+docker
+docker-buildx
+docker-compose
+docker-credential-helper
+node
+opa
+regal
+rtk

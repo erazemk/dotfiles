@@ -1,0 +1,4 @@
+ghostty
+pearcleaner
+scroll-reverser
+spotify

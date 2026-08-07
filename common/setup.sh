@@ -39,5 +39,7 @@ if ! command -v brew &> /dev/null; then
 fi
 
 # Install homebrew packages
-brew install $(cat $DOTFILES_HOME/homebrew/formulae | tr '\n' ' ')
-brew install --cask $(cat $DOTFILES_HOME/homebrew/casks | tr '\n' ' ')
+brew install $(cat $COMMON_DOTFILES_HOME/programs/formulae.txt | tr '\n' ' ')
+brew install --cask $(cat $COMMON_DOTFILES_HOME/programs/casks.txt | tr '\n' ' ')
+brew install $(cat $DOTFILES_HOME/programs/formulae.txt | tr '\n' ' ')
+brew install --cask $(cat $DOTFILES_HOME/programs/casks.txt | tr '\n' ' ')

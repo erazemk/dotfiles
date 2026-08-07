@@ -1,12 +1,7 @@
 aws-vpn-client
 betterdisplay
 brave-browser
-ghostty
 granola
 lookaway
-pearcleaner
-scroll-reverser
-sol
 slack
-spotify
 visual-studio-code
