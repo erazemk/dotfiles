@@ -6,23 +6,15 @@ set -gx EDITOR 'code --wait'
 set -gx GOPRIVATE github.com/devrev
 set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
 
+set -gx ARCUS_API_KEY (security find-generic-password -a devrev -s arcus-token -w)
+set -gx DEVREV_API_KEY (security find-generic-password -a devrev -s devrev-token -w)
+
 #
 # Functions
 #
 
 function jwt --description "Decode a JWT token"
     echo "$argv[1]" | jq -R 'split(".") | .[1] | @base64d | fromjson'
-end
-
-function opencode --description "OpenCode"
-    if not set -q DEVREV_API_KEY
-        set -gx DEVREV_API_KEY (security find-generic-password -a "API Keys" -s "DevRev API Key" -w)
-    end
-    if not set -q ARCUS_API_KEY
-        set -gx ARCUS_API_KEY (security find-generic-password -a devrev -s arcus-token -w)
-    end
-
-    command opencode $argv
 end
 
 function devrev --description "Run DevRev CLI or install it if missing"

@@ -1,0 +1,7 @@
+source $HOME/.config/dotfiles/common/zsh/zprofile
+
+#
+# Environment variables
+#
+
+export EDITOR='zed --wait'

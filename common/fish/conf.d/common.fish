@@ -1,5 +1,5 @@
 # Homebrew
-eval (brew shellenv)
+eval (brew shellenv fish)
 
 #
 # Environment variables

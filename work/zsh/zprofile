@@ -1,20 +1,8 @@
-export XDG_CACHE_HOME=$HOME/.cache
-export XDG_CONFIG_HOME=$HOME/.config
-export XDG_DATA_HOME=$HOME/.local/share
+source $HOME/.config/dotfiles/common/zsh/zprofile
 
-export GIT_TERMINAL_PROMPT=1
-export GOPATH=$XDG_DATA_HOME/go
+export EDITOR='code --wait'
 export GOPRIVATE=github.com/devrev
-export PATH="$GOPATH/bin:$PATH"
-
-export EDITOR="code --wait"
 export COLIMA_HOME=$XDG_CONFIG_HOME/colima
 
-export PATH="$HOME/.local/bin:$PATH"
-
 export ARCUS_API_KEY=$(security find-generic-password -a devrev -s arcus-token -w)
-export DEVREV_API_KEY="$(security find-generic-password -a 'API Keys' -s 'DevRev API Key' -w)"
-
-export OPENCODE_ENABLE_PARALLEL=true
-export OPENCODE_EXPERIMENTAL_FILEWATCHER=true
-export OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS=true
+export DEVREV_API_KEY=$(security find-generic-password -a devrev -s devrev-token -w)

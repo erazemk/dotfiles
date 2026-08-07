@@ -1,0 +1,20 @@
+# Homebrew
+eval "$(brew shellenv zsh)"
+
+#
+# Environment variables
+#
+
+export XDG_CACHE_HOME=$HOME/.cache
+export XDG_CONFIG_HOME=$HOME/.config
+export XDG_DATA_HOME=$HOME/.local/share
+export PATH="$HOME/.local/bin:$PATH"
+
+export GIT_TERMINAL_PROMPT=1
+export GOPATH=$XDG_DATA_HOME/go
+export PATH="$GOPATH/bin:$PATH"
+
+
+export OPENCODE_ENABLE_PARALLEL=true
+export OPENCODE_EXPERIMENTAL_FILEWATCHER=true
+export OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS=true
