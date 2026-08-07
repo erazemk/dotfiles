@@ -1,6 +1,5 @@
 source $HOME/.config/dotfiles/common/zsh/zprofile
 
-export EDITOR='code --wait'
 export GOPRIVATE=github.com/devrev
 export COLIMA_HOME=$XDG_CONFIG_HOME/colima
 

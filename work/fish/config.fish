@@ -2,7 +2,6 @@
 # Environment variables
 #
 
-set -gx EDITOR 'code --wait'
 set -gx GOPRIVATE github.com/devrev
 set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
 
