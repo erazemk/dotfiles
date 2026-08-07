@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
 
 DOTFILES_HOME="$HOME/.config/dotfiles/work"
+COMMON_DOTFILES_HOME="$HOME/.config/dotfiles/common"
 
 # AWS
 mkdir -p ~/.aws
 ln -sf $DOTFILES_HOME/aws/* ~/.aws/
-
-# Binaries
-mkdir -p ~/.local/bin
-ln -sf $DOTFILES_HOME/bin/* ~/.local/bin/
 
 # Colima
 mkdir -p ~/.config/colima/_templates ~/Library/LaunchAgents
@@ -17,12 +14,13 @@ ln -sf $DOTFILES_HOME/launchctl/com.erazemk.colima.plist ~/Library/LaunchAgents/
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.erazemk.colima.plist
 
 # Fish shell
-mkdir -p ~/.config/fish
+mkdir -p ~/.config/fish/conf.d
 ln -sf $DOTFILES_HOME/fish/* ~/.config/fish/
+ln -sf $COMMON_DOTFILES_HOME/fish/conf.d/* ~/.config/fish/conf.d/
 
 # Ghostty
 mkdir -p ~/.config/ghostty
-ln -sf $DOTFILES_HOME/ghostty/* ~/.config/ghostty/
+ln -sf $COMMON_DOTFILES_HOME/ghostty/* ~/.config/ghostty/
 
 # Git
 mkdir -p ~/.config/git
@@ -34,8 +32,16 @@ ln -sf $DOTFILES_HOME/launchctl/com.erazemk.env.plist ~/Library/LaunchAgents/
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.erazemk.env.plist
 
 # OpenCode
-mkdir -p ~/.config/opencode
-ln -sf $DOTFILES_HOME/opencode/* ~/.config/opencode/
+mkdir -p ~/.config/opencode/agents ~/.config/opencode/commands ~/.config/opencode/skills
+ln -sf $DOTFILES_HOME/opencode/agents/* ~/.config/opencode/agents/
+ln -sf $DOTFILES_HOME/opencode/commands/* ~/.config/opencode/commands/
+ln -sf $DOTFILES_HOME/opencode/skills/* ~/.config/opencode/skills/
+ln -sf $DOTFILES_HOME/opencode/AGENTS.md ~/.config/opencode/AGENTS.md
+ln -sf $DOTFILES_HOME/opencode/opencode.jsonc ~/.config/opencode/opencode.jsonc
+ln -sf $COMMON_DOTFILES_HOME/opencode/agents/* ~/.config/opencode/agents/
+ln -sf $COMMON_DOTFILES_HOME/opencode/commands/* ~/.config/opencode/commands/
+ln -sf $COMMON_DOTFILES_HOME/opencode/skills/* ~/.config/opencode/skills/
+ln -sf $COMMON_DOTFILES_HOME/opencode/tui.jsonc ~/.config/opencode/tui.jsonc
 
 # VSCode
 mkdir -p "~/Library/Application Support/Code/User/"

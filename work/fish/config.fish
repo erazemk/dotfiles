@@ -1,41 +1,20 @@
 #
-# ~/.config/fish/config.fish
-#
-
-# Homebrew
-eval (brew shellenv)
-
-#
 # Environment variables
 #
 
-set -gx XDG_CACHE_HOME $HOME/.cache
-set -gx XDG_CONFIG_HOME $HOME/.config
-set -gx XDG_DATA_HOME $HOME/.local/share
-fish_add_path -gP $HOME/.local/bin
-
-set -gx GIT_TERMINAL_PROMPT 1
-set -gx GOPATH $XDG_DATA_HOME/go
-set -gx GOPRIVATE github.com/devrev
-fish_add_path -gP $GOPATH/bin
-
 set -gx EDITOR 'code --wait'
+set -gx GOPRIVATE github.com/devrev
 set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
 
 #
-# Aliases
+# Functions
 #
 
-abbr mv 'mv -iv'
-abbr rm 'rm -Iv'
-abbr cp 'cp -Riv'
-abbr mkdir 'mkdir -p'
-abbr cdtmp 'cd (mktemp -d)'
+function jwt --description "Decode a JWT token"
+    echo "$argv[1]" | jq -R 'split(".") | .[1] | @base64d | fromjson'
+end
 
-# Agents
-
-abbr usage 'npx ccusage@latest opencode'
-function oc --description "OpenCode"
+function opencode --description "OpenCode"
     if not set -q DEVREV_API_KEY
         set -gx DEVREV_API_KEY (security find-generic-password -a "API Keys" -s "DevRev API Key" -w)
     end
@@ -43,37 +22,7 @@ function oc --description "OpenCode"
         set -gx ARCUS_API_KEY (security find-generic-password -a devrev -s arcus-token -w)
     end
 
-    # set -gx OPENCODE_EXPERIMENTAL_LSP_TOOL true
-    # set -gx OPENCODE_ENABLE_EXA true
-    set -gx OPENCODE_ENABLE_PARALLEL true
-    set -gx OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS true
-    set -gx OPENCODE_EXPERIMENTAL_FILEWATCHER true
-
     command opencode $argv
-end
-
-#
-# Functions
-#
-
-function update --description "Update system packages"
-    brew update && brew upgrade && brew autoremove && brew cleanup
-end
-
-function tldr --description "Get cheat sheets for CLI programs"
-    command curl cheat.sh/"$argv[1]"
-end
-
-function jwt --description "Decode a JWT token"
-    echo "$argv[1]" | jq -R 'split(".") | .[1] | @base64d | fromjson'
-end
-
-function mksh --description "Create an executable script skeleton"
-    echo '#!/usr/bin/env bash' >>"$argv[1]" && chmod u+x "$argv[1]"
-end
-
-function mkcd --description "Create a temporary directory and go into it"
-    mkdir -p "$argv[1]" && cd "$argv[1]"
 end
 
 function devrev --description "Run DevRev CLI or install it if missing"
@@ -108,7 +57,8 @@ end
 
 function ecr --description "Log into AWS ECR through docker"
     aws sso login
-    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 173672169127.dkr.ecr.us-east-1.amazonaws.com
+    aws ecr get-login-password --region us-east-1 | \
+        docker login --username AWS --password-stdin 173672169127.dkr.ecr.us-east-1.amazonaws.com
 end
 
 function venv --description "Create and activate a new virtual environment"
