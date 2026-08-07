@@ -22,7 +22,6 @@
     "Dockerfile.*": "dockerfile",
     "Makefile.*": "makefile"
   },
-  "files.dialog.defaultPath": "/Users/erazemk/DevRev",
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,

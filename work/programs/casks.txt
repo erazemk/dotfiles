@@ -4,4 +4,3 @@ brave-browser
 granola
 lookaway
 slack
-visual-studio-code

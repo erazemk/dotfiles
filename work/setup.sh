@@ -18,7 +18,3 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.erazemk.colima.plist
 ln -sf $DOTFILES_HOME/opencode/agents/* ~/.config/opencode/agents/
 ln -sf $DOTFILES_HOME/opencode/commands/* ~/.config/opencode/commands/
 ln -sf $DOTFILES_HOME/opencode/skills/* ~/.config/opencode/skills/
-
-# VSCode
-mkdir -p "~/Library/Application Support/Code/User/"
-ln -sf $DOTFILES_HOME/vscode/* "~/Library/Application Support/Code/User/"
