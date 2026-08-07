@@ -6,40 +6,13 @@ description: Create a git commit. Use whenever the user asks to commit changes o
 Commit messages require a DevRev issue URL to be appended to the commit body.
 If the conversation did not reference a DevRev issue URL yet, ask the user to provide one.
 
-Prefer the existing conversation context when drafting the branch name, commit title, and commit body.
-The current git state is captured below; use it as the primary input and only re-inspect with git tools if it is truncated or you need more detail (e.g. a full diff of a specific file).
+Prefer existing conversation context when drafting the branch name, commit title, and commit body.
+Inspect the current branch, status, and relevant diff.
+Commit staged changes only when staged and unstaged changes coexist unless the user explicitly asks to include unstaged changes.
+If there are no changes, stop and say so.
 
-## Current git state
-
-Branch prefix:
-!`id -un`
-
-Branch:
-!`git branch --show-current`
-
-Status (short):
-!`git status --short`
-
-Staged diff:
-!`git diff --staged`
-
-Unstaged diff:
-!`git diff`
-
-## Inspection rules
-
-- If staged changes exist, use the staged diff above.
-- If nothing is staged, use the unstaged diff above.
-- If both staged and unstaged changes exist, consider both, but commit only the staged changes unless the caller explicitly asked to include unstaged changes.
-- If there are no staged or unstaged changes, stop and say there is nothing to commit.
-
-## Branch rules
-
-- Check the current branch.
-- If it is `main`, create and switch to `<prefix>/<1-4-words-about-the-change>`, where `<prefix>` is the branch prefix captured above.
-- Use lowercase kebab-case derived from the behavioral change.
-- Do not include the DevRev issue ID in the branch name.
-- If the branch is not `main`, stay on it.
+If the branch is `main`, create and switch to `erazemk/<1-4-words-about-the-change>` in lowercase kebab-case.
+Do not include the DevRev issue ID in the branch name.
 
 ## Commit format
 

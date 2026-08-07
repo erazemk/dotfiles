@@ -12,9 +12,8 @@ export COLIMA_HOME=$XDG_CONFIG_HOME/colima
 
 export PATH="$HOME/.local/bin:$PATH"
 
-export ARCUS_API_KEY="$(/usr/bin/security find-generic-password -w -s 'arcus-token' -a 'devrev')"
-export DEVREV_API_KEY="$(/usr/bin/security find-generic-password -w -s 'DevRev API Key' -a 'API Keys')"
-export CIRCLECI_TOKEN="$(/usr/bin/security find-generic-password -w -s 'CircleCI Token' -a 'API Keys')"
+export ARCUS_API_KEY=$(security find-generic-password -a devrev -s arcus-token -w)
+export DEVREV_API_KEY="$(security find-generic-password -a 'API Keys' -s 'DevRev API Key' -w)"
 
 export OPENCODE_ENABLE_PARALLEL=true
 export OPENCODE_EXPERIMENTAL_FILEWATCHER=true

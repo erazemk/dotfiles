@@ -1,11 +1,11 @@
 ---
 name: domain-modeling
-description: Build and sharpen a project's domain model and ubiquitous language. Use proactively when defining, resolving, or recording project-specific terminology, domain decisions, or a domain glossary.
+description: Define and maintain codebase-specific domain language and a glossary. Use proactively when the user introduces unfamiliar or ambiguous project terminology, needs a canonical name, or discusses domain concepts whose meaning affects design.
 ---
 
 # Domain Modeling
 
-Actively build and sharpen the project's domain model as you design. This is the _active_ discipline — challenging terms, inventing edge-case scenarios, and writing the glossary and decisions down the moment they crystallise. (Merely _reading_ `CONTEXT.md` for vocabulary is not this skill — that's a one-line habit any skill can do. This skill is for when you're changing the model, not just consuming it.)
+Actively build and sharpen the project's domain model as you design. This is the _active_ discipline — challenging terms, inventing edge-case scenarios, and writing the glossary down the moment they crystallise. Merely reading `.claude/CONTEXT.md` for vocabulary is not this skill; use this skill when changing the model, not just consuming it.
 
 ## File structure
 

@@ -27,7 +27,7 @@ Only when the user explicitly gives you a branch name to base the worktree off o
 1. Run `git fetch origin main`.
 2. Create the worktree with `git worktree add --no-track -b erazemk/<words> <path> origin/main`.
 3. Verify `git -C <path> branch -vv` shows no upstream, particularly not `[origin/main]`.
-4. Verify `git -C <path> branch -vv` shows `[origin/erazemk/<words>]`, never `[origin/main]`.
-5. If asked by the user to push the changes, push them with the `--set-upstream origin erazemk/<words>` flag.
+4. If asked by the user to push the changes, push them with the `--set-upstream origin erazemk/<words>` flag.
+5. After that push, verify `git -C <path> branch -vv` shows `[origin/erazemk/<words>]`, never `[origin/main]`.
 
 In case of an issue at any of the steps, stop, and report the issue to the user.

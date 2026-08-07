@@ -5,37 +5,12 @@
   },
   "formatter": true,
   "mcp": {
-    "circleci": {
-      "command": [
-        "npx",
-        "-y",
-        "@circleci/mcp-server-circleci@latest"
-      ],
-      "enabled": false,
-      "environment": {
-        "CIRCLECI_TOKEN": "{env:CIRCLECI_TOKEN}"
-      },
-      "type": "local"
-    },
-    "datadog": {
-      "type": "remote",
-      "url": "https://mcp.datadoghq.com/v1/mcp"
-    },
     "devrev": {
       "headers": {
         "Authorization": "Bearer {env:DEVREV_API_KEY}"
       },
       "type": "remote",
       "url": "https://api.devrev.ai/mcp/v1"
-    },
-    "gh_grep": {
-      "type": "remote",
-      "url": "https://mcp.grep.app"
-    },
-    "granola": {
-      "enabled": false,
-      "type": "remote",
-      "url": "https://mcp.granola.ai/mcp"
     },
     "slack": {
       "oauth": {
@@ -46,22 +21,8 @@
       "url": "https://mcp.slack.com/mcp"
     }
   },
-  "model": "litellm/gpt-5.6-terra[1]",
+  "model": "litellm/gpt-5.6-luna",
   "permission": {
-    "datadog_*": "deny",
-    "datadog_aggregate_events": "allow",
-    "datadog_aggregate_spans": "allow",
-    "datadog_analyze_datadog_logs": "allow",
-    "datadog_get_datadog_dashboard": "allow",
-    "datadog_get_datadog_trace": "allow",
-    "datadog_list_datadog_skills": "allow",
-    "datadog_load_datadog_skill": "allow",
-    "datadog_search_datadog_dashboards": "allow",
-    "datadog_search_datadog_events": "allow",
-    "datadog_search_datadog_logs": "allow",
-    "datadog_search_datadog_metrics": "allow",
-    "datadog_search_datadog_services": "allow",
-    "datadog_search_datadog_spans": "allow",
     "devrev_*": "deny", // (for now only devrev agent has access)
     "external_directory": {
       "~/.cache/sidekick/cache/go/**": "allow",
@@ -97,7 +58,7 @@
   "enabled_providers": [
     "litellm",
   ],
-  "small_model": "litellm/gpt-5.6-luna[1m]",
+  "small_model": "litellm/gpt-5.6-luna",
   "watcher": {
     "ignore": [
       "_build/**"

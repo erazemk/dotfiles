@@ -34,25 +34,13 @@ abbr cdtmp 'cd (mktemp -d)'
 
 # Agents
 
-abbr ccusage 'npx ccusage@latest claude'
-function claude --description "Claude code"
-    if not set -q DEVREV_API_KEY
-        set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
-    end
-
-    command claude --permission-mode bypassPermissions $argv
-end
-
 abbr usage 'npx ccusage@latest opencode'
 function oc --description "OpenCode"
     if not set -q DEVREV_API_KEY
-        set -gx DEVREV_API_KEY (security find-generic-password -w -s "DevRev API Key" -a "API Keys")
-    end
-    if not set -q CIRCLECI_TOKEN
-        set -gx CIRCLECI_TOKEN (security find-generic-password -w -s "CircleCI Token" -a "API Keys")
+        set -gx DEVREV_API_KEY (security find-generic-password -a "API Keys" -s "DevRev API Key" -w)
     end
     if not set -q ARCUS_API_KEY
-        set -gx ARCUS_API_KEY (security find-generic-password -w -s "arcus-token" -a "devrev")
+        set -gx ARCUS_API_KEY (security find-generic-password -a devrev -s arcus-token -w)
     end
 
     # set -gx OPENCODE_EXPERIMENTAL_LSP_TOOL true
@@ -60,10 +48,6 @@ function oc --description "OpenCode"
     set -gx OPENCODE_ENABLE_PARALLEL true
     set -gx OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS true
     set -gx OPENCODE_EXPERIMENTAL_FILEWATCHER true
-
-    if not aws sts get-caller-identity >/dev/null 2>&1
-        aws sso login
-    end
 
     command opencode $argv
 end
