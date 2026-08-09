@@ -10,6 +10,14 @@
     "oracle": {
       "model": "openrouter/openai/gpt-5.6-sol"
     },
+    "plan": {
+      "permission": {
+        "edit": {
+          "*": "deny",
+          "**/_build/plans/**": "allow"
+        }
+      }
+    },
     "slack": {
       "description": "Interacts with Slack using read-only tools. Use when needing to search through slack channels, threads etc. Provide it any relevant info it could use to help in the searching, including any user names, channel names, Slack links, search terms, dates, etc.",
       "mode": "subagent",
@@ -113,7 +121,7 @@
         }
       },
       "name": "Arcus",
-      "npm": "@ai-sdk/openai-compatible",
+      "npm": "@ai-sdk/openai",
       "options": {
         "apiKey": "{env:ARCUS_API_KEY}",
         "baseURL": "https://ai-gateway.dev.devrev-eng.ai/v1"
