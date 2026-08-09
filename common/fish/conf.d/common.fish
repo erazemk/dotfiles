@@ -24,10 +24,11 @@ set -gx OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS true
 # Aliases
 #
 
+abbr oc opencode
+
 abbr mv 'mv -iv'
 abbr rm 'rm -Iv'
 abbr cp 'cp -Riv'
-abbr oc 'opencode'
 abbr mkdir 'mkdir -p'
 abbr cdtmp 'cd (mktemp -d)'
 
@@ -36,6 +37,9 @@ abbr cdtmp 'cd (mktemp -d)'
 #
 
 function update --description "Update system packages"
+    echo "Updating dotfiles..."
+    cd $HOME/.config/dotfiles && git pull
+    echo "Updating homebrew packages..."
     brew update && brew upgrade && brew autoremove && brew cleanup
 end
 
