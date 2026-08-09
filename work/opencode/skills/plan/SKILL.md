@@ -11,10 +11,11 @@ When explicitly asked to write the plan:
 
 1. Determine the project root and write the plan to `_build/plans/<name>.md` beneath it, creating the directory if needed.
 2. Choose `<name>` from the context using one to four lowercase words separated by dashes and ending in `.md`.
-3. The plan doesn't have a fixed structure, make it as simple or complex as needed, but if the plan contains actionable items, then additionay include a checklist at the bottom of the plan.
-4. Express every actionable item as a Markdown checkbox, initially `- [ ]`.
-5. Use separate tasks for implementation, writing tests, and validating changes when each applies.
-6. Report the path after writing the plan.
+3. The plan doesn't have a fixed structure, make it as simple or complex as needed, but it should contain everything another agent would need to implement the feature, including why unobvious decisions were made, all the edge cases that were mentioned, all the deferred decisions, any work that needs to be done in other repositories etc.
+4. At the bottom of the plan file, in a checklist section, every actionable item should be added as a Markdown checkbox, initially `- [ ]`.
+5. A checklist alone is not a plan, a plan requires explaining intent behind changes and additional context, not just a list of tasks.
+6. Add separate tasks for implementation, writing tests, and validating changes when each applies.
+7. Report the path after writing the plan.
 
 Maintain the written plan as the work progresses:
 

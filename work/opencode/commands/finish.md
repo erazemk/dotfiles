@@ -9,7 +9,7 @@ Follow this workflow exactly.
 1. **Verify the build**
    - Run bare `make` from the repository root.
    - If `make` fails, stop and surface the failure.
-   - If bare `make` already passed after the latest code changes in this conversation, do not run it again. But running only `make test` or `make vet` is not enough.
+   - If bare `make` already passed after the latest code changes in this conversation, do not run it again. But running only `make vet` or similar commands is not enough.
 
 2. **Resolve or create the DevRev issue**
    - Determine the existing DevRev issue ID or URL to use, in this order:

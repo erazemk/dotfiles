@@ -6,12 +6,6 @@ description: Manage DevRev git worktrees. Use before making code changes on a `m
 Create a git worktree following the naming convention below.
 If you're already not on a `main` branch and the user has not explicitly asked you to switch to a different worktree, then just stop, you can make code changes here.
 
-When a plan is created during this session, remember its path.
-After creating a worktree, copy only those session-created plan files into the new worktree at the same relative paths.
-Do not copy, alter, or remove any other files in `_build/plans/`.
-Once the plans are copied, stop and tell the user to switch this session into the new worktree.
-When the session resumes, expect its current directory to be the new worktree and continue all work there.
-
 # Branch name
 
 - Use `erazemk/<words>`, where `<words>` is 1-4 short words in lowercase kebab-case derived from the conversation (e.g. `<prefix>/fix-attachment-retry`).
@@ -22,7 +16,7 @@ When the session resumes, expect its current directory to be the new worktree an
 # Worktree path
 
 - The user primarily uses VSCode for code editing and review, so use the same worktree path rules: `../<repo-name>.worktrees/<words>`.
-- If the repo is `~/DevRev/airdrop-devrev-loader`, then the worktrees should go in `~/DevRev/airdrop-devrev-loader.worktrees/`.
+- E.g., if the repo is `~/DevRev/airdrop-devrev-loader`, then the worktrees should go in `~/DevRev/airdrop-devrev-loader.worktrees/`.
 - The worktree path shouldn't include the `erazemk` prefix, only the `<words>`.
 
 # Create the branch
