@@ -10,6 +10,7 @@
 - If neither CLI supports the required operation, explain the gap and ask whether to extend `dr` before using another approach.
 - Interact with Datadog through the `pup` CLI tool. Always invoke it with `--agent`.
 - When interacting with Slack, if using a subagent, use the general subagent, as explore subagents don't have access to the Slack MCP.
+- Don't set a timeout when running `make`, unless you're running individual Go tests through `make .a.run`.
 
 # Coding
 

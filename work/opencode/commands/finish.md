@@ -4,7 +4,6 @@ description: Finish feature work end-to-end
 
 $ARGUMENTS
 
-Finish the current code changes.
 Follow this workflow exactly.
 
 1. **Verify the build**
@@ -13,7 +12,7 @@ Follow this workflow exactly.
    - If bare `make` already passed after the latest code changes in this conversation, do not run it again. But running only `make test` or `make vet` is not enough.
 
 2. **Resolve or create the DevRev issue**
-   - Determine the existing DevRev issue, ticket, work ID, or work URL to use, in this order:
+   - Determine the existing DevRev issue ID or URL to use, in this order:
      1. If the arguments contain an existing DevRev issue URL, use it.
      2. Otherwise, if a single specific DevRev issue was established as the current relevant issue earlier in this conversation (e.g. the user gave its link so you could gather context from it), use that reference. Only do this when exactly one such issue is unambiguous — if several issues were mentioned and none is clearly *the* current one, treat it as no reference.
    - If an existing DevRev reference was resolved this way, skip issue creation
@@ -31,4 +30,3 @@ Follow this workflow exactly.
 4. **Open the pull request**
    - Use the `pr` skill.
    - Do not ask for separate PR confirmation.
-   - Print the PR URL at the end.

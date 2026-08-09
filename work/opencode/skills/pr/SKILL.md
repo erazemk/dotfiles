@@ -10,5 +10,5 @@ description: Push the current branch and create a GitHub pull request from an ex
 - Open the PR immediately after push.
 - Use `gh pr create --title "..." --body "..."`.
 - Add `--draft` unless the caller explicitly asked to open the PR as ready for review.
-- After the PR is created, print the PR URL in Markdown format so it is clickable.
+- After the PR is created, print the PR URL.
 - If `gh` is not authenticated, authenticate with `gh auth login` and retry the PR creation step. If authentication fails, stop and report the failure.
