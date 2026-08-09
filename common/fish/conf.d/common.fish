@@ -47,6 +47,11 @@ function tldr --description "Get cheat sheets for CLI programs"
     command curl cheat.sh/"$argv[1]"
 end
 
+function howto --description "Ask AI how to do something"
+    command opencode run --pure --agent howto --format json -- $argv | \
+        jq -r 'select(.type == "text") | .part.text'
+end
+
 function mksh --description "Create an executable script skeleton"
     echo '#!/usr/bin/env bash' >>"$argv[1]" && chmod u+x "$argv[1]"
 end

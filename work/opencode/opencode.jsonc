@@ -4,6 +4,9 @@
     "devrev": {
       "model": "openrouter/openai/gpt-5.6-luna"
     },
+    "howto": {
+      "model": "openrouter/openai/gpt-5.6-luna"
+    },
     "oracle": {
       "model": "openrouter/openai/gpt-5.6-sol"
     },
