@@ -2,6 +2,8 @@
 description: Find and explore codebase deepening opportunities
 ---
 
+$ARGUMENTS
+
 Assess the named area for deepening opportunities: refactors that concentrate behavior behind a smaller interface and improve testability and maintainability.
 Use the `codebase-design` skill's vocabulary and principles throughout.
 Read `.claude/CONTEXT.md` if it exists before assessing candidates.
@@ -54,5 +56,3 @@ When the discussion resolves a new codebase-specific domain term, load `domain-m
 
 When the decisions are resolved, summarize the agreed design, interface boundaries, hidden complexity, rejected alternatives, risks, and testing strategy.
 Ask the user to confirm that summary before proposing or beginning implementation.
-
-Treat supplied command arguments as additional context: $ARGUMENTS

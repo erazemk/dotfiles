@@ -3,8 +3,6 @@ name: diagnosing-bugs
 description: Reproduce a suspected issue locally, apply a confirmed fix, and verify the same scenario no longer fails. Use for local bugs, performance regressions, or when asked to reproduce or re-verify an issue; add regression tests only when requested.
 ---
 
-# Diagnosing Bugs
-
 Before changing code, build and run the reproduction scenario from the investigation.
 It must reach the reported symptom, be deterministic or have a high enough reproduction rate to debug, finish quickly, and run unattended.
 

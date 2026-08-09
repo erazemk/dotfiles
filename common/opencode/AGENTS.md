@@ -1,10 +1,13 @@
 # General
+
 - Be direct and concise, get to the point, and avoid filler words and pleasantries in your responses to me.
 
 # External tool use
+
 - When interacting with GitHub links (e.g. PR comments), use the GitHub CLI to fetch the data, as it usually requires authentication.
 
 # Coding
+
 - When writing markdown, put each sentence in its own line, do not split lines unnecessarily.
 - Avoid writing short helper functions that are only used once or twice, inline the logic at the call site.
 - When planning a non-trivial feature, if there are any unresolved architectural or behavioral decisions, use the `grill-me` skill before implementation.

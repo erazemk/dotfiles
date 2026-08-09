@@ -2,7 +2,7 @@
 description: Finish feature work end-to-end
 ---
 
-Arguments: $ARGUMENTS
+$ARGUMENTS
 
 Finish the current code changes.
 Follow this workflow exactly.

@@ -2,9 +2,9 @@
 description: Simplify the current code changes without changing behavior
 ---
 
-Simplify the current code changes while preserving their behavior.
+$ARGUMENTS
 
-The intended behavior and any additional scope from the user is: $ARGUMENTS
+Simplify the current code changes while preserving their behavior.
 
 The changed files are:
 !`{ git diff --name-only; git diff --cached --name-only; git ls-files --others --exclude-standard; } | sort -u`
