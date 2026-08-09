@@ -16,3 +16,4 @@
 - Before changing a reproducible bug, establish and run a tight, deterministic feedback loop that reaches the reported symptom.
 - In Go tests, use `t.Parallel()`, `t.TempDir`, `t.Setenv`, and `t.Cleanup` for hermetic lifecycle management; mark assertion helpers with `t.Helper()`; use `testing/synctest` when deterministic control of time-sensitive behavior is needed and `httptest` to test HTTP calls.
 - Validate root-cause conclusions against timing, scope, and intermittency, and report confidence and remaining uncertainty.
+- If a linter points out any issues, you must not add exclusions for those issues or //nolint directives, but instead fix the code you wrote until there are no more issues.
