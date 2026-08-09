@@ -26,6 +26,9 @@
     }
   },
   "autoupdate": true,
+  "enabled_providers": [
+    "openrouter"
+  ],
   "experimental": {
     "disable_paste_summary": true
   },
@@ -50,7 +53,7 @@
       "url": "https://mcp.slack.com/mcp"
     }
   },
-  "model": "openrouter/openai/gpt-5.6-luna",
+  "model": "openrouter/openai/gpt-5.6-terra",
   "permission": {
     "devrev_*": "deny",
     "external_directory": {
@@ -58,30 +61,52 @@
       "~/.config/dotfiles/**/opencode/**": "allow",
       "~/.config/opencode/**": "allow",
       "~/.local/share/go/**": "allow",
-      "~/DevRev/**": "allow"
+      "~/DevRev/**": "allow",
+      "~/Library/Application Support/rtk/tee/**": "allow"
     },
     "slack_*": "deny"
   },
   "provider": {
     "openrouter": {
       "models": {
-        "openai/gpt-5.6-luna": {
+        "gpt-5.6-luna[1m]": {
           "limit": {
             "context": 1050000,
+            "output": 128000
+          },
+          "name": "GPT 5.6 Luna (1M)"
+        },
+        "gpt-5.6-sol[1m]": {
+          "limit": {
+            "context": 1050000,
+            "output": 128000
+          },
+          "name": "GPT 5.6 Sol (1M)"
+        },
+        "gpt-5.6-terra[1m]": {
+          "limit": {
+            "context": 1050000,
+            "output": 128000
+          },
+          "name": "GPT 5.6 Terra (1M)"
+        },
+        "openai/gpt-5.6-luna": {
+          "limit": {
+            "context": 272000,
             "output": 128000
           },
           "name": "GPT 5.6 Luna"
         },
         "openai/gpt-5.6-sol": {
           "limit": {
-            "context": 1050000,
+            "context": 272000,
             "output": 128000
           },
           "name": "GPT 5.6 Sol"
         },
         "openai/gpt-5.6-terra": {
           "limit": {
-            "context": 1050000,
+            "context": 272000,
             "output": 128000
           },
           "name": "GPT 5.6 Terra"
@@ -92,7 +117,15 @@
       "options": {
         "apiKey": "{env:ARCUS_API_KEY}",
         "baseURL": "https://ai-gateway.dev.devrev-eng.ai/v1"
-      }
+      },
+      "whitelist": [
+        "gpt-5.6-luna[1m]",
+        "gpt-5.6-sol[1m]",
+        "gpt-5.6-terra[1m]",
+        "openai/gpt-5.6-luna",
+        "openai/gpt-5.6-sol",
+        "openai/gpt-5.6-terra"
+      ]
     }
   },
   "small_model": "openrouter/openai/gpt-5.6-luna",
