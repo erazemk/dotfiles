@@ -228,16 +228,16 @@ const plugin: Plugin = async ({ client }) => {
       })
     }
 
-    if (!changed) {
-      await client.tui.showToast({
-        body: {
-          title: "No Arcus update",
-          message: "No models were added, removed, or updated.",
-          variant: "info",
-          duration: 2_000,
-        },
-      })
-    }
+    // if (!changed) {
+    //   await client.tui.showToast({
+    //     body: {
+    //       title: "No Arcus update",
+    //       message: "No models were added, removed, or updated.",
+    //       variant: "info",
+    //       duration: 2_000,
+    //     },
+    //   })
+    // }
 
     await writeSnapshot(current)
   }
