@@ -44,6 +44,7 @@
   "githubPullRequests.deleteBranchAfterMerge": true,
   "githubPullRequests.pullBranch": "never",
   "githubPullRequests.pullRequestDescription": "commit",
+  "githubPullRequests.pushBranch": "always",
   "go.toolsManagement.autoUpdate": true,
   "gopls": {
     "ui.semanticTokens": true
