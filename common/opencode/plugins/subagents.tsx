@@ -100,7 +100,8 @@ const tui: TuiPlugin = async (api) => {
                     •
                   </text>
                   <text fg={ctx.theme.current.text} wrapMode="word">
-                    <span style={{ fg: ctx.theme.current.textMuted }}>{session.agent ?? "subagent"}</span> {title}
+                    <span style={{ fg: ctx.theme.current.text }}>{session.agent ?? "subagent"}</span>{" "}
+                    <span style={{ fg: ctx.theme.current.textMuted }}>{title}</span>
                   </text>
                 </box>
               )
