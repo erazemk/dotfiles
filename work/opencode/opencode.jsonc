@@ -16,20 +16,6 @@
     },
     "oracle": {
       "model": "openrouter/openai/gpt-5.6-sol",
-    },
-    "slack": {
-      "description": "Interacts with Slack using read-only tools. Use when needing to search through slack channels, threads etc. Provide it any relevant info it could use to help in the searching, including any user names, channel names, Slack links, search terms, dates, etc.",
-      "mode": "subagent",
-      "model": "openrouter/openai/gpt-5.6-luna",
-      "permission": {
-        "*": "deny",
-        "question": "allow",
-        "slack_slack_read_channel": "allow",
-        "slack_slack_read_thread": "allow",
-        "slack_slack_search_channels": "allow",
-        "slack_slack_search_public_and_private": "allow"
-      },
-      "prompt": "Search through Slack to find information that will satisfy the request."
     }
   },
   "autoupdate": true,
@@ -71,7 +57,11 @@
       "~/DevRev/**": "allow",
       "~/Library/Application Support/rtk/tee/**": "allow"
     },
-    "slack_*": "deny"
+    "slack_*": "deny",
+    "slack_slack_read_channel": "allow",
+    "slack_slack_read_thread": "allow",
+    "slack_slack_search_channels": "allow",
+    "slack_slack_search_public_and_private": "allow"
   },
   "provider": {
     "openrouter": {
