@@ -3,6 +3,9 @@ name: worktree
 description: Manage DevRev git worktrees. Use before making code changes on a `main` branch in ~/DevRev, or whenever the user asks for worktree-related work.
 ---
 
+These instructions only apply if you are starting new work, with no previous work being done by the user on this change in the current branch.
+If there is prior work done by the user and the user instructs you to update it or add to it, do not create a separate worktree and remain on the existing branch.
+
 Create a git worktree following the naming convention below.
 If you're already not on a `main` branch and the user has not explicitly asked you to switch to a different worktree, then just stop, you can make code changes here.
 
@@ -26,9 +29,6 @@ Only when the user explicitly gives you a branch name to base the worktree off o
 
 1. Run `git fetch origin main`.
 2. Create the worktree with `git worktree add --no-track -b erazemk/<words> <path> origin/main`.
-3. Verify `git -C <path> branch -vv` shows no upstream, particularly not `[origin/main]`.
-4. Copy plan files created during this session into `<path>` at the same relative paths.
-5. Stop and tell the user to switch this session into `<path>` before continuing work.
 
 The branch has no upstream after creation.
 Its first push must use `git push --set-upstream origin erazemk/<words>`.
