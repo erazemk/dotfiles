@@ -2,10 +2,7 @@
   "[markdown]": {
     "editor.wordWrap": "on"
   },
-  "chat.agent.enabled": false,
-  "chat.agentsControl.enabled": "hidden",
-  "chat.titleBar.openInAgentsWindow.enabled": false,
-  "chat.viewSessions.enabled": false,
+  "chat.disableAIFeatures": true,
   "debug.console.fontSize": 15,
   "diffEditor.codeLens": true,
   "diffEditor.experimental.showMoves": true,
