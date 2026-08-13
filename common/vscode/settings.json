@@ -83,6 +83,7 @@
     }
   },
   "terminal.integrated.scrollback": 10000,
+  "update.showReleaseNotes": false,
   "window.autoDetectColorScheme": true,
   "window.restoreWindows": "none",
   "workbench.commandPalette.showAskInChat": false,
