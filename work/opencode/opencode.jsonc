@@ -1,28 +1,18 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "references": {
-    "repos": {
-      "path": "~/DevRev",
-      "hidden": true,
-      "description": "Use when needing to view code in other cloned DevRev repositories (~/DevRev directory)"
-    },
-  },
   "agent": {
     "devrev": {
-      // "model": "openrouter/openai/gpt-5.6-luna"
-      "model": "amazon-bedrock/openai.gpt-5.6-luna"
+      "model": "amazon-bedrock/gpt-5.6-luna"
     },
     "howto": {
-      // "model": "openrouter/openai/gpt-5.6-luna"
-      "model": "amazon-bedrock/openai.gpt-5.6-luna"
+      "model": "amazon-bedrock/gpt-5.6-luna"
     },
     "oracle": {
-      // "model": "openrouter/openai/gpt-5.6-sol",
-      "model": "amazon-bedrock/openai.gpt-5.6-sol"
+      "model": "amazon-bedrock/gpt-5.6-sol"
     },
     "plan": {
-      "model": "amazon-bedrock/openai.gpt-5.6-terra"
-    },
+      "model": "amazon-bedrock/gpt-5.6-terra"
+    }
   },
   "autoupdate": true,
   "enabled_providers": [
@@ -53,8 +43,7 @@
       "url": "https://mcp.slack.com/mcp"
     }
   },
-  // "model": "openrouter/openai/gpt-5.6-terra",
-  "model": "amazon-bedrock/openai.gpt-5.6-luna",
+  "model": "amazon-bedrock/gpt-5.6-luna",
   "permission": {
     "devrev_*": "deny",
     "external_directory": {
@@ -73,14 +62,9 @@
   },
   "provider": {
     "amazon-bedrock": {
-      "options": {
-        "region": "us-east-1",
-        "profile": "default",
-      },
-    },
-    "openrouter": {
       "models": {
-        "openai/gpt-5.6-luna": {
+        "gpt-5.6-luna": {
+          "id": "openai.gpt-5.6-luna",
           "limit": {
             "context": 272000,
             "input": 272000,
@@ -88,7 +72,8 @@
           },
           "name": "GPT 5.6 Luna"
         },
-        "openai/gpt-5.6-sol": {
+        "gpt-5.6-sol": {
+          "id": "openai.gpt-5.6-sol",
           "limit": {
             "context": 272000,
             "input": 272000,
@@ -96,14 +81,55 @@
           },
           "name": "GPT 5.6 Sol"
         },
-        "openai/gpt-5.6-terra": {
+        "gpt-5.6-terra": {
+          "id": "openai.gpt-5.6-terra",
           "limit": {
             "context": 272000,
             "input": 272000,
             "output": 128000
           },
           "name": "GPT 5.6 Terra"
+        }
+      },
+      "options": {
+        "profile": "default",
+        "region": "us-east-1"
+      },
+      "whitelist": [
+        "gpt-5.6-luna",
+        "gpt-5.6-sol",
+        "gpt-5.6-terra"
+      ]
+    },
+    "openrouter": {
+      "models": {
+        "gpt-5.6-luna": {
+          "id": "openai/gpt-5.6-luna",
+          "limit": {
+            "context": 272000,
+            "input": 272000,
+            "output": 128000
+          },
+          "name": "GPT 5.6 Luna"
         },
+        "gpt-5.6-sol": {
+          "id": "openai/gpt-5.6-sol",
+          "limit": {
+            "context": 272000,
+            "input": 272000,
+            "output": 128000
+          },
+          "name": "GPT 5.6 Sol"
+        },
+        "gpt-5.6-terra": {
+          "id": "openai/gpt-5.6-terra",
+          "limit": {
+            "context": 272000,
+            "input": 272000,
+            "output": 128000
+          },
+          "name": "GPT 5.6 Terra"
+        }
       },
       "name": "Arcus",
       "npm": "@ai-sdk/openai",
@@ -111,15 +137,21 @@
         "apiKey": "{env:ARCUS_API_KEY}",
         "baseURL": "https://ai-gateway.dev.devrev-eng.ai/v1"
       },
-      // "whitelist": [
-      //   "openai/gpt-5.6-luna",
-      //   "openai/gpt-5.6-sol",
-      //   "openai/gpt-5.6-terra"
-      // ]
+      "whitelist": [
+        "gpt-5.6-luna",
+        "gpt-5.6-sol",
+        "gpt-5.6-terra"
+      ]
     }
   },
-  // "small_model": "openrouter/openai/gpt-5.6-luna",
-  "small_model": "amazon-bedrock/openai.gpt-5.6-luna",
+  "references": {
+    "repos": {
+      "description": "Use when needing to view code in other cloned DevRev repositories (~/DevRev directory)",
+      "hidden": true,
+      "path": "~/DevRev"
+    }
+  },
+  "small_model": "amazon-bedrock/gpt-5.6-luna",
   "watcher": {
     "ignore": [
       "_build/**"
