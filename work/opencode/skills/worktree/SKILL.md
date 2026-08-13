@@ -33,4 +33,9 @@ Only when the user explicitly gives you a branch name to base the worktree off o
 The branch has no upstream after creation.
 Its first push must use `git push --set-upstream origin erazemk/<words>`.
 
+# Copying plans
+
+If the user asked you to write a plan to a file, then soft symlink the plan into the new worktree into the same location (`_build/plans`).
+That way you can update either location and keep the changes.
+
 In case of an issue at any of the steps, stop, and report the issue to the user.
