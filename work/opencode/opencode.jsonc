@@ -9,17 +9,24 @@
   },
   "agent": {
     "devrev": {
-      "model": "openrouter/openai/gpt-5.6-luna"
+      // "model": "openrouter/openai/gpt-5.6-luna"
+      "model": "amazon-bedrock/openai.gpt-5.6-luna"
     },
     "howto": {
-      "model": "openrouter/openai/gpt-5.6-luna"
+      // "model": "openrouter/openai/gpt-5.6-luna"
+      "model": "amazon-bedrock/openai.gpt-5.6-luna"
     },
     "oracle": {
-      "model": "openrouter/openai/gpt-5.6-sol",
-    }
+      // "model": "openrouter/openai/gpt-5.6-sol",
+      "model": "amazon-bedrock/openai.gpt-5.6-sol"
+    },
+    "plan": {
+      "model": "amazon-bedrock/openai.gpt-5.6-terra"
+    },
   },
   "autoupdate": true,
   "enabled_providers": [
+    "amazon-bedrock",
     "openrouter"
   ],
   "experimental": {
@@ -46,7 +53,8 @@
       "url": "https://mcp.slack.com/mcp"
     }
   },
-  "model": "openrouter/openai/gpt-5.6-terra",
+  // "model": "openrouter/openai/gpt-5.6-terra",
+  "model": "amazon-bedrock/openai.gpt-5.6-luna",
   "permission": {
     "devrev_*": "deny",
     "external_directory": {
@@ -64,28 +72,34 @@
     "slack_slack_search_public_and_private": "allow"
   },
   "provider": {
+    "amazon-bedrock": {
+      "options": {
+        "region": "us-east-1",
+        "profile": "default",
+      },
+    },
     "openrouter": {
       "models": {
         "openai/gpt-5.6-luna": {
           "limit": {
-            "context": 1050000,
-            "input": 1050000,
+            "context": 272000,
+            "input": 272000,
             "output": 128000
           },
           "name": "GPT 5.6 Luna"
         },
         "openai/gpt-5.6-sol": {
           "limit": {
-            "context": 1050000,
-            "input": 1050000,
+            "context": 272000,
+            "input": 272000,
             "output": 128000
           },
           "name": "GPT 5.6 Sol"
         },
         "openai/gpt-5.6-terra": {
           "limit": {
-            "context": 1050000,
-            "input": 1050000,
+            "context": 272000,
+            "input": 272000,
             "output": 128000
           },
           "name": "GPT 5.6 Terra"
@@ -97,14 +111,15 @@
         "apiKey": "{env:ARCUS_API_KEY}",
         "baseURL": "https://ai-gateway.dev.devrev-eng.ai/v1"
       },
-      "whitelist": [
-        "openai/gpt-5.6-luna",
-        "openai/gpt-5.6-sol",
-        "openai/gpt-5.6-terra"
-      ]
+      // "whitelist": [
+      //   "openai/gpt-5.6-luna",
+      //   "openai/gpt-5.6-sol",
+      //   "openai/gpt-5.6-terra"
+      // ]
     }
   },
-  "small_model": "openrouter/openai/gpt-5.6-luna",
+  // "small_model": "openrouter/openai/gpt-5.6-luna",
+  "small_model": "amazon-bedrock/openai.gpt-5.6-luna",
   "watcher": {
     "ignore": [
       "_build/**"
