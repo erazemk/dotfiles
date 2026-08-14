@@ -11,7 +11,7 @@
       "model": "amazon-bedrock/gpt-5.6-sol"
     },
     "plan": {
-      "model": "amazon-bedrock/gpt-5.6-terra"
+      "model": "amazon-bedrock/gpt-5.6-luna"
     }
   },
   "autoupdate": true,
