@@ -3,9 +3,6 @@
     "editor.wordWrap": "on"
   },
   "chat.disableAIFeatures": true,
-  "cursor.cpp.disabledLanguages": [
-    "plaintext"
-  ],
   "cursor.cpp.enablePartialAccepts": true,
   "cursorpyright.analysis.exclude": [
     "**/node_modules",
@@ -16,6 +13,7 @@
     ".git",
     "**/.*"
   ],
+  "cursorpyright.shouldImportPylanceSettings": "never",
   "debug.console.fontSize": 15,
   "diffEditor.codeLens": true,
   "diffEditor.experimental.showMoves": true,
@@ -103,8 +101,9 @@
   "workbench.agentsWindowButton.enabled": false,
   "workbench.commandPalette.showAskInChat": false,
   "workbench.experimental.modernUI": true,
-  "workbench.preferredDarkColorTheme": "Default Dark Modern",
-  "workbench.preferredLightColorTheme": "Default Light Modern",
+  "workbench.layoutControl.enabled": false,
+  "workbench.preferredDarkColorTheme": "Dark Modern",
+  "workbench.preferredLightColorTheme": "Light Modern",
   "workbench.secondarySideBar.defaultVisibility": "hidden",
   "workbench.startupEditor": "none"
 }
