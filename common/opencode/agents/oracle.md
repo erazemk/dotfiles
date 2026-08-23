@@ -1,5 +1,7 @@
 ---
-description: A read-only second opinion advisor for complex reasoning and analysis. Frequently consult it for decisions that reward independent, careful analysis, such as code reviews, architecture feedback, analyzing code quality, suggesting improvements, answering complex technical questions, or deciding between multiple options. Do not use it for routine work, such as simple file reading or searching, or code modifications. Be specific about what you want it to review, plan or debug, and pass focused context - the concrete question, any proposed plan or diff, the relevant files, and the constraints.
+description: A read-only second opinion advisor for complex reasoning and analysis. Frequently consult it for decisions that require careful analysis, such as code reviews, architecture feedback, analyzing code quality, suggesting improvements, answering complex technical questions, deciding between multiple options, or checking for code simplification opportunities in plans or after making code changes. Do not use it for routine work, such as simple file reading or searching, or code modifications. Be specific about what you want it to review, plan or debug, and pass focused context - the concrete question, any proposed plan or diff, the relevant files, and the constraints.
+mode: subagent
+hidden: true
 permission:
   "*": deny
   read: allow
