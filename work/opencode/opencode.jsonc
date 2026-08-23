@@ -5,15 +5,15 @@
       "variant": "high"
     },
     "devrev": {
-      "model": "amazon-bedrock/openai.gpt-5.6-luna",
+      "model": "openai/gpt-5.6-luna",
       "variant": "high"
     },
     "howto": {
-      "model": "amazon-bedrock/openai.gpt-5.6-luna",
+      "model": "openai/gpt-5.6-luna",
       "variant": "low"
     },
     "oracle": {
-      "model": "amazon-bedrock/openai.gpt-5.6-sol",
+      "model": "openai/gpt-5.6-sol",
       "permission": {
         "external_directory": {
           "~/DevRev/**": "allow"
@@ -26,10 +26,6 @@
     }
   },
   "autoupdate": true,
-  "enabled_providers": [
-    "amazon-bedrock",
-    "litellm"
-  ],
   "experimental": {
     "disable_paste_summary": true
   },
@@ -62,7 +58,7 @@
       "url": "https://mcp.slack.com/mcp"
     }
   },
-  "model": "amazon-bedrock/openai.gpt-5.6-luna",
+  "model": "openai/gpt-5.6-luna",
   "permission": {
     "devrev_*": "deny",
     "external_directory": {
@@ -79,23 +75,30 @@
     "slack_slack_search_channels": "allow",
     "slack_slack_search_public_and_private": "allow"
   },
-  "plugin": [
-    "opencode-plugin-litellm@latest"
-  ],
   "provider": {
-    "amazon-bedrock": {
-      "options": {
-        "profile": "default",
-        "region": "us-east-1"
-      }
-    },
-    "litellm": {
+    "openai": {
+      "models": {
+        "gpt-5.6-luna": {
+          "name": "GPT 5.6 Luna"
+        },
+        "gpt-5.6-sol": {
+          "name": "GPT 5.6 Sol"
+        },
+        "gpt-5.6-terra": {
+          "name": "GPT 5.6 Terra"
+        }
+      },
       "name": "Arcus",
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "apiKey": "{env:ARCUS_API_KEY}",
         "baseURL": "https://ai-gateway.dev.devrev-eng.ai/v1"
-      }
+      },
+      "whitelist": [
+        "gpt-5.6-luna",
+        "gpt-5.6-sol",
+        "gpt-5.6-terra"
+      ]
     }
   },
   "references": {
@@ -105,7 +108,7 @@
       "path": "~/DevRev"
     }
   },
-  "small_model": "amazon-bedrock/openai.gpt-5.6-luna",
+  "small_model": "openai/gpt-5.6-luna",
   "watcher": {
     "ignore": [
       "_build/**"
