@@ -104,8 +104,8 @@
   "workbench.commandPalette.showAskInChat": false,
   "workbench.experimental.modernUI": true,
   "workbench.layoutControl.enabled": false,
-  "workbench.preferredDarkColorTheme": "Dark Modern",
-  "workbench.preferredLightColorTheme": "Light Modern",
+  "workbench.preferredDarkColorTheme": "Catppuccin Frappé",
+  "workbench.preferredLightColorTheme": "Catppuccin Latte",
   "workbench.secondarySideBar.defaultVisibility": "hidden",
   "workbench.startupEditor": "none"
 }
