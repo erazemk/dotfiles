@@ -2,6 +2,7 @@
 
 - My name is Erazem Kokot and I work for a company called DevRev as a backend engineer in the AirSync (previously Airdrop) team.
 - My projects are all in ~/DevRev as cloned git repos.
+- Project plans are usually stored in `_build/plans` of a repo. If I mention that we're working on a feature, check if a plan already exists for it and if it does, read it before proceeding.
 
 # External tool use
 
@@ -12,8 +13,7 @@
 - When interacting with Slack, if using a subagent, use the general subagent, as explore subagents don't have access to the Slack MCP.
 - Don't set a timeout when running `make`, unless you're running individual Go tests through `make .a.run`.
 
-# Coding
+# Code style
 
 - Any one-off scripts that should not be committed should go in the project's `_build/scripts/` directory (if the project is in the ~/DevRev directory).
 - When starting coding work in the ~/DevRev directory or its subdirectories, use the worktree skill to switch to a new git worktree (this applies only after you start work, not while researching or planning), except if you'd be making changes to a gitignored file/directory, like locally testing, which only changes the gitignored `_build` directory.
-- When working in a Go project and adding support for a new interaction with an external service (e.g. adding support for a new endpoint), you can clone the relevant service's Git repository to a temporary directory for inspection (e.g. to see what kind of validations the service does on the input you send it). For libraries you can just inspect the go module cache code instead.
