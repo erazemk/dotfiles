@@ -2,7 +2,6 @@
 
 - My name is Erazem Kokot and I work for a company called DevRev as a backend engineer in the AirSync (previously Airdrop) team.
 - My projects are all in ~/DevRev as cloned git repos.
-- Project plans are usually stored in `_build/plans` of a repo. If I mention that we're working on a feature, check if a plan already exists for it and if it does, read it before proceeding.
 
 # External tool use
 
@@ -17,3 +16,42 @@
 
 - Any one-off scripts that should not be committed should go in the project's `_build/scripts/` directory (if the project is in the ~/DevRev directory).
 - When starting coding work in the ~/DevRev directory or its subdirectories, use the worktree skill to switch to a new git worktree (this applies only after you start work, not while researching or planning), except if you'd be making changes to a gitignored file/directory, like locally testing, which only changes the gitignored `_build` directory.
+
+# Plan Maintenance
+
+Plans under `_build/plans/` are current-state implementation documents, not append-only logs.
+They must describe only the latest valid requirements, decisions, implementation state, and remaining work.
+When working on an existing feature, check if there is an existing plan for it, and if there is, read it before proceeding.
+
+When creating a plan:
+
+- Explain the goal, intent, relevant context, constraints, important decisions, edge cases, and deferred work.
+- Include a checklist of actionable implementation, testing, and validation tasks.
+- Make each task specific enough for another agent to implement.
+- Do not add changelog, history, or versioning sections.
+
+When reading or revising an existing plan:
+
+1. Read the entire plan before editing it.
+2. Compare every existing task with the latest requirements and current implementation state.
+3. Keep completed tasks when they still match the current plan.
+4. Update tasks whose scope, approach, dependencies, acceptance criteria, or status changed.
+5. Remove tasks that are obsolete, superseded, duplicated, or no longer required.
+6. Replace outdated tasks with their updated equivalents instead of appending parallel tasks.
+7. Add tasks only for genuinely new work that is not already represented.
+8. Remove plan text that is no longer relevant.
+9. Keep the task list and surrounding plan text aligned with each other.
+10. Re-read the complete plan after editing it and check for stale, duplicated, contradictory, or missing work.
+
+Re-review and reconcile the plan at these checkpoints:
+
+- When starting a session that references an existing plan.
+- Before making changes to an existing plan.
+- When requirements, design decisions, scope, or dependencies change.
+- When implementation reveals that the plan is incomplete, incorrect, or no longer applicable.
+- After completing related implementation work.
+- Before marking the work complete.
+
+Do not preserve obsolete tasks merely to record what used to be planned.
+Do not add progress reports, changelogs, history, or version metadata.
+Do not append a new task when an existing task should be updated, replaced, or removed.
