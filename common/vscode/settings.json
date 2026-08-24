@@ -3,7 +3,6 @@
     "editor.wordWrap": "on"
   },
   "chat.disableAIFeatures": true,
-  "cursor.cpp.enablePartialAccepts": true,
   "cursorpyright.analysis.exclude": [
     "**/node_modules",
     "**/__pycache__",
@@ -17,6 +16,7 @@
   "debug.console.fontSize": 15,
   "diffEditor.codeLens": true,
   "diffEditor.experimental.showMoves": true,
+  "diffEditor.ignoreTrimWhitespace": false,
   "diffEditor.renderSideBySide": false,
   "editor.fontSize": 15,
   "editor.formatOnSave": true,
@@ -30,6 +30,7 @@
     "Dockerfile.*": "dockerfile",
     "Makefile.*": "makefile"
   },
+  "files.autoSave": "onFocusChange",
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
@@ -51,6 +52,7 @@
   "githubPullRequests.createOnPublishBranch": "always",
   "githubPullRequests.defaultDeletionMethod.selectWorktree": true,
   "githubPullRequests.deleteBranchAfterMerge": true,
+  "githubPullRequests.notifications": "pullRequests",
   "githubPullRequests.pullBranch": "never",
   "githubPullRequests.pullRequestDescription": "commit",
   "githubPullRequests.pushBranch": "always",
