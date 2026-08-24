@@ -11,11 +11,14 @@
 - Interact with Datadog through the `pup` CLI tool. Always invoke it with `--agent`.
 - When interacting with Slack, if using a subagent, use the general subagent, as explore subagents don't have access to the Slack MCP.
 - Don't set a timeout when running `make`, unless you're running individual Go tests through `make .a.run`.
+- Don't use `rtk` commands with command substitution, `rtk` should only be used when you will directly be consuming the output.
+- Restrict searches to the active repository or worktree, avoid searching `$HOME` or anything less granular, stick to project (`~/DevRev/**`) or configuration (`~/.config/dotfiles/**`) directories.
 
 # Code style
 
 - Any one-off scripts that should not be committed should go in the project's `_build/scripts/` directory (if the project is in the ~/DevRev directory).
 - When starting coding work in the ~/DevRev directory or its subdirectories, use the worktree skill to switch to a new git worktree (this applies only after you start work, not while researching or planning), except if you'd be making changes to a gitignored file/directory, like locally testing, which only changes the gitignored `_build` directory.
+- Before writing test cases, inspect surrounding tests to follow existing fixtures and mock patterns.
 
 # Plan Maintenance
 
