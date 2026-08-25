@@ -79,6 +79,7 @@
     ".git",
     "**/.*"
   ],
+  "python.analysis.typeCheckingMode": "standard",
   "redhat.telemetry.enabled": false,
   "scm.diffDecorationsGutterPattern": {
     "added": true
@@ -106,8 +107,6 @@
   "workbench.commandPalette.showAskInChat": false,
   "workbench.experimental.modernUI": true,
   "workbench.layoutControl.enabled": false,
-  "workbench.preferredDarkColorTheme": "Catppuccin Frappé",
-  "workbench.preferredLightColorTheme": "Catppuccin Latte",
   "workbench.secondarySideBar.defaultVisibility": "hidden",
   "workbench.startupEditor": "none"
 }
