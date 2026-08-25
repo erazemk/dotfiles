@@ -1,8 +1,3 @@
-# General
-
-- Be direct and concise, get to the point, and avoid filler words and pleasantries in your responses to me.
-- Keep responses short, only reply with what is absolutely necessary for me to understand what you're saying.
-
 # External tool use
 
 - When interacting with GitHub links (e.g. PR comments), use the GitHub CLI to fetch the data, as it usually requires authentication.
@@ -11,13 +6,10 @@
 
 # Code style
 
-- Keep changes minimal and local; leverage existing abstractions rather than plumbing code through multiple levels of function calls.
-- Do not create small helper methods that are referenced only once.
-- Only change what was asked; avoid unrequested refactors, dependencies, files, and speculative abstractions.
+- Keep changes minimal and local - avoid writing short helper functions that are only used once (inline the code instead), or adding structs where there is no need.
 - Use the simplest solution that preserves correctness; when unsure, ask.
 - When writing markdown, put each sentence in its own line, do not split lines unnecessarily.
 - When writing plans, you must always make sure to remove any redundant text so that the plan is always only the latest state as if it was written in one go. This also applies if the plan changed, update any information that became outdated, or completely remove parts that are not needed.
-- Avoid writing short helper functions that are only used once or twice, inline the logic at the call site.
 - When planning a non-trivial feature, if there are any unresolved architectural or behavioral decisions, use the `grill-me` skill before implementation.
 - Before changing a reproducible bug, establish and run a tight, deterministic feedback loop that reaches the reported symptom.
 - Validate root-cause conclusions against timing, scope, and intermittency, and report confidence and remaining uncertainty.

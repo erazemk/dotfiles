@@ -3,6 +3,13 @@
 - My name is Erazem Kokot and I work for a company called DevRev as a backend engineer in the AirSync (previously Airdrop) team.
 - My projects are all in ~/DevRev as cloned git repos.
 
+# Output style
+
+- Use the shortest complete response that preserves correctness.
+- Lead with the result; omit preambles, restatements, and process narration.
+- Include caveats and explanation only when they materially affect the answer.
+- Match detail to the task instead of using a fixed response format.
+
 # External tool use
 
 - When interacting with DevRev systems or verifying test outcomes for DevRev-related code (e.g. checking whether a work was created with the right fields), use `dr` first when it supports the required operation.
@@ -13,6 +20,7 @@
 - Don't set a timeout when running `make`, unless you're running individual Go tests through `make .a.run`.
 - Don't use `rtk` commands with command substitution, `rtk` should only be used when you will directly be consuming the output.
 - Restrict searches to the active repository or worktree, avoid searching `$HOME` or anything less granular, stick to project (`~/DevRev/**`) or configuration (`~/.config/dotfiles/**`) directories.
+- Do all your temporary work (whatever you'd put into `/tmp`) in the project directory in `_build/opencode/tmp`
 
 # Code style
 
