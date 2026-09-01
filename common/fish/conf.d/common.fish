@@ -43,6 +43,25 @@ function update --description "Update system packages"
     brew update && brew upgrade && brew autoremove && brew cleanup
 end
 
+function usage --description "Show the usage cost for OpenCode (defaults to last 7 days)"
+    if test (count $argv) -eq 0
+        set days 7
+    else if test (count $argv) -eq 1
+        if string match -qr '^[0-9]+$' -- $argv[1]
+            set days $argv[1]
+        else
+            echo "Usage: usage [days]" 1>&2
+            return
+        end
+    else
+        echo "Usage: usage [days]" 1>&2
+        return
+    end
+
+    opencode stats --models --days $days
+end
+
+
 function tldr --description "Get cheat sheets for CLI programs"
     command curl cheat.sh/"$argv[1]"
 end
