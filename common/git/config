@@ -6,6 +6,7 @@ lo = log --oneline
 ch = checkout
 c = commit
 cm = commit -m
+ca = commit --amend
 b = branch
 cl = clone
 ps = push
