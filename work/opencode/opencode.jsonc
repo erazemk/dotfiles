@@ -1,8 +1,17 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "agent": {
+    "explore": {
+      "model": "litellm/gpt-5.6-luna"
+    },
+    "general": {
+      "model": "litellm/gpt-5.6-luna"
+    },
     "oracle": {
-      "model": "amazon-bedrock/openai.gpt-5.6-sol",
+      "model": "litellm/gpt-5.6-sol",
+      "options": {
+        "reasoningEffort": "high"
+      },
       "permission": {
         "external_directory": {
           "~/.cache/sidekick/**": "allow",
@@ -12,7 +21,8 @@
           "~/DevRev/**": "allow",
           "~/Library/Application Support/rtk/tee/**": "allow"
         }
-      }
+      },
+      "reasoning": true
     }
   },
   "autoupdate": true,
@@ -39,6 +49,10 @@
       "enabled": true,
       "type": "local"
     },
+    "granola": {
+      "type": "remote",
+      "url": "https://mcp.granola.ai/mcp"
+    },
     "slack": {
       "oauth": {
         "clientId": "1601185624273.8899143856786",
@@ -48,7 +62,7 @@
       "url": "https://mcp.slack.com/mcp"
     }
   },
-  "model": "amazon-bedrock/openai.gpt-5.6-terra",
+  "model": "litellm/gpt-5.6-luna",
   "permission": {
     "devrev_*": "deny",
     "external_directory": {
@@ -69,6 +83,20 @@
   },
   "provider": {
     "amazon-bedrock": {
+      "models": {
+        "gpt-5.6-luna": {
+          "options": {
+            "reasoningEffort": "xhigh"
+          },
+          "reasoning": true
+        },
+        "gpt-5.6-sol": {
+          "options": {
+            "reasoningEffort": "medium"
+          },
+          "reasoning": true
+        }
+      },
       "options": {
         "profile": "default",
         "region": "us-east-1"
@@ -77,13 +105,18 @@
     "litellm": {
       "models": {
         "gpt-5.6-luna": {
-          "name": "GPT 5.6 Luna"
+          "name": "GPT 5.6 Luna",
+          "options": {
+            "reasoningEffort": "xhigh"
+          },
+          "reasoning": true
         },
         "gpt-5.6-sol": {
-          "name": "GPT 5.6 Sol"
-        },
-        "gpt-5.6-terra": {
-          "name": "GPT 5.6 Terra"
+          "name": "GPT 5.6 Sol",
+          "options": {
+            "reasoningEffort": "medium"
+          },
+          "reasoning": true
         }
       },
       "name": "Arcus",
@@ -101,7 +134,7 @@
       "path": "~/DevRev"
     }
   },
-  "small_model": "amazon-bedrock/openai.gpt-5.6-luna",
+  "small_model": "litellm/gpt-5.6-luna",
   "watcher": {
     "ignore": [
       "_build/**"
