@@ -5,6 +5,7 @@ description: Manage DevRev git worktrees. Use before making code changes on a `m
 
 These instructions only apply if you are starting new work, with no previous work being done by the user on this change in the current branch.
 If there is prior work done by the user and the user instructs you to update it or add to it, do not create a separate worktree and remain on the existing branch.
+The instructions only apply to directories within `~/DevRev`, excluding `~/DevRev/dr`, `~/DevRev/archon-policy` and `~/DevRev/slack`.
 
 Create a git worktree following the naming convention below.
 If you're already not on a `main` branch and the user has not explicitly asked you to switch to a different worktree, then just stop, you can make code changes here.
