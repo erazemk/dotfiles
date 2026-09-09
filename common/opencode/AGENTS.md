@@ -32,6 +32,7 @@
 ## Writing and reading plans
 
 - When working on an existing feature, check if there is an existing plan for it, and if there is, read it before proceeding.
+- If there is not, only write one if the user explicitly says to write it to a file - otherwise just print the plan in the conversation.
 - When writing plans, always remove any redundant text so that the plan only has the latest state. This also applies if the plan changed, update any information that became outdated, or completely remove parts that are not needed.
 - Plans must describe only the latest valid requirements, decisions, implementation state, and remaining work.
 
