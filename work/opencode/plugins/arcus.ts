@@ -13,6 +13,14 @@ type ModelSnapshot = {
   name: string
   id: string
   configuration: JSONValue
+  pricing?: PricingSnapshot
+}
+
+type PricingSnapshot = {
+  input: number | null
+  output: number | null
+  cacheRead: number | null
+  cacheWrite: number | null
 }
 
 type Snapshot = {
@@ -63,7 +71,8 @@ function validSnapshot(value: unknown): value is Snapshot {
       isRecord(model) &&
       typeof model.name === "string" &&
       typeof model.id === "string" &&
-      normalize(model.configuration) !== undefined
+      normalize(model.configuration) !== undefined &&
+      (model.pricing === undefined || normalize(model.pricing) !== undefined)
     )
   })
 }
@@ -105,6 +114,13 @@ function parseModels(value: unknown): Record<string, ModelSnapshot> | undefined 
       name: entry.model_name,
       id: entry.litellm_params.model,
       configuration,
+      pricing: {
+        input: typeof modelInfo.input_cost_per_token === "number" ? modelInfo.input_cost_per_token : null,
+        output: typeof modelInfo.output_cost_per_token === "number" ? modelInfo.output_cost_per_token : null,
+        cacheRead: typeof modelInfo.cache_read_input_token_cost === "number" ? modelInfo.cache_read_input_token_cost : null,
+        cacheWrite:
+          typeof modelInfo.cache_creation_input_token_cost === "number" ? modelInfo.cache_creation_input_token_cost : null,
+      },
     }
     parsed.push(model)
   }
@@ -159,6 +175,8 @@ async function token(signal: AbortSignal): Promise<string | undefined> {
 }
 
 const plugin: Plugin = async ({ client }) => {
+  let pricingModels = new Set<string>()
+
   const refresh = async () => {
     const signal = AbortSignal.timeout(requestTimeoutMs)
     const apiToken = await token(signal)
@@ -192,7 +210,7 @@ const plugin: Plugin = async ({ client }) => {
       changed = true
       await client.tui.showToast({
         body: {
-          title: "Arcus model added",
+          title: "Model added",
           message: `Name: ${model.name}\nID: ${model.id}`,
           variant: "success",
           duration: 2_000,
@@ -205,7 +223,7 @@ const plugin: Plugin = async ({ client }) => {
       changed = true
       await client.tui.showToast({
         body: {
-          title: "Arcus model removed",
+          title: "Model removed",
           message: `Name: ${model.name}\nID: ${model.id}`,
           variant: "error",
           duration: 2_000,
@@ -216,12 +234,39 @@ const plugin: Plugin = async ({ client }) => {
     for (const name of Object.keys(models).filter((name) => cached.models[name]).sort()) {
       const previous = cached.models[name]
       const model = models[name]
-      if (model.id === previous.id && equal(model.configuration, previous.configuration)) continue
+      if (model.id !== previous.id || !equal(model.configuration, previous.configuration)) {
+        changed = true
+        await client.tui.showToast({
+          body: {
+            title: "Model updated",
+            message: `Name: ${model.name}\nID: ${model.id}`,
+            variant: "warning",
+            duration: 2_000,
+          },
+        })
+      }
+
+      if (!pricingModels.has(name) || !previous.pricing || !model.pricing) continue
+      const labels: Record<keyof PricingSnapshot, string> = {
+        input: "Input",
+        output: "Output",
+        cacheRead: "Cache read",
+        cacheWrite: "Cache write",
+      }
+      const pricingChanges = (Object.keys(labels) as Array<keyof PricingSnapshot>).flatMap((key) => {
+        const before = previous.pricing![key]
+        const after = model.pricing![key]
+        if (before === after) return []
+        const format = (price: number | null) =>
+          price === null ? "unavailable" : `$${Number((price * 1_000_000).toPrecision(12))}/M`
+        return [`${labels[key]}: ${format(before)} -> ${format(after)}`]
+      })
+      if (pricingChanges.length === 0) continue
       changed = true
       await client.tui.showToast({
         body: {
-          title: "Arcus model updated",
-          message: `Name: ${model.name}\nID: ${model.id}`,
+          title: "Model pricing updated",
+          message: [`Name: ${model.name}`, ...pricingChanges].join("\n"),
           variant: "warning",
           duration: 2_000,
         },
@@ -253,9 +298,12 @@ const plugin: Plugin = async ({ client }) => {
       })
   }
 
-  startRefresh()
-
-  return {}
+  return {
+    config: (config) => {
+      pricingModels = new Set(Object.keys(config.provider?.litellm?.models ?? {}))
+      startRefresh()
+    },
+  }
 }
 
 export default plugin
