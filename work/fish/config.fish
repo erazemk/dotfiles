@@ -5,6 +5,8 @@
 set -gx GOPRIVATE github.com/devrev
 set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
 
+set -gx LITELLM_URL https://ai-gateway.dev.devrev-eng.ai
+set -gx LITELLM_KEY (security find-generic-password -a devrev -s arcus-pi-token -w)
 set -gx ARCUS_API_KEY (security find-generic-password -a devrev -s arcus-token -w)
 set -gx DEVREV_API_KEY (security find-generic-password -a devrev -s devrev-token -w)
 
@@ -50,32 +52,4 @@ function ecr --description "Log into AWS ECR through docker"
     aws sso login
     aws ecr get-login-password --region us-east-1 | \
         docker login --username AWS --password-stdin 173672169127.dkr.ecr.us-east-1.amazonaws.com
-end
-
-function venv --description "Create and activate a new virtual environment"
-    python3 -m venv .venv --upgrade-deps
-    source .venv/bin/activate.fish
-
-    if test -e .git
-        set line_to_append ".venv"
-        set target_file ".git/info/exclude"
-
-        if not grep --quiet --fixed-strings --line-regexp "$line_to_append" "$target_file" 2>/dev/null
-            echo "$line_to_append" >>"$target_file"
-        end
-    end
-end
-
-function auto_venv --on-variable PWD --description "Auto (de)activate venv when changing directories"
-    set REPO_ROOT (git rev-parse --show-toplevel 2>/dev/null)
-
-    if test -z "$REPO_ROOT"; and test -n "$VIRTUAL_ENV"
-        deactivate
-    end
-    if [ "$VIRTUAL_ENV" = "$REPO_ROOT/.venv" ]
-        return
-    end
-    if [ -d "$REPO_ROOT/.venv" ]
-        source "$REPO_ROOT/.venv/bin/activate.fish" &>/dev/null
-    end
 end
