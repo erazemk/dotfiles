@@ -1,8 +1,12 @@
 {
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
   "[markdown]": {
     "editor.wordWrap": "on"
   },
   "chat.disableAIFeatures": true,
+  "cursor.cpp.enablePartialAccepts": true,
   "cursorpyright.analysis.exclude": [
     "**/node_modules",
     "**/__pycache__",
@@ -21,6 +25,9 @@
   "editor.fontSize": 15,
   "editor.formatOnSave": true,
   "editor.minimap.enabled": false,
+  "editor.rulers": [
+    120
+  ],
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
   "extensions.autoUpdate": "off",
@@ -49,6 +56,7 @@
   "git.terminalGitEditor": true,
   "github.gitProtocol": "ssh",
   "githubIssues.issueCompletions.enabled": false,
+  "githubPullRequests.commentExpandState": "collapseAll",
   "githubPullRequests.createOnPublishBranch": "always",
   "githubPullRequests.defaultDeletionMethod.selectWorktree": true,
   "githubPullRequests.deleteBranchAfterMerge": true,
@@ -70,6 +78,7 @@
   },
   "makefile.configureOnOpen": false,
   "markdown.preview.fontSize": 16,
+  "markdown.validate.enabled": true,
   "python.analysis.exclude": [
     "**/node_modules",
     "**/__pycache__",
