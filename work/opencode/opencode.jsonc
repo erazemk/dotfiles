@@ -1,6 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "agent": {
+    "compaction": {
+      "model": "litellm/gpt-5.6-sol"
+    },
     "explore": {
       "model": "litellm/gpt-5.6-luna"
     },
@@ -10,7 +13,7 @@
     "oracle": {
       "model": "litellm/gpt-5.6-sol",
       "options": {
-        "reasoningEffort": "high"
+        "reasoningEffort": "xhigh"
       },
       "permission": {
         "external_directory": {
@@ -19,10 +22,10 @@
           "~/.config/opencode/**": "allow",
           "~/.local/share/go/**": "allow",
           "~/DevRev/**": "allow",
+          "~/go/**": "allow",
           "~/Library/Application Support/rtk/tee/**": "allow"
         }
-      },
-      "reasoning": true
+      }
     }
   },
   "autoupdate": true,
@@ -34,6 +37,15 @@
     "~/.config/dotfiles/common/opencode/AGENTS.md"
   ],
   "mcp": {
+    "circleci": {
+      "command": [
+        "circleci",
+        "mcp",
+        "start"
+      ],
+      "enabled": false,
+      "type": "local"
+    },
     "devrev": {
       "headers": {
         "Authorization": "Bearer {env:DEVREV_API_KEY}"
@@ -50,6 +62,7 @@
       "type": "local"
     },
     "granola": {
+      "enabled": false,
       "type": "remote",
       "url": "https://mcp.granola.ai/mcp"
     },
@@ -62,8 +75,15 @@
       "url": "https://mcp.slack.com/mcp"
     }
   },
-  "model": "litellm/gpt-5.6-luna",
+  "model": "litellm/gpt-5.6-sol",
   "permission": {
+    "circleci_*": "deny",
+    "circleci_api": "allow",
+    "circleci_auth_me": "allow",
+    "circleci_circleci_workflow_get": "allow",
+    "circleci_job_output_get": "allow",
+    "circleci_job_output_list": "allow",
+    "circleci_run_get": "allow",
     "devrev_*": "deny",
     "external_directory": {
       "~/.cache/sidekick/**": "allow",
@@ -71,6 +91,7 @@
       "~/.config/opencode/**": "allow",
       "~/.local/share/go/**": "allow",
       "~/DevRev/**": "allow",
+      "~/go/**": "allow",
       "~/Library/Application Support/rtk/tee/**": "allow"
     },
     "glob *": "allow",
@@ -104,19 +125,357 @@
     },
     "litellm": {
       "models": {
+        "claude-fable-5-1": {
+          "cost": {
+            "cache_read": 0.25,
+            "cache_write": 12.5,
+            "input": 10,
+            "output": 50
+          },
+          "limit": {
+            "context": 1000000,
+            "input": 1000000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "name": "Claude Fable 5.1",
+          "options": {
+            "reasoningEffort": "medium"
+          },
+          "reasoning": true,
+          "variants": {
+            "high": {
+              "reasoningEffort": "high"
+            },
+            "low": {
+              "reasoningEffort": "low"
+            },
+            "medium": {
+              "reasoningEffort": "medium"
+            },
+            "none": {
+              "reasoningEffort": "none"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh"
+            }
+          }
+        },
+        "gemini-3.8-flash": {
+          "cost": {
+            "cache_read": 0.075,
+            "cache_write": 0,
+            "input": 0.75,
+            "output": 3.75
+          },
+          "limit": {
+            "context": 1048576,
+            "input": 1048576,
+            "output": 65536
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "name": "Gemini 3.8 Flash",
+          "options": {
+            "reasoningEffort": "medium"
+          },
+          "reasoning": true,
+          "variants": {
+            "high": {
+              "reasoningEffort": "high"
+            },
+            "low": {
+              "reasoningEffort": "low"
+            },
+            "medium": {
+              "reasoningEffort": "medium"
+            },
+            "none": {
+              "reasoningEffort": "none"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh"
+            }
+          }
+        },
+        "glm-5.3": {
+          "cost": {
+            "cache_read": 0.14,
+            "cache_write": 0,
+            "input": 1.4,
+            "output": 4.4
+          },
+          "limit": {
+            "context": 1048576,
+            "input": 1048576,
+            "output": 262144
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "name": "GLM 5.3",
+          "options": {
+            "reasoningEffort": "medium"
+          },
+          "reasoning": true,
+          "variants": {
+            "high": {
+              "reasoningEffort": "high"
+            },
+            "low": {
+              "reasoningEffort": "low"
+            },
+            "medium": {
+              "reasoningEffort": "medium"
+            },
+            "none": {
+              "reasoningEffort": "none"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh"
+            }
+          }
+        },
         "gpt-5.6-luna": {
+          "cost": {
+            "cache_read": 0.02,
+            "cache_write": 0.25,
+            "input": 0.2,
+            "output": 1.2
+          },
+          "limit": {
+            "context": 922000,
+            "input": 272000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "name": "GPT 5.6 Luna",
           "options": {
             "reasoningEffort": "xhigh"
           },
-          "reasoning": true
+          "reasoning": true,
+          "variants": {
+            "high": {
+              "reasoningEffort": "high"
+            },
+            "low": {
+              "reasoningEffort": "low"
+            },
+            "medium": {
+              "reasoningEffort": "medium"
+            },
+            "none": {
+              "reasoningEffort": "none"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh"
+            }
+          }
         },
         "gpt-5.6-sol": {
+          "cost": {
+            "cache_read": 0.4,
+            "cache_write": 5,
+            "input": 4,
+            "output": 20
+          },
+          "limit": {
+            "context": 922000,
+            "input": 272000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "name": "GPT 5.6 Sol",
           "options": {
             "reasoningEffort": "medium"
           },
-          "reasoning": true
+          "reasoning": true,
+          "variants": {
+            "high": {
+              "reasoningEffort": "high"
+            },
+            "low": {
+              "reasoningEffort": "low"
+            },
+            "medium": {
+              "reasoningEffort": "medium"
+            },
+            "none": {
+              "reasoningEffort": "none"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh"
+            }
+          }
+        },
+        "gpt-5.6-terra": {
+          "cost": {
+            "cache_read": 0.2,
+            "cache_write": 2.5,
+            "input": 2,
+            "output": 12
+          },
+          "limit": {
+            "context": 922000,
+            "input": 922000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "name": "GPT 5.6 Terra",
+          "options": {
+            "reasoningEffort": "medium"
+          },
+          "reasoning": true,
+          "variants": {
+            "high": {
+              "reasoningEffort": "high"
+            },
+            "low": {
+              "reasoningEffort": "low"
+            },
+            "medium": {
+              "reasoningEffort": "medium"
+            },
+            "none": {
+              "reasoningEffort": "none"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh"
+            }
+          }
+        },
+        "gpt-6-astra": {
+          "cost": {
+            "cache_read": 1,
+            "cache_write": 12.5,
+            "input": 10,
+            "output": 50
+          },
+          "limit": {
+            "context": 922000,
+            "input": 922000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "name": "GPT 6 Astra",
+          "options": {
+            "reasoningEffort": "medium"
+          },
+          "reasoning": true,
+          "variants": {
+            "high": {
+              "reasoningEffort": "high"
+            },
+            "low": {
+              "reasoningEffort": "low"
+            },
+            "medium": {
+              "reasoningEffort": "medium"
+            },
+            "none": {
+              "reasoningEffort": "none"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh"
+            }
+          }
+        },
+        "grok-4.6": {
+          "cost": {
+            "cache_read": 0.5,
+            "cache_write": 0,
+            "input": 2,
+            "output": 6
+          },
+          "limit": {
+            "context": 500000,
+            "input": 500000,
+            "output": 500000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "name": "Grok 4.6",
+          "options": {
+            "reasoningEffort": "medium"
+          },
+          "reasoning": true,
+          "variants": {
+            "high": {
+              "reasoningEffort": "high"
+            },
+            "low": {
+              "reasoningEffort": "low"
+            },
+            "medium": {
+              "reasoningEffort": "medium"
+            },
+            "none": {
+              "reasoningEffort": "none"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh"
+            }
+          }
         }
       },
       "name": "Arcus",
