@@ -23,6 +23,7 @@
 - When planning a non-trivial feature, if there are any unresolved architectural or behavioral decisions, use the `grill-me` skill before implementation.
 - When fixing a reproducible bug, figure out the fix, then test the before (by stashing the changes and seeing that the code reproducibly fails) and after (unstashing the fix).
 - Declare variables close to where they are first needed, not earlier in the code.
+- DO NOT try to shorten preexisting comments that you did not write. Only fix the parts of the comment that are incorrect due to a new change to functionality.
 
 ## Go projects
 
