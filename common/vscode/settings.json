@@ -53,6 +53,7 @@
   "git.pruneOnFetch": true,
   "git.pullBeforeCheckout": true,
   "git.replaceTagsWhenPull": true,
+  "git.showCursorWorktrees": true,
   "git.terminalGitEditor": true,
   "github.gitProtocol": "ssh",
   "githubIssues.issueCompletions.enabled": false,
