@@ -38,7 +38,7 @@ abbr cdtmp 'cd (mktemp -d)'
 
 function update --description "Update system packages"
     echo "Updating dotfiles..."
-    cd $HOME/.config/dotfiles && git pull
+    git -C $HOME/.config/dotfiles pull
     echo "Updating homebrew packages..."
     brew update && brew upgrade && brew autoremove && brew cleanup
 end
