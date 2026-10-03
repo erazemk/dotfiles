@@ -2,16 +2,16 @@
   "$schema": "https://opencode.ai/config.json",
   "agent": {
     "compaction": {
-      "model": "litellm/gpt-5.6-sol"
+      "model": "litellm/gpt-6.1-sol"
     },
     "explore": {
-      "model": "litellm/gpt-5.6-luna"
+      "model": "litellm/gpt-6.1-luna"
     },
     "general": {
-      "model": "litellm/gpt-5.6-luna"
+      "model": "litellm/gpt-6.1-luna"
     },
     "oracle": {
-      "model": "litellm/gpt-5.6-sol",
+      "model": "litellm/gpt-6.1-sol",
       "options": {
         "reasoningEffort": "xhigh"
       },
@@ -75,7 +75,7 @@
       "url": "https://mcp.slack.com/mcp"
     }
   },
-  "model": "litellm/gpt-5.6-sol",
+  "model": "litellm/openai/gpt-6.1-sol",
   "permission": {
     "circleci_*": "deny",
     "circleci_api": "allow",
@@ -105,13 +105,13 @@
   "provider": {
     "amazon-bedrock": {
       "models": {
-        "gpt-5.6-luna": {
+        "gpt-6.1-luna": {
           "options": {
             "reasoningEffort": "xhigh"
           },
           "reasoning": true
         },
-        "gpt-5.6-sol": {
+        "gpt-6.1-sol": {
           "options": {
             "reasoningEffort": "medium"
           },
@@ -125,7 +125,7 @@
     },
     "litellm": {
       "models": {
-        "gpt-5.6-luna": {
+        "openai/gpt-6-luna": {
           "cost": {
             "cache_read": 0.02,
             "cache_write": 0.25,
@@ -146,7 +146,7 @@
               "text"
             ]
           },
-          "name": "GPT 5.6 Luna",
+          "name": "GPT 6 Luna",
           "options": {
             "reasoningEffort": "xhigh"
           },
@@ -169,7 +169,7 @@
             }
           }
         },
-        "gpt-5.6-sol": {
+        "openai/gpt-6.1-sol": {
           "cost": {
             "cache_read": 0.4,
             "cache_write": 5,
@@ -190,7 +190,7 @@
               "text"
             ]
           },
-          "name": "GPT 5.6 Sol",
+          "name": "GPT 6.1 Sol",
           "options": {
             "reasoningEffort": "medium"
           },
@@ -213,7 +213,7 @@
             }
           }
         },
-        "gpt-5.6-terra": {
+        "openai/gpt-6-terra": {
           "cost": {
             "cache_read": 0.2,
             "cache_write": 2.5,
@@ -234,7 +234,7 @@
               "text"
             ]
           },
-          "name": "GPT 5.6 Terra",
+          "name": "GPT 6 Terra",
           "options": {
             "reasoningEffort": "medium"
           },
@@ -257,7 +257,7 @@
             }
           }
         },
-        "gpt-6-astra": {
+        "openai/gpt-6-astra": {
           "cost": {
             "cache_read": 1,
             "cache_write": 12.5,
@@ -503,7 +503,7 @@
       "path": "~/DevRev"
     }
   },
-  "small_model": "litellm/gpt-5.6-luna",
+  "small_model": "litellm/openai/gpt-6.1-luna",
   "watcher": {
     "ignore": [
       "_build/**"
