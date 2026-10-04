@@ -19,8 +19,8 @@ set -gx GOPRIVATE github.com/devrev
 set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
 fish_add_path -gP $GOPATH/bin
 
-set -gx ARCUS_API_KEY (security find-generic-password -a devrev -s arcus-token -w)
-set -gx DEVREV_API_KEY (security find-generic-password -a devrev -s devrev-token -w)
+set -gx ARCUS_API_KEY (security find-generic-password -a devrev -s arcus-token -w 2>/dev/null)
+set -gx DEVREV_API_KEY (security find-generic-password -a devrev -s devrev-token -w 2>/dev/null)
 
 #
 # Aliases
