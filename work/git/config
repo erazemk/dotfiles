@@ -1,5 +1,0 @@
-[include]
-path = ~/.config/dotfiles/common/git/config
-
-[user]
-email = erazem.kokot@devrev.ai

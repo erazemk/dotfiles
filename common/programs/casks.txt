@@ -1,5 +1,0 @@
-ghostty
-pearcleaner
-scroll-reverser
-spotify
-visual-studio-code

@@ -1,4 +1,0 @@
-AirPods Sanity: https://github.com/Gaulomatic/AirPodsSanity/releases
-Raycast Beta: https://www.raycast.com/new
-Wipr 2: App Store
-Xcode: App Store

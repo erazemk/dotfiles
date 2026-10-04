@@ -1,7 +1,0 @@
-source $HOME/.config/dotfiles/common/zsh/zprofile
-
-export GOPRIVATE=github.com/devrev
-export COLIMA_HOME=$XDG_CONFIG_HOME/colima
-
-export ARCUS_API_KEY=$(security find-generic-password -a devrev -s arcus-token -w)
-export DEVREV_API_KEY=$(security find-generic-password -a devrev -s devrev-token -w)
