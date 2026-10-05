@@ -1,4 +1,4 @@
-/** Refresh Arcus's catalog in the background once per Pi session startup. */
+/** Refresh Arcus's catalog in the background at interactive Pi session startup. */
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type {
@@ -66,6 +66,8 @@ export default function (pi: ExtensionAPI) {
 
   pi.on("session_start", (_event, ctx) => {
     controller?.abort();
+    controller = undefined;
+    if (ctx.mode !== "tui") return;
     controller = new AbortController();
     // Deliberately don't return/await this promise: startup must not wait for I/O.
     void refresh(ctx, controller.signal);
