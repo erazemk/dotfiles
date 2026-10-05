@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "slack": {
+      "url": "https://mcp.slack.com/mcp",
+      "description": "Search Slack channels and messages, and read channels and threads.",
+      "exposure": "hidden",
+      "toolExposure": {
+        "slack_read_channel": "codemode",
+        "slack_read_thread": "codemode",
+        "slack_search_channels": "codemode",
+        "slack_search_public_and_private": "codemode"
+      },
+      "oauth": {
+        "clientId": "1601185624273.8899143856786",
+        "callbackUrl": "http://localhost:3118/callback"
+      }
+    }
+  }
+}
