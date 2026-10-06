@@ -9,9 +9,10 @@
 - My `$GOPATH` is `$HOME/.local/share/go`, not `$HOME/go`.
 - Create temporary work inside a new directory from `mktemp -d`, not directly in `/tmp`.
 - Use `gh` to fetch GitHub links, including PR comments, because authentication is often required.
-- Use `circleci` when needing to interact with CircleCI.
-- Use `devrev` when needing to interact with DevRev (e.g. for getting issue details)
-- Use `ketch` for external research — web pages, OSS code, library docs.
+- Use `circleci` when needing to interact with CircleCI - getting the last job, seeing why it failed.
+- Use `devrev` when needing to interact with DevRev - getting or updating issues.
+- Use `ketch` for external research - web pages, OSS code, library docs.
+- Use `gcx` when needing to interact with Grafana/Loki - checking logs, dashboards, or alerts.
 
 ## Using ketch
 
