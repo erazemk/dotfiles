@@ -1,3 +1,4 @@
 font-size = 16
 keybind = super+enter=unbind
+keybind = super+shift+r=prompt_tab_title
 theme = dark:Catppuccin Frappe,light:Catppuccin Latte
