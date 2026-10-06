@@ -11,7 +11,7 @@ if [[ ! -d /opt/homebrew ]]; then
 fi
 
 # General packages
-brew install -q --formulae curl fish gh git go gopls helix jq node stow
+brew install -q --formulae curl fish gh git go gopls helix jq ketch node stow
 brew install -q --casks ghostty pearcleaner rectangle zed
 
 # DevRev-specific packages
