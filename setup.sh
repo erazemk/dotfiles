@@ -12,7 +12,7 @@ fi
 
 # General packages
 brew install -q --formulae curl fish gh git go gopls helix jq ketch node stow
-brew install -q --casks ghostty pearcleaner rectangle zed
+brew install -q --casks anomalyco/tap/hex ghostty pearcleaner rectangle zed
 
 # DevRev-specific packages
 if [[ $DEVREV -eq 1 ]]; then
