@@ -13,6 +13,7 @@
 - Use `devrev` when needing to interact with DevRev - getting or updating issues.
 - Use `ketch` for external research - web pages, OSS code, library docs.
 - Use `gcx` when needing to interact with Grafana/Loki - checking logs, dashboards, or alerts.
+- For links to local files, use Zed's URL scheme with absolute paths: `zed://file/Users/erazemk/Code/repo/path/to/file.go`, appending `:105` to link to a specific line rather than using `#L105`.
 
 ## Using ketch
 
