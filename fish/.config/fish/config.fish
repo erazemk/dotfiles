@@ -21,6 +21,8 @@ fish_add_path -gP $GOPATH/bin
 
 set -gx ARCUS_API_KEY (security find-generic-password -a devrev -s arcus-token -w 2>/dev/null)
 set -gx DEVREV_API_KEY (security find-generic-password -a devrev -s devrev-token -w 2>/dev/null)
+set -gx GITHUB_ACCESS_TOKEN (security find-generic-password -a devrev -s github-token -w 2>/dev/null)
+set -gx NPM_PRIVATE_ACCESS_TOKEN (security find-generic-password -a devrev -s npm-token -w 2>/dev/null)
 
 #
 # Aliases
@@ -91,6 +93,5 @@ end
 
 function ecr --description "Log into AWS ECR through docker"
     aws sso login
-    aws ecr get-login-password --region us-east-1 | \
-        docker login --username AWS --password-stdin 173672169127.dkr.ecr.us-east-1.amazonaws.com
+    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 173672169127.dkr.ecr.us-east-1.amazonaws.com
 end
