@@ -12,12 +12,12 @@ fi
 
 # General packages
 brew install -q --formulae curl fish gh git go gopls helix jq ketch node stow
-brew install -q --casks anomalyco/tap/hex ghostty pearcleaner rectangle zed
+brew install -q --casks ghostty pearcleaner rectangle zed
 
 # DevRev-specific packages
 if [[ $DEVREV -eq 1 ]]; then
-    brew install -q --formulae awscli circleci colima docker docker-buildx docker-compose docker-credential-helper golangci-lint
-    brew install -q --casks aws-vpn-client granola slack
+    brew install -q --formulae awscli circleci colima docker docker-buildx docker-compose docker-credential-helper
+    brew install -q --casks aws-vpn-client slack
 fi
 
 #
