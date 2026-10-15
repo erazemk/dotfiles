@@ -24,6 +24,9 @@ fi
 # Stow dotfiles
 #
 
+mkdir -p $HOME/.local/bin
+stow -t $HOME -S bin
+
 mkdir -p $HOME/.config/fish
 stow -t $HOME -S fish
 

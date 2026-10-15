@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+"""Delete local branches with merged or closed GitHub PRs and their linked worktrees."""
+
+import argparse
+from concurrent.futures import ThreadPoolExecutor
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+from urllib.parse import urlencode
+
+
+def run(args, cwd):
+    result = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
+    if result.returncode:
+        raise RuntimeError(result.stderr.strip() or result.stdout.strip() or
+                           f"Command failed: {args!r}")
+    return result.stdout
+
+
+def worktrees(repo):
+    output = run(["git", "worktree", "list", "--porcelain", "-z"], repo)
+    entries = []
+    entry = {}
+    for field in output.split("\0"):
+        if not field:
+            if entry:
+                entries.append(entry)
+                entry = {}
+            continue
+        key, _, value = field.partition(" ")
+        entry[key] = value
+    if entry:
+        entries.append(entry)
+    return entries
+
+
+def warn(message):
+    print(f"warning: {message}", file=sys.stderr)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        epilog=("Requires Git and authenticated gh access to the repository's GitHub "
+                "origin. Remote branches are never deleted. Committed work does not "
+                "prevent deletion, including on PRs closed without merging. Ignored files do not count as "
+                "uncommitted changes and are removed with their worktree."),
+    )
+    parser.add_argument("repo", type=Path, help="path to a Git repository or linked worktree")
+    parser.add_argument("--dry-run", action="store_true", help="list deletions without changing anything")
+    parser.add_argument("-f", "--force", action="store_true",
+                        help="also delete worktrees with staged, unstaged, or untracked changes")
+    args = parser.parse_args()
+    repo = args.repo.expanduser().resolve()
+
+    entries = worktrees(repo)
+    if not entries:
+        raise RuntimeError("Git reported no worktrees")
+    # Git lists the main worktree first, even when invoked from a linked worktree.
+    main_entry = entries[0]
+    # Keep commands rooted in a worktree that this script will never remove.
+    repo = Path(main_entry["worktree"])
+    branches = run(["git", "for-each-ref", "--format=%(refname)", "refs/heads/"], repo).splitlines()
+    candidates = []
+    for ref in branches:
+        branch = ref.removeprefix("refs/heads/")
+        if ref == main_entry.get("branch"):
+            # Always preserve the branch checked out in the main worktree.
+            continue
+            continue
+        linked = [entry for entry in entries if entry.get("branch") == ref]
+        blocked = False
+        for entry in linked:
+            path = entry["worktree"]
+            if "locked" in entry:
+                warn(f"Skipping {branch!r}: worktree {path!r} is locked")
+                blocked = True
+            elif not Path(path).is_dir():
+                warn(f"Skipping {branch!r}: worktree {path!r} is missing; repair or prune it first")
+                blocked = True
+            else:
+                try:
+                    dirty = bool(run(["git", "status", "--porcelain", "--untracked-files=all"], path))
+                except RuntimeError as error:
+                    warn(f"Skipping {branch!r}: cannot check {path!r}: {error}")
+                    blocked = True
+                    continue
+                if dirty and not args.force:
+                    warn(f"Skipping {branch!r}: worktree {path!r} has uncommitted changes")
+                    blocked = True
+                elif dirty:
+                    warn(f"Force deletion will discard uncommitted changes in {path!r}")
+        if not blocked:
+            candidates.append((branch, linked))
+
+    if not candidates:
+        print("No eligible branches to delete.")
+        return 0
+
+    # Resolve origin explicitly: gh's preferred remote can otherwise be a fork's upstream.
+    origin = run(["git", "remote", "get-url", "origin"], repo).strip()
+    metadata = json.loads(run([
+        "gh", "repo", "view", origin, "--json", "nameWithOwner,defaultBranchRef",
+    ], repo))
+    name = metadata["nameWithOwner"]
+    default_branch = (metadata.get("defaultBranchRef") or {}).get("name")
+    if not default_branch:
+        raise RuntimeError("Cannot determine the GitHub repository's default branch")
+    candidates = [(branch, linked) for branch, linked in candidates if branch != default_branch]
+
+    def branch_prs(candidate):
+        branch, _ = candidate
+        query = urlencode({"state": "all", "head": f"{name.split('/')[0]}:{branch}", "per_page": 100})
+        pages = json.loads(run([
+            "gh", "api", "--paginate", "--slurp", f"repos/{name}/pulls?{query}",
+        ], repo))
+        return [pr for page in pages for pr in page
+                if pr["head"]["ref"] == branch
+                and ((pr["head"].get("repo") or {}).get("full_name") or "").lower() == name.lower()]
+
+    # Complete every lookup before deleting anything; a GitHub failure aborts cleanup.
+    workers = min(len(candidates), os.cpu_count() or 1)
+    if not workers:
+        print("No eligible branches to delete.")
+        return 0
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        results = list(executor.map(branch_prs, candidates))
+
+    deleted = 0
+    failed = False
+    for (branch, linked), prs in zip(candidates, results):
+        if any(pr["state"] == "open" for pr in prs):
+            warn(f"Skipping {branch!r}: has an open PR")
+            continue
+        if not any(pr["state"] == "closed" for pr in prs):
+            continue
+        prefix = "Would delete" if args.dry_run else "Deleted"
+        try:
+            for entry in linked:
+                if not args.dry_run:
+                    command = ["git", "worktree", "remove"]
+                    if args.force:
+                        command.append("--force")
+                    command.extend(["--", entry["worktree"]])
+                    run(command, repo)
+            if not args.dry_run:
+                # Squash merges aren't necessarily recognized by git branch -d.
+                run(["git", "branch", "-D", "--", branch], repo)
+            print(f"{prefix} local branch: {branch}", flush=True)
+            deleted += 1
+        except RuntimeError as error:
+            warn(f"Could not finish deleting {branch!r}: {error}")
+            failed = True
+    if not deleted:
+        print("No eligible merged or closed branches to delete.")
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except (RuntimeError, OSError, ValueError, KeyError) as error:
+        print(f"error: {error}", file=sys.stderr)
+        sys.exit(1)
