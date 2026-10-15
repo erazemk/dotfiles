@@ -53,9 +53,6 @@ if [[ $DEVREV -eq 1 ]]; then
     mkdir -p $HOME/.config/colima
     stow -t $HOME -S colima
 
-    mkdir -p $HOME/.config/opencode
-    stow -t $HOME -S opencode
-
     mkdir -p "$HOME/Library/Application\ Support/Code/User"
     stow -t $HOME -S vscode
 fi
