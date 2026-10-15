@@ -1,19 +1,22 @@
 # General
 
 - My name is Erazem Kokot.
-- My projects are cloned Git repositories in `~/Code`.
 - I work at DevRev as a backend engineer.
+- Projects are cloned Git repositories in `~/Code`.
 
 # External tools
 
 - My `$GOPATH` is `$HOME/.local/share/go`, not `$HOME/go`.
 - Create temporary work inside a new directory from `mktemp -d`, not directly in `/tmp`.
 - Use `gh` to fetch GitHub links, including PR comments, because authentication is often required.
-- Use `circleci` when needing to interact with CircleCI - getting the last job, seeing why it failed.
-- Use `devrev` when needing to interact with DevRev - getting or updating issues.
+- Use `circleci` for inspecting CircleCI jobs.
+- Use `devrev` for working with DevRev - getting or updating issues.
 - Use `ketch` for external research - web pages, OSS code, library docs.
-- Use `gcx` when needing to interact with Grafana/Loki - checking logs, dashboards, or alerts.
+- Use `gcx` for working with Grafana/Loki - checking logs, dashboards, or alerts.
+- Use `pup` for working with Datadog - checking logs, dashboards, or alerts.
 - For links to local files, use Zed's URL scheme with absolute paths: `zed://file/Users/erazemk/Code/repo/path/to/file.go`, appending `:105` to link to a specific line rather than using `#L105`.
+  When finished making code changes, include a clickable Markdown link to the actual worktree root in the final response: `[Review in Zed](zed://file/absolute/path/to/worktree)`.
+- When AWS credentials expire, refresh them with `aws sso login` instead of asking me to refresh them.
 
 ## Using ketch
 
