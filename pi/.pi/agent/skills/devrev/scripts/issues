@@ -1,0 +1,381 @@
+#!/usr/bin/env python3
+"""DevRev issue workflow; CLI mutations, API discovery, no third-party dependencies."""
+
+import argparse
+import datetime as dt
+import json
+import re
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
+from pathlib import Path
+
+PROD = {
+    "env": "prod",
+    "org": "devrev",
+    "owner": "don:identity:dvrv-us-1:devo/0:devu/442",
+    "team": "don:identity:dvrv-us-1:devo/0:team/Z8HitvyW",
+    "space": "don:identity:dvrv-us-1:devo/0:space/hLERNDo6",
+    "default_part": "don:core:dvrv-us-1:devo/0:capability/147",
+}
+
+
+def timestamp(value):
+    return dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def issue_id(value, config):
+    if value.startswith("https://"):
+        url = urllib.parse.urlparse(value)
+        host = "app.devrev.ai" if config["env"] == "prod" else "app.dev.devrev-eng.ai"
+        match = re.fullmatch(r"/devrev/works/(ISS-\d+)/?", url.path)
+        if url.hostname != host or url.username or url.password or url.port or url.query or url.fragment or not match:
+            raise ValueError("Expected an exact DevRev issue URL for this environment")
+        value = match.group(1)
+    if re.fullmatch(r"ISS-\d+", value):
+        return value
+    org_id = config["owner"].split(":devo/", 1)[1].split(":", 1)[0]
+    if re.fullmatch(r"don:core:dvrv-us-1:devo/" + re.escape(org_id) + r":issue/\d+", value):
+        return value
+    raise ValueError("Expected an issue DON, ISS-number, or exact DevRev issue URL")
+
+
+def issue_url(work, config):
+    host = "app.devrev.ai" if config["env"] == "prod" else "app.dev.devrev-eng.ai"
+    return f"https://{host}/devrev/works/{work['display_id']}"
+
+
+class Client:
+    def __init__(self, config):
+        self.config = config
+        self.token = None
+
+    def cli(self, *args, payload=None):
+        command = ["devrev", *args, "-e", self.config["env"], "-o", "devrev", "-q"]
+        result = subprocess.run(
+            command, input=None if payload is None else json.dumps(payload) + "\n",
+            capture_output=True, text=True, timeout=60,
+        )
+        # Some CLI operations report API failures on stderr with a zero exit code.
+        if result.returncode or not result.stdout.strip():
+            raise RuntimeError(f"devrev {' '.join(args)} failed: {result.stderr.strip()}")
+        try:
+            return [json.loads(line) for line in result.stdout.splitlines() if line.strip()]
+        except ValueError as error:
+            raise RuntimeError(f"devrev {' '.join(args)} returned invalid JSON") from error
+
+    def api(self, endpoint, payload):
+        if self.token is None:
+            result = subprocess.run(
+                ["devrev", "profiles", "get-token", "access", "-e", self.config["env"], "-o", "devrev", "-q"],
+                capture_output=True, text=True, timeout=60, check=True,
+            )
+            raw = result.stdout.strip()
+            try:
+                self.token = json.loads(raw)
+            except ValueError:
+                self.token = raw
+            if not isinstance(self.token, str) or not self.token:
+                raise RuntimeError("CLI did not return an access token")
+        host = "api.devrev.ai" if self.config["env"] == "prod" else "api.dev.devrev-eng.ai"
+        request = urllib.request.Request(
+            f"https://{host}/internal/{endpoint}", data=json.dumps(payload).encode(),
+            headers={"Authorization": "Bearer " + self.token, "Content-Type": "application/json"},
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return json.load(response)
+        except urllib.error.HTTPError as error:
+            raise RuntimeError(f"{endpoint}: HTTP {error.code}: {error.read().decode()}") from error
+
+    def listing(self, endpoint, key, payload):
+        payload = {**payload, "limit": 100}
+        items = []
+        seen = set()
+        while True:
+            response = self.api(endpoint, payload)
+            items.extend(response[key])
+            cursor = response.get("next_cursor") or response.get("cursor")
+            if not cursor:
+                return items
+            if cursor in seen:
+                raise RuntimeError(f"{endpoint}: repeated pagination cursor")
+            seen.add(cursor)
+            payload["cursor"] = cursor
+
+    def show(self, value):
+        work = self.cli("works", "show", issue_id(value, self.config))[0]["work"]
+        if work["type"] != "issue":
+            raise ValueError("The supplied work is not an issue")
+        return work
+
+    def team_context(self):
+        space = self.api("spaces.get", {"id": self.config["space"]})["space"]
+        if space.get("parent") != self.config["team"] or space.get("is_archived"):
+            raise ValueError("Configured space does not belong to the team or is archived")
+        return {
+            "team": {"id": self.config["team"], "name": space.get("name") or space["group"]["name"]},
+            "space": space["id"], "group": space["group"]["id"],
+        }
+
+    def context(self):
+        context = self.team_context()
+        boards = self.listing("vistas.list", "vistas", {
+            "space": [context["space"]], "flavor": ["sprint_board"], "is_archived": False,
+        })
+        active = []
+        now = dt.datetime.now(dt.timezone.utc)
+        for board in boards:
+            for sprint in self.listing("vistas.groups.list", "vista_group", {
+                "parent_id": [board["id"]], "state": ["active"], "type": ["curated"],
+            }):
+                if sprint.get("state") == "active":
+                    if not timestamp(sprint["start_date"]) <= now < timestamp(sprint["end_date"]):
+                        raise ValueError("An active sprint has inconsistent dates; resolve manually")
+                    active.append(sprint)
+        if len(active) != 1:
+            raise ValueError(f"Expected one active team sprint, found {len(active)}; resolve manually")
+        sprint = active[0]
+        return {
+            **context,
+            "sprint": {key: sprint[key] for key in ("id", "name", "start_date", "end_date")},
+        }
+
+    def effort(self):
+        matches = []
+        for fragment in self.cli("schemas", "custom", "list", "--leaf-types", "issue", "--tenant_fragment"):
+            for field in fragment.get("fields", []):
+                if field.get("ui", {}).get("display_name") == "Effort Level":
+                    if field.get("field_type") != "enum" or "Pebble" not in field.get("allowed_values", []):
+                        raise ValueError("Effort Level does not support the expected Pebble enum")
+                    matches.append({"field": field["data_name"], "value": "Pebble", "fragment": fragment["id"]})
+        if len(matches) != 1:
+            raise ValueError(f"Expected one Effort Level field, found {len(matches)}")
+        return matches[0]
+
+    def part(self, value):
+        return self.cli("parts", "show", value)[0]["part"]
+
+    def enhancements(self):
+        parts = self.listing("parts.list", "parts", {
+            "type": ["enhancement"], "parent_parts": [self.config["default_part"]],
+        })
+        return [{key: part.get(key) for key in ("id", "name", "description", "parent_parts", "stage_v2")} for part in parts
+                if any(parent["id"] == self.config["default_part"] for parent in part.get("parent_parts", []))]
+
+    def prepare(self, title, body, part_id, flow="working"):
+        if flow not in {"working", "todo"}:
+            raise ValueError("Unknown issue flow")
+        if not title.strip():
+            raise ValueError("Title must be nonempty")
+        if flow == "todo":
+            if part_id != self.config["default_part"]:
+                raise ValueError("Todos must use the DevRev MCP Server part, not an enhancement")
+            if len(body.split()) > 200:
+                raise ValueError("Todo descriptions must not exceed 200 words")
+            context = self.team_context()
+            effort = {"unset_fields": [
+                field["data_name"]
+                for fragment in self.cli("schemas", "custom", "list", "--leaf-types", "issue", "--tenant_fragment")
+                for field in fragment.get("fields", [])
+                if field.get("ui", {}).get("display_name") == "Effort Level"
+            ]}
+        else:
+            context = self.context()
+            effort = self.effort()
+        part = self.part(part_id)
+        owner = self.cli("dev_users", "show", self.config["owner"])[0]["dev_user"]
+        if owner.get("state") != "active":
+            raise ValueError("Configured owner is not active")
+        payload = {
+            "type": "issue", "title": title, "body": body, "applies_to_part": part["id"],
+            "owned_by": [owner["id"]], "space": context["space"],
+            "custom_schema_spec": {"tenant_fragment": True, "validate_required_fields": True},
+            "external_ref": ("pi-todo-" if flow == "todo" else "pi-finish-") + str(uuid.uuid4()),
+        }
+        metadata = {}
+        if flow == "todo":
+            payload.update({"stage": {"name": "triage"}})
+            metadata["flow"] = "todo"
+        else:
+            today = dt.datetime.now().astimezone().date()
+            # Resolve midnight's offset, not the current fixed offset, across DST changes.
+            midnight = time.mktime((today.year, today.month, today.day, 0, 0, 0, -1, -1, -1))
+            start = dt.datetime.fromtimestamp(midnight).astimezone().isoformat()
+            payload.update({
+                "sprint": context["sprint"]["id"], "target_start_date": start,
+                "target_close_date": context["sprint"]["end_date"],
+                "custom_fields": {effort["field"]: effort["value"]},
+            })
+            metadata["local_date"] = today.isoformat()
+        return {
+            "version": 1, "config": self.config, **metadata,
+            "context": context, "effort": effort,
+            "part": {"id": part["id"], "name": part["name"]},
+            "owner": {"id": owner["id"], "name": owner["display_name"]}, "payload": payload,
+        }
+
+    def validate_plan(self, plan):
+        if plan["version"] != 1 or plan["config"] != self.config:
+            raise ValueError("Plan environment/configuration differs from this invocation")
+        fresh = self.prepare(plan["payload"]["title"], plan["payload"]["body"], plan["part"]["id"], plan.get("flow", "working"))
+        fresh["payload"]["external_ref"] = plan["payload"]["external_ref"]
+        if fresh != plan:
+            raise ValueError("Issue proposal changed (sprint, date, schema, owner or part); prepare and confirm again")
+
+    def verify_created(self, work, plan):
+        payload = plan["payload"]
+        expected = {key: payload[key] for key in ("title", "body", "custom_fields") if key in payload}
+        for key, value in expected.items():
+            actual = work.get(key, {})
+            # The API may omit an empty description or return it as null.
+            if key == "body" and value == "" and (key not in work or actual is None):
+                actual = ""
+            if key == "custom_fields":
+                if any(actual.get(field) != setting for field, setting in value.items()):
+                    raise RuntimeError("Created issue effort differs from confirmed proposal")
+            elif actual != value:
+                raise RuntimeError(f"Created issue {key} differs from confirmed proposal")
+        if (work.get("applies_to_part") or {}).get("id") != payload["applies_to_part"]:
+            raise RuntimeError("Created issue applies_to_part differs from confirmed proposal")
+        if work.get("space") != payload["space"]:
+            raise RuntimeError("Created issue does not belong to the confirmed team space")
+        if plan.get("flow") == "todo":
+            if (work.get("stage") or {}).get("name") != "triage":
+                raise RuntimeError("Created todo is not in Triage")
+            for field in ("sprint", "target_start_date", "target_close_date"):
+                if work.get(field) is not None:
+                    raise RuntimeError(f"Created todo unexpectedly has {field}")
+            custom_fields = work.get("custom_fields") or {}
+            if any(custom_fields.get(field) is not None for field in plan["effort"]["unset_fields"]):
+                raise RuntimeError("Created todo unexpectedly has Effort Level")
+        else:
+            if (work.get("sprint") or {}).get("id") != payload["sprint"]:
+                raise RuntimeError("Created issue sprint differs from confirmed proposal")
+            # Verify the sprint belongs to the same team as the issue's direct space assignment.
+            space = work.get("sprint", {}).get("parent", {}).get("space", {})
+            if space.get("id") != self.config["space"] or space.get("parent") != self.config["team"]:
+                raise RuntimeError("Created issue sprint does not belong to the confirmed team space")
+        if [owner["id"] for owner in work.get("owned_by", [])] != payload["owned_by"]:
+            raise RuntimeError("Created issue owner differs from confirmed proposal")
+        for field in ("target_start_date", "target_close_date"):
+            if field in payload and timestamp(work[field]) != timestamp(payload[field]):
+                raise RuntimeError(f"Created issue {field} differs from confirmed proposal")
+
+    def recover(self, plan):
+        if plan["config"] != self.config:
+            raise ValueError("Plan environment/configuration differs from this invocation")
+        works = self.listing("works.list", "works", {
+            "type": ["issue"], "external_ref": [plan["payload"]["external_ref"]],
+        })
+        return [{"id": work["id"], "url": issue_url(work, self.config), "stage": work.get("stage", {}).get("name")}
+                for work in works if work.get("external_ref") == plan["payload"]["external_ref"]]
+
+    def transition(self, value, stage):
+        work = self.show(value)
+        current = work.get("stage", {}).get("name")
+        if current == stage:
+            return work
+        if current in {"completed", "wont_fix", "duplicate"} or work.get("stage", {}).get("state", {}).get("is_final"):
+            raise ValueError("Refusing to reopen a final-stage issue; resolve with the user")
+        self.cli("works", "update", payload={"id": work["id"], "type": "issue", "stage": {"name": stage}})
+        updated = self.show(work["id"])
+        if updated.get("stage", {}).get("name") != stage:
+            raise RuntimeError("Issue stage update did not persist")
+        return updated
+
+
+def configuration(args):
+    config = {**PROD, "env": args.env}
+    for key in ("owner", "team", "space", "default_part"):
+        value = getattr(args, key)
+        if args.env == "dev" and not value:
+            raise ValueError("Dev testing requires explicit --owner, --team, --space and --default-part")
+        if value:
+            config[key] = value
+    if args.env == "prod" and config != PROD:
+        raise ValueError("Production identity/team defaults cannot be overridden")
+    for key, kind in (("owner", "devu"), ("team", "team"), ("space", "space"), ("default_part", "capability|product|enhancement|feature|component|microservice")):
+        if not re.fullmatch(r"don:(identity|core):dvrv-us-1:devo/\d+:(" + kind + r")/[A-Za-z0-9]+", config[key]):
+            raise ValueError(f"Invalid {key} DON")
+    org_ids = {value.split(":devo/", 1)[1].split(":", 1)[0] for key, value in config.items() if key not in {"env", "org"}}
+    if len(org_ids) != 1 or (args.env == "dev" and "0" in org_ids):
+        raise ValueError("Identity/team/space/part references must belong to the same environment org")
+    return config
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--env", choices=("prod", "dev"), default="prod")
+    for flag in ("owner", "team", "space", "default-part"):
+        parser.add_argument("--" + flag)
+    commands = parser.add_subparsers(dest="command", required=True)
+    commands.add_parser("context")
+    commands.add_parser("enhancements")
+    show = commands.add_parser("show")
+    show.add_argument("issue")
+    prepare = commands.add_parser("prepare")
+    prepare.add_argument("--title", required=True)
+    prepare.add_argument("--description-file", type=Path, required=True,
+                         help="Markdown description; todos must not exceed 200 words")
+    prepare.add_argument("--flow", choices=("working", "todo"), default="working")
+    prepare.add_argument("--part", help="Required for working issues; todos only allow DevRev MCP Server")
+    prepare.add_argument("--out", type=Path, required=True)
+    recover = commands.add_parser("recover")
+    recover.add_argument("--plan", type=Path, required=True)
+    create = commands.add_parser("create")
+    create.add_argument("--plan", type=Path, required=True)
+    create.add_argument("--confirmed", action="store_true", required=True)
+    transition = commands.add_parser("transition")
+    transition.add_argument("issue")
+    transition.add_argument("stage", choices=("in_development", "in_review"))
+    args = parser.parse_args()
+    config = configuration(args)
+    client = Client(config)
+    if args.command == "context":
+        result = {"config": config, **client.context(), "effort": client.effort()}
+    elif args.command == "enhancements":
+        result = client.enhancements()
+    elif args.command == "show":
+        work = client.show(args.issue)
+        result = {"url": issue_url(work, config), "work": work}
+    elif args.command == "prepare":
+        if args.flow == "working" and not args.part:
+            raise ValueError("Working issues require an explicit --part")
+        result = client.prepare(args.title, args.description_file.read_text(), args.part or config["default_part"], args.flow)
+        with args.out.open("x") as output:
+            output.write(json.dumps(result, indent=2) + "\n")
+    elif args.command == "recover":
+        result = client.recover(json.loads(args.plan.read_text()))
+    elif args.command == "create":
+        plan = json.loads(args.plan.read_text())
+        client.validate_plan(plan)
+        receipt = args.plan.with_suffix(args.plan.suffix + ".receipt.json")
+        # Mark the attempt BEFORE the network call; a timeout must never cause a blind retry.
+        with receipt.open("x") as output:
+            output.write(json.dumps({"status": "started", "external_ref": plan["payload"]["external_ref"]}) + "\n")
+        work = client.cli("works", "create", "--no-prune", payload=plan["payload"])[0]["work"]
+        receipt.write_text(json.dumps({"status": "created", "id": work["id"], "url": issue_url(work, config)}) + "\n")
+        print(json.dumps({"created_issue_url": issue_url(work, config), "receipt": str(receipt)}), flush=True)
+        updated = client.show(work["id"])
+        client.verify_created(updated, plan)
+        if plan.get("flow") != "todo":
+            updated = client.transition(work["id"], "in_development")
+        result = {"url": issue_url(updated, config), "id": updated["id"], "stage": updated["stage"]["name"]}
+        receipt.write_text(json.dumps({"status": result["stage"], **result}) + "\n")
+    else:
+        work = client.transition(args.issue, args.stage)
+        result = {"url": issue_url(work, config), "id": work["id"], "stage": work["stage"]["name"]}
+    print(json.dumps(result, indent=2))
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (ValueError, KeyError, RuntimeError, OSError, subprocess.SubprocessError) as error:
+        print(f"Error: {error}", file=sys.stderr)
+        sys.exit(1)
