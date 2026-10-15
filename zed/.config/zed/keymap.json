@@ -10,6 +10,10 @@
     "context": "Workspace",
     "bindings": {
       // "shift shift": "file_finder::Toggle"
+      "cmd-ctrl-alt-k": [
+        "task::Spawn",
+        { "task_name": "Clean up merged Git branches" }
+      ]
     },
   },
   {
