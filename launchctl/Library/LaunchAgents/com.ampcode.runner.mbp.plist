@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.ampcode.runner.mbp</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/erazemk/.amp/bin/amp</string>
+        <string>--remote-control-terminal</string>
+        <string>--no-tui</string>
+        <string>--runner-id=MBP</string>
+        <string>--desktop</string>
+        <string>--discover-dirs</string>
+        <string>--amp-env</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/erazemk/Code</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>HOME</key>
+        <string>/Users/erazemk</string>
+        <key>PATH</key>
+        <string>/Users/erazemk/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>StandardOutPath</key>
+    <string>/Users/erazemk/Library/Logs/amp-runner-mbp.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/erazemk/Library/Logs/amp-runner-mbp.error.log</string>
+</dict>
+</plist>
