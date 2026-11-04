@@ -40,5 +40,9 @@ insteadOf = https://github.com/
 name = Erazem Kokot
 email = mail@erazemk.com
 
+[credential "https://ampcode.com/"]
+	helper = 
+	helper = !amp git-credential-helper
+
 [includeIf "hasconfig:remote.*.url:git@github.com:devrev/**"]
     path = ~/.config/git/devrev
