@@ -1,15 +1,16 @@
 # Homebrew
-eval (brew shellenv fish)
+eval (/opt/homebrew/bin/brew shellenv fish)
 
 #
 # Environment variables
 #
 
-set -Ux fish_greeting
+set -g fish_greeting
 set -gx GOPRIVATE "github.com/devrev"
 set -gx GOPATH "$HOME/.local/share/go"
 
 fish_add_path -gP $GOPATH/bin
+fish_add_path -gP $HOME/.amp/bin
 fish_add_path -gP $HOME/.local/bin
 
 #
@@ -32,7 +33,8 @@ end
 
 function update --description "Update system packages"
     echo "Updating dotfiles..."
-    git -C $HOME/.config/dotfiles pull
+    git -C $HOME/.config/dotfiles pull; or return
+
     echo "Updating homebrew packages..."
     brew update && brew upgrade && brew autoremove && brew cleanup
 end
@@ -45,7 +47,7 @@ function mksh --description "Create an executable script skeleton"
     echo '#!/usr/bin/env bash' >>"$argv[1]" && chmod u+x "$argv[1]"
 end
 
-function mkcd --description "Create a temporary directory and go into it"
+function mkcd --description "Create a directory and enter it"
     mkdir -p "$argv[1]" && cd "$argv[1]"
 end
 
