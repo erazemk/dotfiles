@@ -164,12 +164,14 @@ defaults write com.apple.dock show-recents -bool false
 defaults write com.apple.dock mru-spaces -bool false # Keep Space order stable
 defaults write com.apple.dock persistent-others -array # Remove pinned folders
 if systemextensionsctl list | grep -q jumpcloud; then
-    # Pin only Google Chrome to the Dock
+    # Pin only Google Chrome to the Dock.
     defaults write com.apple.dock persistent-apps -array '
-    { "tile-data" = { "file-data" = {
-        "_CFURLString" = "file:///Applications/Google%20Chrome.app/";
-        "_CFURLStringType" = 15;
-    }; }; }'
+    <dict><key>tile-data</key><dict><key>file-data</key><dict>
+        <key>_CFURLString</key>
+        <string>file:///Applications/Google%20Chrome.app/</string>
+        <key>_CFURLStringType</key>
+        <integer>15</integer>
+    </dict></dict><key>tile-type</key><string>file-tile</string></dict>'
 fi
 
 # Finder
