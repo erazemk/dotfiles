@@ -6,23 +6,11 @@ eval (brew shellenv fish)
 #
 
 set -Ux fish_greeting
-set -gx EDITOR 'zed --wait'
+set -gx GOPRIVATE "github.com/devrev"
+set -gx GOPATH "$HOME/.local/share/go"
 
-set -gx XDG_CACHE_HOME $HOME/.cache
-set -gx XDG_CONFIG_HOME $HOME/.config
-set -gx XDG_DATA_HOME $HOME/.local/share
-fish_add_path -gP $HOME/.local/bin
-
-set -gx GIT_TERMINAL_PROMPT 1
-set -gx GOPATH $XDG_DATA_HOME/go
-set -gx GOPRIVATE github.com/devrev
-set -gx COLIMA_HOME $XDG_CONFIG_HOME/colima
 fish_add_path -gP $GOPATH/bin
-
-set -gx ARCUS_API_KEY (security find-generic-password -a devrev -s arcus-token -w 2>/dev/null)
-set -gx DEVREV_API_KEY (security find-generic-password -a devrev -s devrev-token -w 2>/dev/null)
-set -gx GITHUB_ACCESS_TOKEN (security find-generic-password -a devrev -s github-token -w 2>/dev/null)
-set -gx NPM_PRIVATE_ACCESS_TOKEN (security find-generic-password -a devrev -s npm-token -w 2>/dev/null)
+fish_add_path -gP $HOME/.local/bin
 
 #
 # Aliases
@@ -37,6 +25,10 @@ abbr cdtmp 'cd (mktemp -d)'
 #
 # Functions
 #
+
+function amp --description 'Amp Code'
+    command amp --executor runner:macbook-pro --runner-dir "$PWD" $argv
+end
 
 function update --description "Update system packages"
     echo "Updating dotfiles..."
@@ -67,31 +59,4 @@ function devrev --description "Run DevRev CLI or install it if missing"
     end
 
     command devrev -q $argv
-end
-
-function aws --description "Run AWS CLI with automatic log in (when using S3)"
-    if test "$argv[1]" = s3
-        set -l output (command aws $argv 2>&1)
-        set -l exit_code $status
-
-        echo -n $output
-
-        if string match -q "*Token has expired and refresh failed*" -- $output
-            command aws sso login
-            if test $status -eq 0
-                command aws $argv
-            else
-                return $status
-            end
-        end
-
-        return $exit_code
-    else
-        command aws $argv
-    end
-end
-
-function ecr --description "Log into AWS ECR through docker"
-    aws sso login
-    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 173672169127.dkr.ecr.us-east-1.amazonaws.com
 end
