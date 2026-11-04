@@ -20,10 +20,6 @@
 
     <key>EnvironmentVariables</key>
     <dict>
-        <key>GOPRIVATE</key>
-        <string>github.com/devrev</string>
-        <key>GOPATH</key>
-        <string>/Users/erazemk/.local/share/go</string>
         <key>PATH</key>
         <string>/Users/erazemk/.local/bin:/Users/erazemk/.local/share/go/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
     </dict>
