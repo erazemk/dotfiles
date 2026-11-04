@@ -1,0 +1,55 @@
+{
+    "[markdown]": {
+        "editor.wordWrap": "on"
+    },
+    "chat.titleBar.openInAgentsWindow.enabled": false,
+    "debug.console.fontSize": 15,
+    "diffEditor.experimental.showMoves": true,
+    "editor.fontSize": 15,
+    "editor.minimap.enabled": false,
+    "files.associations": {
+        "Makefile.*": "makefile"
+    },
+    "files.insertFinalNewline": true,
+    "files.simpleDialog.enable": true,
+    "files.trimFinalNewlines": true,
+    "git.autofetch": "all",
+    "git.autoStash": true,
+    "git.branchPrefix": "erazemk/",
+    "git.confirmSync": false,
+    "git.detectWorktrees": true,
+    "git.enableSmartCommit": true,
+    "git.fetchOnPull": true,
+    "git.mergeEditor": true,
+    "git.pruneOnFetch": true,
+    "git.pullBeforeCheckout": true,
+    "git.terminalGitEditor": true,
+    "github.gitProtocol": "ssh",
+    "githubIssues.issueCompletions.enabled": false,
+    "githubPullRequests.createOnPublishBranch": "always",
+    "githubPullRequests.pullRequestDescription": "commit",
+    "githubPullRequests.pushBranch": "always",
+    "go.toolsManagement.autoUpdate": true,
+    "gopls": {
+        "ui.semanticTokens": true
+    },
+    "makefile.configureOnOpen": false,
+    "markdown.preview.fontSize": 16,
+    "scm.diffDecorationsGutterPattern": {
+        "added": true
+    },
+    "security.workspace.trust.enabled": false,
+    "telemetry.feedback.enabled": false,
+    "telemetry.telemetryLevel": "off",
+    "terminal.integrated.fontSize": 15,
+    "terminal.integrated.initialHint": false,
+    "terminal.integrated.persistentSessionScrollback": 10000,
+    "terminal.integrated.scrollback": 10000,
+    "window.autoDetectColorScheme": true,
+    "window.newWindowDimensions": "inherit",
+    "window.restoreWindows": "none",
+    "workbench.commandPalette.showAskInChat": false,
+    "workbench.editor.useModal": "off",
+    "workbench.secondarySideBar.defaultVisibility": "hidden",
+    "workbench.startupEditor": "none"
+}
